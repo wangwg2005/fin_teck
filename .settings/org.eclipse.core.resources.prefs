@@ -1,4 +1,7 @@
 eclipse.preferences.version=1
 encoding//src/analyze.py=utf-8
 encoding//src/data/002118_ori.csv=UTF-8
+encoding//src/price2lev.py=utf-8
+encoding//src/realtime.py=utf-8
 encoding//src/stk_analyze.py=utf-8
+encoding//src/study/dumpLeverage.py=utf-8
