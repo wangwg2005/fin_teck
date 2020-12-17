@@ -56,6 +56,6 @@ main_ind=['510500', '510300', '510330', '510510', '512510', '159919', '512500', 
 # for target in main_ind:
 #     print("dumping "+target)
 #     dump_history(target)
-dump_history("002118")
+dump_history("510500")
 print("end")
 browser.close()
