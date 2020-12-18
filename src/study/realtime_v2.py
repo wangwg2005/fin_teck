@@ -71,14 +71,14 @@ def get_rzrq_realtime():
 import jqka
 def deduct_etf():
     total_df=None
-    target_etf=["510900","518880","159920"]
+    target_etf=["510900","518880","159920","159934"]
 #     total_etf=jqka.foreign_ind+jqka.gold_etf
     for code in target_etf:
         time.sleep(5)
         df=None
         try:
             df_raw=fc.get_cache(code, jqka.get_by_code, code)
-        except:
+        except :
             print("error happend when get etf")
             break
         df=df_raw[["融资余额"]].applymap(convertUnit)
@@ -91,7 +91,7 @@ def deduct_etf():
 #             print("total_df",total_df)
 #             print("negative df",-total_df)
 #             return
-            
+    print(total_df)
     return total_df
     
     
@@ -103,16 +103,25 @@ def draw_graph():
 #     print(rzrq)
 #     print("rzrq",rzrq)
     csi500=fc.get_cache("csi500",get_csi500_realtime)
-     
+#     print("csi500",csi500)
+
     etf=deduct_etf()/10000
-    print("eft",etf)
+#     print("eft",etf)
     demestic=rzrq-etf
-#     print("demestic macket",demestic)
-    features=csi500[["中证500"]]
+
+    print("demestic macket",demestic)
+    features=rzrq[["沪深300"]]
+    features["中证500"]=csi500["中证500"]
+#     print(demestic.index.duplicated())
 #     features["融资余额"]=demestic["融资余额"]
 #     (csi500_value[a]*2.7-1000-rzye[a])*2
     series1=(2.7*csi500["中证500"]-1000-demestic["融资余额"])*2
-    features["买入指数"]=series1
+    print(series1)
+    features["买入指数500"]=series1
+    series2=(2.7*rzrq["沪深300"]-demestic["融资余额"])*2+5000
+    print(features)
+    features["买入指数300"]=series2
+#     features["沪深300"]=rzrq["沪深300"]
     features.plot(grid=True)
     plt.show()
     

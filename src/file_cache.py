@@ -34,6 +34,7 @@ def get_cache(cache_id, func, param=None):
             result=merge(df, latest)
         else:
             result=latest
+        
         push(cache_id, result)
         
     return result
@@ -44,7 +45,7 @@ def is_up_to_date(df):
     
 
 def merge(df1,df2):
-     return pd.concat([df1, df2], axis=0)
+     return pd.concat([df1, df2], axis=0).drop_duplicates()
 
 
 def push(cache_id,pd):
