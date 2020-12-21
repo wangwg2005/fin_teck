@@ -3,8 +3,25 @@
 import os
 import pandas as pd
 from datetime import datetime, date, timedelta
+import calendar
 
 tmp_dir="C:\\tmp\\cache"
+
+def get_prevous_trade_date(currentdate):
+    
+    
+    year= currentdate.year
+    month = currentdate.month
+    day = currentdate.day
+    weekday=calendar.weekday(year,month,day)
+    
+    result=None
+    if weekday==0:
+        result=currentdate+timedelta(-3)
+    else:
+        result=currentdate+timedelta(-1)
+            
+    return result
 
 def get_from_cache(cache_id):
     fpath=os.path.join(tmp_dir,cache_id+".csv")
@@ -30,22 +47,23 @@ def get_cache(cache_id, func, param=None):
             latest=func()
         else:
             latest=func(param)
-        if len(df)>0:
+        if len(df)>0 and is_up_to_date(latest):
             result=merge(df, latest)
         else:
             result=latest
-        
-        push(cache_id, result)
+        if is_up_to_date(result):
+            push(cache_id, result)
         
     return result
 
 def is_up_to_date(df):
-    today=date.today()+timedelta(-1)
-    return today in df.index
+    pre_trade_date=get_prevous_trade_date(date.today())
+    
+    return pre_trade_date in df.index
     
 
 def merge(df1,df2):
-     return pd.concat([df1, df2], axis=0).drop_duplicates()
+    return pd.concat([df1, df2], axis=0).drop_duplicates()
 
 
 def push(cache_id,pd):
@@ -53,4 +71,4 @@ def push(cache_id,pd):
     pd.to_csv(fpath)
     
         
-
+print("previous trade date",get_prevous_trade_date(date.today()))
