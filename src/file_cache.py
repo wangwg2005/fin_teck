@@ -30,7 +30,7 @@ def get_from_cache(cache_id):
     if os.path.exists(fpath):
         df=pd.read_csv(fpath)
         date_time = pd.to_datetime(df.pop('日期'), format='%Y-%m-%d')
-        df.index=date_time
+        df['日期']=date_time
     else:
         df= pd.DataFrame()
     
@@ -56,13 +56,13 @@ def get_cache(cache_id, func, param=None):
             result=latest
         if is_up_to_date(result):
             push(cache_id, result)
-        
+    result.index= pd.to_datetime(result.pop('日期'), format='%Y-%m-%d')    
     return result
 
 def is_up_to_date(df):
     pre_trade_date=get_prevous_trade_date(date.today())
     
-    return pre_trade_date in df.index
+    return  len(df.loc[df['日期'] == pre_trade_date])
     
 
 def merge(df1,df2):
@@ -70,7 +70,7 @@ def merge(df1,df2):
 #     df2.replace('00','0',regex=True,inplace=True)
     result=pd.concat([df1, df2], axis=0)
     print("size before redundance",len(df1))
-    redundance= result.drop_duplicates()
+    redundance= result.drop_duplicates(subset=["日期"])
     print("size after redundance",len(redundance))
     return redundance
 
@@ -81,4 +81,3 @@ def push(cache_id,pd):
     
     
 print("previous trade date",get_prevous_trade_date(date.today()))
-print(os.getcwd())

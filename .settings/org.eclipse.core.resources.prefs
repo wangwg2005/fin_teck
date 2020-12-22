@@ -10,6 +10,7 @@ encoding//src/stk_analyze.py=utf-8
 encoding//src/study/analyze_leverage.py=utf-8
 encoding//src/study/annlysize.py=utf-8
 encoding//src/study/announce_analyse.py=utf-8
+encoding//src/study/cache/rzrq.csv=UTF-8
 encoding//src/study/csi300.py=utf-8
 encoding//src/study/dumpLeverage.py=utf-8
 encoding//src/study/dumpLeverageSeleEtf.py=utf-8

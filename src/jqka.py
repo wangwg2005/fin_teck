@@ -30,7 +30,7 @@ def get_by_code(code):
     df=pd.DataFrame(list(map(lambda row:row.text.split("\n"),rows)),columns=cname)
     df.pop("序号")
     date_time = pd.to_datetime(df.pop('日期'), format='%Y-%m-%d')
-    df.index=date_time
+    df["日期"]=date_time
     return df
 #     for row in rows:
 #         print(row.text.replace("\n",":"))
