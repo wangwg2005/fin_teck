@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 from jqka import *
 import pandas as pd
 import file_cache as fc
+from datetime import date
+import matplotlib.pyplot as plt
 
 url="http://data.eastmoney.com/rzrq/total/all.html"
 
@@ -61,7 +63,7 @@ def get_rzrq_realtime():
     table=browser.find_element_by_id("rzrq_history_table")
     #         table=tables[-1]
     rows=get_rows(table)
-    rows=list(map(lambda row:[row[0],row[1],convertUnit(row[3])/10000], rows))
+    rows=list(map(lambda row:[row[0],row[1].strip(),convertUnit(row[3])/10000], rows))
     df=pd.DataFrame(rows,columns=["日期","沪深300","融资余额"])
     date_time = pd.to_datetime(df.pop('日期'), format='%Y-%m-%d')
     df.index=date_time
@@ -122,7 +124,7 @@ def draw_graph():
     print(features)
     features["买入指数300"]=series2
 #     features["沪深300"]=rzrq["沪深300"]
-    features.plot(grid=True)
+    features.plot(grid=True,title=date.today())
     plt.show()
     
     

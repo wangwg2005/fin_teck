@@ -5,7 +5,9 @@ import pandas as pd
 from datetime import datetime, date, timedelta
 import calendar
 
-tmp_dir="C:\\tmp\\cache"
+tmp_dir=os.path.join(os.getcwd(),"cache")
+
+
 
 def get_prevous_trade_date(currentdate):
     
@@ -49,6 +51,7 @@ def get_cache(cache_id, func, param=None):
             latest=func(param)
         if len(df)>0 and is_up_to_date(latest):
             result=merge(df, latest)
+            print("%d new rows got" %(len(result)-len(df)))
         else:
             result=latest
         if is_up_to_date(result):
@@ -63,12 +66,19 @@ def is_up_to_date(df):
     
 
 def merge(df1,df2):
-    return pd.concat([df1, df2], axis=0).drop_duplicates()
+#     df1.replace('00','0',regex=True,inplace=True)
+#     df2.replace('00','0',regex=True,inplace=True)
+    result=pd.concat([df1, df2], axis=0)
+    print("size before redundance",len(df1))
+    redundance= result.drop_duplicates()
+    print("size after redundance",len(redundance))
+    return redundance
 
 
 def push(cache_id,pd):
     fpath=os.path.join(tmp_dir,cache_id+".csv")
     pd.to_csv(fpath)
     
-        
+    
 print("previous trade date",get_prevous_trade_date(date.today()))
+print(os.getcwd())
