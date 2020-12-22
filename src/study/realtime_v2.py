@@ -94,7 +94,7 @@ def deduct_etf():
 #             print("total_df",total_df)
 #             print("negative df",-total_df)
 #             return
-    print(total_df)
+#     print(total_df)
     return total_df
     
     
@@ -119,14 +119,22 @@ def draw_graph():
 #     features["融资余额"]=demestic["融资余额"]
 #     (csi500_value[a]*2.7-1000-rzye[a])*2
     series1=(2.7*csi500["中证500"]-1000-demestic["融资余额"])*2
-    print(series1)
+#     print(series1)
     features["买入指数500"]=series1
     series2=(2.7*rzrq["沪深300"]-demestic["融资余额"])*2+5000
-    print(features)
+#     print(features)
     features["买入指数300"]=series2
 #     features["沪深300"]=rzrq["沪深300"]
     features.plot(grid=True,title=date.today())
-    plt.show()
+    
+    import os
+#     plt.show()
+#     plt.rcParams['figure.figsize'] = (16.0, 8.0)
+    fig = plt.gcf()
+    fig.set_size_inches(16, 8)
+    plt.savefig(os.path.join("img",str(date.today())+".png"))
+    browser.close()
+    browser.quit()
     
     
 #     print(get_csi500_realtime())
