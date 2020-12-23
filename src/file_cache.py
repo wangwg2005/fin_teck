@@ -7,7 +7,7 @@ import calendar
 
 tmp_dir=os.path.join(os.getcwd(),"cache")
 
-
+print("cache dir:",tmp_dir)
 
 def get_prevous_trade_date(currentdate):
     
@@ -40,6 +40,7 @@ def get_cache(cache_id, func, param=None):
     print("retriving ", cache_id)
     df=get_from_cache(cache_id)
     result=None
+    
     if is_up_to_date(df):
         print("retriving %s from cache" %(cache_id))
         result=df
@@ -54,9 +55,15 @@ def get_cache(cache_id, func, param=None):
             print("%d new rows got" %(len(result)-len(df)))
         else:
             result=latest
-        if is_up_to_date(result):
-            push(cache_id, result)
-    result.index= pd.to_datetime(result.pop('日期'), format='%Y-%m-%d')    
+        
+    
+    
+    if is_up_to_date(result):
+        up_to_date=False
+    result.index= pd.to_datetime(result.pop('日期'), format='%Y-%m-%d')
+    if up_to_date:
+        
+        push(cache_id, result)
     return result
 
 def is_up_to_date(df):
