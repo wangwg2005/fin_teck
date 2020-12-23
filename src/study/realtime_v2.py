@@ -25,6 +25,8 @@ tmp_dir=r"C:\tmp\program"
 
 
 def convertUnit(val):
+    if type(val)==float:
+        return val
     val=val.replace(",","")
     if val[-1]=="万":
         return float(val[:-1])
@@ -102,17 +104,19 @@ def deduct_etf():
 def draw_graph():
     
     rzrq=fc.get_cache("rzrq",get_rzrq_realtime)
+    rzrq.applymap(convertUnit)
     
 #     print(rzrq)
 #     print("rzrq",rzrq)
     csi500=fc.get_cache("csi500",get_csi500_realtime)
+    csi500.applymap(convertUnit)
 #     print("csi500",csi500)
 
     etf=deduct_etf()/10000
 #     print("eft",etf)
     demestic=rzrq-etf
 
-    print("demestic macket",demestic)
+#     print("demestic macket",demestic)
     features=rzrq[["沪深300"]]
     features["中证500"]=csi500["中证500"]
 #     print(demestic.index.duplicated())
@@ -127,6 +131,8 @@ def draw_graph():
 #     features["沪深300"]=rzrq["沪深300"]
     features.plot(grid=True,title=date.today())
     
+    print(features)
+    
     import os
 #     plt.show()
 #     plt.rcParams['figure.figsize'] = (16.0, 8.0)
@@ -135,6 +141,7 @@ def draw_graph():
     plt.savefig(os.path.join("img",str(date.today())+".png"))
     browser.close()
     browser.quit()
+    plt.show()
     
     
 #     print(get_csi500_realtime())

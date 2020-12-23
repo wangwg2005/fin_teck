@@ -58,11 +58,10 @@ def get_cache(cache_id, func, param=None):
         
     
     
-    if is_up_to_date(result):
-        up_to_date=False
+    up_to_date= is_up_to_date(result)
+        
     result.index= pd.to_datetime(result.pop('日期'), format='%Y-%m-%d')
     if up_to_date:
-        
         push(cache_id, result)
     return result
 
