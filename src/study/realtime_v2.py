@@ -13,6 +13,7 @@ import pandas as pd
 import file_cache as fc
 from datetime import date
 import matplotlib.pyplot as plt
+import math
 
 url="http://data.eastmoney.com/rzrq/total/all.html"
 
@@ -97,6 +98,7 @@ def deduct_etf():
 #             print("negative df",-total_df)
 #             return
 #     print(total_df)
+    print("total",total_df)
     return total_df
     
     
@@ -105,15 +107,17 @@ def draw_graph():
     
     rzrq=fc.get_cache("rzrq",get_rzrq_realtime)
     rzrq.applymap(convertUnit)
+#     print(rzrq.info())
     
 #     print(rzrq)
 #     print("rzrq",rzrq)
     csi500=fc.get_cache("csi500",get_csi500_realtime)
     csi500.applymap(convertUnit)
+#     print(csi500.info())
 #     print("csi500",csi500)
 
     etf=deduct_etf()/10000
-#     print("eft",etf)
+    print("eft",etf)
     demestic=rzrq-etf
 
 #     print("demestic macket",demestic)
@@ -124,14 +128,25 @@ def draw_graph():
 #     (csi500_value[a]*2.7-1000-rzye[a])*2
     series1=(2.7*csi500["中证500"]-1000-demestic["融资余额"])*2
 #     print(series1)
-    features["买入指数500"]=series1
+    features["风险-中证500"]=series1
+    print("rzrq",rzrq)
+    print("demestic",demestic)
     series2=(2.7*rzrq["沪深300"]-demestic["融资余额"])*2+5000
 #     print(features)
-    features["买入指数300"]=series2
+#     features["买入指数300"]=series2
 #     features["沪深300"]=rzrq["沪深300"]
-    features.plot(grid=True,title=date.today())
+#     features["融资余额*"]=etf["融资余额"]
+    features.pop("沪深300")
     
+    features=features.sort_index(axis=0)
+    num_ser=range(len(features))
+    features.index=num_ser
+#     features["sin"]=pd.Series(data=list(map(lambda a:3000*math.cos(a/60-0.55)+3450,num_ser)),name="sin")
+#     features["sin2"]=pd.Series(data=list(map(lambda a:3000*math.cos(a/60-0.55)+3350,num_ser)),name="sin")
+    features["sim"]=pd.Series(data=list(map(lambda a:math.fabs(3000*math.cos(a/60-0.55)+3400+80*math.cos(a/5 *math.pi)-6200)+6200,num_ser)),name="sim")
+    features.plot(grid=True,title=date.today())
     print(features)
+    
     
     import os
 #     plt.show()

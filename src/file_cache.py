@@ -9,6 +9,9 @@ tmp_dir=os.path.join(os.getcwd(),"cache")
 
 print("cache dir:",tmp_dir)
 
+cache_only=False
+no_cache=False
+
 def get_prevous_trade_date(currentdate):
     
     
@@ -26,6 +29,8 @@ def get_prevous_trade_date(currentdate):
     return result
 
 def get_from_cache(cache_id):
+    if no_cache:
+        return pd.DataFrame({"日期":[]})
     fpath=os.path.join(tmp_dir,cache_id+".csv")
     if os.path.exists(fpath):
         df=pd.read_csv(fpath)
@@ -61,7 +66,7 @@ def get_cache(cache_id, func, param=None):
     up_to_date= is_up_to_date(result)
         
     result.index= pd.to_datetime(result.pop('日期'), format='%Y-%m-%d')
-    if up_to_date:
+    if up_to_date and not no_cache:
         push(cache_id, result)
     return result
 
