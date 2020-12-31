@@ -100,31 +100,36 @@ def deduct_etf():
 #     print(total_df)
     print("total",total_df)
     return total_df
-    
-def model1(a):
-    return 3000*math.cos(a/60-0.55)+3400+80*math.cos(a/5 *math.pi)
 
-reflect=6200
+
+def model1(a):
+    return 3000*math.cos(a/60-0.55)+3400+80*math.cos(a/5 * math.pi)
+
+
+reflect = 6200
+
 
 def model2(a):
-    return math.fabs(3000*math.cos(a/60-0.55)+3400+80*math.cos(a/5 *math.pi)-reflect)+reflect
+    return math.fabs(3000*math.cos(a/62 - 0.55)+3400+80*math.cos(a/5 * math.pi)+25*math.cos(a * math.pi + math.pi)-reflect)+reflect
 
 
 def draw_predict(n=70):
-    ind=range(n)
-    data_m1=list(map(model1,ind))
-    data_m2=list(map(model2,ind))
-    predict=pd.DataFrame({"model_1":data_m1,"model_2":data_m2})
+    ind = range(n)
+    data_m1 = list(map(model1, ind))
+    data_m2 = list(map(model2, ind))
+    predict = pd.DataFrame({"model_1": data_m1, "model_2": data_m2})
 #     predict=pd.DataFrame({"model_1":data_m1})
 #     predict["mode2"]=pd.Series(,name="model2")
-    print("predict",predict)
+    print("predict", predict)
     predict.plot(grid=True)
     plt.show()
+
+
 def draw_graph():
     
-    rzrq=fc.get_cache("rzrq",get_rzrq_realtime)
+    rzrq = fc.get_cache("rzrq", get_rzrq_realtime)
     rzrq.applymap(convertUnit)
-#     print(rzrq.info())
+    # print(rzrq.info())
     
 #     print(rzrq)
 #     print("rzrq",rzrq)
@@ -134,7 +139,7 @@ def draw_graph():
 #     print("csi500",csi500)
 
     etf=deduct_etf()/10000
-    print("eft",etf)
+    # print("eft", etf)
     demestic=rzrq-etf
 
 #     print("demestic macket",demestic)
@@ -155,18 +160,22 @@ def draw_graph():
 #     features["融资余额*"]=etf["融资余额"]
     features.pop("沪深300")
     
-    features=features.sort_index(axis=0)
-    num_ser=range(len(features))
-    features.index=num_ser
+    features = features.sort_index(axis=0)
+    num_ser = range(len(features))
+    features.index = num_ser
 #     features["sin"]=pd.Series(data=list(map(lambda a:3000*math.cos(a/60-0.55)+3450,num_ser)),name="sin")
 #     features["sin2"]=pd.Series(data=list(map(lambda a:3000*math.cos(a/60-0.55)+3350,num_ser)),name="sin")
 #     features["sim"]=pd.Series(data=list(map(lambda a:math.fabs(3000*math.cos(a/60-0.55)+3400+80*math.cos(a/5 *math.pi)-6200)+6200,num_ser)),name="sim")
 
-    features["sim"]=pd.Series(data=list(map(model2,num_ser)),name="sim")
-#     features["diff"]=features["sim"]-features["中证500"]
+    features["sim"] = pd.Series(data=list(map(model2 , num_ser)), name="sim")
+    features["diff"] = features["sim"]-features["中证500"]
     print(features)
-    features.plot(grid=True,title=date.today())
+    features.plot(grid=True, title=date.today())
 #     print(features)
+    diff_df = features[["diff"]][4:]
+    diff_df.plot(grid=True, title=date.today())
+    print("diff mean", diff_df.mean())
+    print("diff std", diff_df.std())
 
     
     import os
@@ -174,7 +183,7 @@ def draw_graph():
 #     plt.rcParams['figure.figsize'] = (16.0, 8.0)
     fig = plt.gcf()
     fig.set_size_inches(16, 8)
-    plt.savefig(os.path.join("img",str(date.today())+".png"))
+    plt.savefig(os.path.join("img", str(date.today())+".png"))
     browser.close()
     browser.quit()
     plt.show()

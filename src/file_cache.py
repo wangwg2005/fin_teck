@@ -5,12 +5,13 @@ import pandas as pd
 from datetime import datetime, date, timedelta
 import calendar
 
-tmp_dir=os.path.join(os.getcwd(),"cache")
+tmp_dir = os.path.join(os.getcwd(),"cache")
 
 print("cache dir:",tmp_dir)
 
-cache_only=False
-no_cache=False
+cache_only = False
+no_cache = False
+
 
 def get_prevous_trade_date(currentdate):
     
@@ -18,48 +19,49 @@ def get_prevous_trade_date(currentdate):
     year= currentdate.year
     month = currentdate.month
     day = currentdate.day
-    weekday=calendar.weekday(year,month,day)
+    weekday = calendar.weekday(year,month,day)
     
-    result=None
-    if weekday==0:
+    result = None
+    if weekday == 0:
         result=currentdate+timedelta(-3)
     else:
         result=currentdate+timedelta(-1)
             
     return result
 
+
 def get_from_cache(cache_id):
     if no_cache:
-        return pd.DataFrame({"日期":[]})
-    fpath=os.path.join(tmp_dir,cache_id+".csv")
+        return pd.DataFrame({"日期": []})
+    fpath = os.path.join(tmp_dir, cache_id+".csv")
     if os.path.exists(fpath):
-        df=pd.read_csv(fpath)
+        df = pd.read_csv(fpath)
         date_time = pd.to_datetime(df.pop('日期'), format='%Y-%m-%d')
-        df['日期']=date_time
+        df['日期'] = date_time
     else:
-        df= pd.DataFrame()
+        df = pd.DataFrame()
     
     return df
 
+
 def get_cache(cache_id, func, param=None):
     print("retriving ", cache_id)
-    df=get_from_cache(cache_id)
-    result=None
-    
+    df = get_from_cache(cache_id)
+    result = None
     if is_up_to_date(df):
         print("retriving %s from cache" %(cache_id))
-        result=df
+        result = df
     else:
         print("updating cache for ",cache_id)
         if param is None:
-            latest=func()
+            latest = func()
         else:
-            latest=func(param)
-        if len(df)>0 and is_up_to_date(latest):
-            result=merge(df, latest)
+            latest = func(param)
+        if len(df) > 0 and is_up_to_date(latest):
+            result = merge(df, latest)
             print("%d new rows got" %(len(result)-len(df)))
         else:
-            result=latest
+            result = latest
         
     
     
@@ -70,10 +72,11 @@ def get_cache(cache_id, func, param=None):
         push(cache_id, result)
     return result
 
+
 def is_up_to_date(df):
-    pre_trade_date=get_prevous_trade_date(date.today())
-    
-    return  len(df.loc[df['日期'] == pre_trade_date])
+
+    pre_trade_date = get_prevous_trade_date(date.today())
+    return len(df.loc[df['日期'] == pre_trade_date])
     
 
 def merge(df1,df2):
@@ -81,7 +84,7 @@ def merge(df1,df2):
 #     df2.replace('00','0',regex=True,inplace=True)
     result=pd.concat([df1, df2], axis=0)
     print("size before redundance",len(df1))
-    redundance= result.drop_duplicates(subset=["日期"])
+    redundance = result.drop_duplicates(subset=["日期"])
     print("size after redundance",len(redundance))
     return redundance
 
