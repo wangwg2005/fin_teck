@@ -101,8 +101,25 @@ def deduct_etf():
     print("total",total_df)
     return total_df
     
-    
+def model1(a):
+    return 3000*math.cos(a/60-0.55)+3400+80*math.cos(a/5 *math.pi)
 
+reflect=6200
+
+def model2(a):
+    return math.fabs(3000*math.cos(a/60-0.55)+3400+80*math.cos(a/5 *math.pi)-reflect)+reflect
+
+
+def draw_predict(n=70):
+    ind=range(n)
+    data_m1=list(map(model1,ind))
+    data_m2=list(map(model2,ind))
+    predict=pd.DataFrame({"model_1":data_m1,"model_2":data_m2})
+#     predict=pd.DataFrame({"model_1":data_m1})
+#     predict["mode2"]=pd.Series(,name="model2")
+    print("predict",predict)
+    predict.plot(grid=True)
+    plt.show()
 def draw_graph():
     
     rzrq=fc.get_cache("rzrq",get_rzrq_realtime)
@@ -129,8 +146,8 @@ def draw_graph():
     series1=(2.7*csi500["中证500"]-1000-demestic["融资余额"])*2
 #     print(series1)
     features["风险-中证500"]=series1
-    print("rzrq",rzrq)
-    print("demestic",demestic)
+#     print("rzrq",rzrq)
+#     print("demestic",demestic)
     series2=(2.7*rzrq["沪深300"]-demestic["融资余额"])*2+5000
 #     print(features)
 #     features["买入指数300"]=series2
@@ -143,10 +160,14 @@ def draw_graph():
     features.index=num_ser
 #     features["sin"]=pd.Series(data=list(map(lambda a:3000*math.cos(a/60-0.55)+3450,num_ser)),name="sin")
 #     features["sin2"]=pd.Series(data=list(map(lambda a:3000*math.cos(a/60-0.55)+3350,num_ser)),name="sin")
-    features["sim"]=pd.Series(data=list(map(lambda a:math.fabs(3000*math.cos(a/60-0.55)+3400+80*math.cos(a/5 *math.pi)-6200)+6200,num_ser)),name="sim")
-    features.plot(grid=True,title=date.today())
+#     features["sim"]=pd.Series(data=list(map(lambda a:math.fabs(3000*math.cos(a/60-0.55)+3400+80*math.cos(a/5 *math.pi)-6200)+6200,num_ser)),name="sim")
+
+    features["sim"]=pd.Series(data=list(map(model2,num_ser)),name="sim")
+#     features["diff"]=features["sim"]-features["中证500"]
     print(features)
-    
+    features.plot(grid=True,title=date.today())
+#     print(features)
+
     
     import os
 #     plt.show()
@@ -165,5 +186,6 @@ def draw_graph():
     
 
 draw_graph()
+# draw_predict(59)
 
 
