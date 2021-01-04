@@ -12,7 +12,6 @@ from jqka import *
 import pandas as pd
 import file_cache as fc
 from datetime import date
-import matplotlib.pyplot as plt
 import math
 
 url="http://data.eastmoney.com/rzrq/total/all.html"
@@ -116,13 +115,21 @@ def mode_std(a):
     return math.fabs(3000*math.cos(a/60-0.55)+3400+80*math.cos(a/5 *math.pi)-reflect)+reflect
 
 def model2(a):
-    return math.fabs(3300*math.cos(a/60-0.55)+3100+80*math.cos(a/5 *math.pi)-reflect)+reflect
+    return math.fabs(2900*math.cos(a/60-0.55)+3500+80*math.cos(a/5 *math.pi)-reflect)+reflect
+
+def model2021(a):
+    return math.fabs(3000*math.cos(a/50-0.6)+3400+80*math.cos(a/5 *math.pi)-reflect)+reflect
+
+
+def model_train(x,a,b,c,d):
+    return a*math.cos(b*x+c)+d+80*math.cos(b*x+c)
+
 
 
 def draw_predict(n=70):
     ind=range(n)
     data_m1=list(map(model1,ind))
-    data_m2=list(map(model2,ind))
+    data_m2=list(map(mode_std,ind))
     predict=pd.DataFrame({"model_1":data_m1,"model_2":data_m2})
 #     predict=pd.DataFrame({"model_1":data_m1})
 #     predict["mode2"]=pd.Series(,name="model2")
@@ -161,7 +168,7 @@ def draw_graph(risk=True):
         features["风险-中证500"]=series1
 #     print("rzrq",rzrq)
 #     print("demestic",demestic)
-    series2=(2.7*rzrq["沪深300"]-demestic["融资余额"])*2+5000
+#     series2=(2.7*rzrq["沪深300"]-demestic["融资余额"])*2+5000
 #     print(features)
 #     features["买入指数300"]=series2
 #     features["沪深300"]=rzrq["沪深300"]
@@ -183,6 +190,7 @@ def draw_graph(risk=True):
 
     print(features)
     diff_df=features[["diff"]]
+#     diff_df["diff sum"]=diff_df["diff"].cumsum()
     features.pop("diff")
     features.plot(grid=True,title=date.today())
     
@@ -206,7 +214,9 @@ def draw_graph(risk=True):
     
     
 
-draw_graph()
-draw_predict(60)
+# draw_graph(risk=False)
+
+# train_model()
+draw_predict(150)
 
 
