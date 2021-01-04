@@ -1,0 +1,28 @@
+math.fabs(3000*math.cos(a/60-0.55)+3400+80*math.cos(a/5 *math.pi)-reflect)+reflect
+diff mean 10.817059205831912
+diff std 48.4961506803017
+
+
+math.fabs(3000*math.cos(a/60-0.55)+3400+70*math.cos(a/5 *math.pi)-reflect)+reflect
+diff mean 8.6353642152069
+diff std 46.536329713756366
+
+math.fabs(3000*math.cos(a/70-0.55)+3400+70*math.cos(a/5 *math.pi)-reflect)+reflect
+diff mean 16.731342983777672
+diff std 59.99246921385422
+
+math.fabs(3000*math.cos(a/65-0.55)+3400+70*math.cos(a/5 *math.pi)-reflect)+reflect
+diff mean 10.761080285709356
+diff std 53.42323599324574
+
+
+math.fabs(3000*math.cos(a/65-0.5)+3400+70*math.cos(a/5 *math.pi)-reflect)+reflect
+diff mean 11.360933139228868
+diff std 56.13872439193059
+
+
+math.fabs(3000*math.cos(a/65-0.5)+3400+80*math.cos(a/5 *math.pi)-reflect)+reflect
+
+
+
+

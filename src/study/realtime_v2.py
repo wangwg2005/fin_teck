@@ -101,13 +101,22 @@ def deduct_etf():
     print("total",total_df)
     return total_df
     
+    
+def statistics(seri):
+    print("diff mean",seri.mean())
+    print("diff std",seri.std())
+
+
 def model1(a):
     return 3000*math.cos(a/60-0.55)+3400+80*math.cos(a/5 *math.pi)
 
 reflect=6200
 
-def model2(a):
+def mode_std(a):
     return math.fabs(3000*math.cos(a/60-0.55)+3400+80*math.cos(a/5 *math.pi)-reflect)+reflect
+
+def model2(a):
+    return math.fabs(3200*math.cos(a/70-0.5)+3200+60*math.cos(a/5 *math.pi)-reflect)+reflect
 
 
 def draw_predict(n=70):
@@ -120,6 +129,7 @@ def draw_predict(n=70):
     print("predict",predict)
     predict.plot(grid=True)
     plt.show()
+    
 def draw_graph():
     
     rzrq=fc.get_cache("rzrq",get_rzrq_realtime)
@@ -134,7 +144,7 @@ def draw_graph():
 #     print("csi500",csi500)
 
     etf=deduct_etf()/10000
-    print("eft",etf)
+#     print("eft",etf)
     demestic=rzrq-etf
 
 #     print("demestic macket",demestic)
@@ -145,7 +155,7 @@ def draw_graph():
 #     (csi500_value[a]*2.7-1000-rzye[a])*2
     series1=(2.7*csi500["中证500"]-1000-demestic["融资余额"])*2
 #     print(series1)
-    features["风险-中证500"]=series1
+#     features["风险-中证500"]=series1
 #     print("rzrq",rzrq)
 #     print("demestic",demestic)
     series2=(2.7*rzrq["沪深300"]-demestic["融资余额"])*2+5000
@@ -156,6 +166,7 @@ def draw_graph():
     features.pop("沪深300")
     
     features=features.sort_index(axis=0)
+    
     num_ser=range(len(features))
     features.index=num_ser
 #     features["sin"]=pd.Series(data=list(map(lambda a:3000*math.cos(a/60-0.55)+3450,num_ser)),name="sin")
@@ -163,10 +174,17 @@ def draw_graph():
 #     features["sim"]=pd.Series(data=list(map(lambda a:math.fabs(3000*math.cos(a/60-0.55)+3400+80*math.cos(a/5 *math.pi)-6200)+6200,num_ser)),name="sim")
 
     features["sim"]=pd.Series(data=list(map(model2,num_ser)),name="sim")
-#     features["diff"]=features["sim"]-features["中证500"]
+    
+    features["diff"]=features["sim"]-features["中证500"]
+    statistics(features["diff"][4:])
+
     print(features)
+    diff_df=features[["diff"]][4:]
+    features.pop("diff")
     features.plot(grid=True,title=date.today())
-#     print(features)
+    
+    
+    diff_df.plot(grid=True)
 
     
     import os
@@ -186,6 +204,6 @@ def draw_graph():
     
 
 draw_graph()
-# draw_predict(59)
+# draw_predict(60)
 
 
