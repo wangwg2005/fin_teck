@@ -9,7 +9,7 @@ tmp_dir = os.path.join(os.getcwd(),"cache")
 
 print("cache dir:",tmp_dir)
 
-cache_only = False
+cache_only = True
 no_cache = False
 
 
@@ -48,7 +48,7 @@ def get_cache(cache_id, func, param=None):
     print("retriving ", cache_id)
     df = get_from_cache(cache_id)
     result = None
-    if is_up_to_date(df):
+    if cache_only or is_up_to_date(df):
         print("retriving %s from cache" %(cache_id))
         result = df
     else:
@@ -65,10 +65,10 @@ def get_cache(cache_id, func, param=None):
         
     
     
-    up_to_date= is_up_to_date(result)
+    up_to_date = is_up_to_date(result)
         
-    result.index= pd.to_datetime(result.pop('日期'), format='%Y-%m-%d')
-    if up_to_date and not no_cache:
+    result.index = pd.to_datetime(result.pop('日期'), format='%Y-%m-%d')
+    if up_to_date and not no_cache and not cache_only:
         push(cache_id, result)
     return result
 

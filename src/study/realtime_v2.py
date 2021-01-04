@@ -53,12 +53,12 @@ def get_csi500_realtime():
     table=browser.find_element_by_class_name("table_bg001")
     rows=get_rows(table, 1)
     
-    rows=list(map(lambda row:[row[0],convertUnit(row[4])], rows))
-    df=pd.DataFrame(rows,columns=["日期","中证500"])
+    rows=list(map(lambda row: [row[0], convertUnit(row[4])], rows))
     date_time = pd.to_datetime(df.pop('日期'), format='%Y%m%d')
     df["日期"]=date_time
 #     df.index=date_time
     return df
+
 
 def get_rzrq_realtime():
     url="http://data.eastmoney.com/rzrq/total/all.html"
@@ -67,8 +67,8 @@ def get_rzrq_realtime():
     table=browser.find_element_by_id("rzrq_history_table")
     #         table=tables[-1]
     rows=get_rows(table)
-    rows=list(map(lambda row:[row[0],row[1].strip(),convertUnit(row[3])/10000], rows))
-    df=pd.DataFrame(rows,columns=["日期","沪深300","融资余额"])
+    rows=list(map(lambda row:[row[0], row[1].strip(), convertUnit(row[3])/10000], rows))
+    df=pd.DataFrame(rows, columns=["日期", "沪深300", "融资余额"])
     date_time = pd.to_datetime(df.pop('日期'), format='%Y-%m-%d')
     df["日期"]=date_time
     return df
@@ -110,8 +110,12 @@ reflect = 6200
 
 
 def model2(a):
-    return math.fabs(3000*math.cos(a/62 - 0.55)+3400+80*math.cos(a/5 * math.pi)+25*math.cos(a * math.pi + math.pi)-reflect)+reflect
+    return math.fabs(3000*math.cos(a/62 - 0.55)+3400-reflect)+reflect+sub_model(a)
 
+
+def sub_model(a):
+    return -80*math.cos(a / 5.5 * math.pi)
+    # return 0
 
 def draw_predict(n=70):
     ind = range(n)
@@ -150,7 +154,7 @@ def draw_graph():
 #     (csi500_value[a]*2.7-1000-rzye[a])*2
     series1=(2.7*csi500["中证500"]-1000-demestic["融资余额"])*2
 #     print(series1)
-    features["风险-中证500"]=series1
+#     features["风险-中证500"]=series1
 #     print("rzrq",rzrq)
 #     print("demestic",demestic)
     series2=(2.7*rzrq["沪深300"]-demestic["融资余额"])*2+5000
@@ -167,12 +171,14 @@ def draw_graph():
 #     features["sin2"]=pd.Series(data=list(map(lambda a:3000*math.cos(a/60-0.55)+3350,num_ser)),name="sin")
 #     features["sim"]=pd.Series(data=list(map(lambda a:math.fabs(3000*math.cos(a/60-0.55)+3400+80*math.cos(a/5 *math.pi)-6200)+6200,num_ser)),name="sim")
 
-    features["sim"] = pd.Series(data=list(map(model2 , num_ser)), name="sim")
-    features["diff"] = features["sim"]-features["中证500"]
+    features["sim"] = pd.Series(data=list(map(model2, num_ser)), name="sim")
+
     print(features)
     features.plot(grid=True, title=date.today())
 #     print(features)
-    diff_df = features[["diff"]][4:]
+    features["diff"] = features["sim"]-features["中证500"]
+    features["sub_model"] = pd.Series(data=list(map(sub_model, num_ser)), name="sim")
+    diff_df = features[["diff", "sub_model"]]
     diff_df.plot(grid=True, title=date.today())
     print("diff mean", diff_df.mean())
     print("diff std", diff_df.std())
