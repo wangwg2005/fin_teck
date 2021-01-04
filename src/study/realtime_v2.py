@@ -116,7 +116,7 @@ def mode_std(a):
     return math.fabs(3000*math.cos(a/60-0.55)+3400+80*math.cos(a/5 *math.pi)-reflect)+reflect
 
 def model2(a):
-    return math.fabs(3200*math.cos(a/70-0.5)+3200+60*math.cos(a/5 *math.pi)-reflect)+reflect
+    return math.fabs(3300*math.cos(a/60-0.55)+3100+80*math.cos(a/5 *math.pi)-reflect)+reflect
 
 
 def draw_predict(n=70):
@@ -130,7 +130,7 @@ def draw_predict(n=70):
     predict.plot(grid=True)
     plt.show()
     
-def draw_graph():
+def draw_graph(risk=True):
     
     rzrq=fc.get_cache("rzrq",get_rzrq_realtime)
     rzrq.applymap(convertUnit)
@@ -143,9 +143,7 @@ def draw_graph():
 #     print(csi500.info())
 #     print("csi500",csi500)
 
-    etf=deduct_etf()/10000
-#     print("eft",etf)
-    demestic=rzrq-etf
+
 
 #     print("demestic macket",demestic)
     features=rzrq[["沪深300"]]
@@ -153,9 +151,14 @@ def draw_graph():
 #     print(demestic.index.duplicated())
 #     features["融资余额"]=demestic["融资余额"]
 #     (csi500_value[a]*2.7-1000-rzye[a])*2
-    series1=(2.7*csi500["中证500"]-1000-demestic["融资余额"])*2
+    
 #     print(series1)
-#     features["风险-中证500"]=series1
+    if risk:
+        etf=deduct_etf()/10000
+#     print("eft",etf)
+        demestic=rzrq-etf
+        series1=(2.7*csi500["中证500"]-1000-demestic["融资余额"])*2
+        features["风险-中证500"]=series1
 #     print("rzrq",rzrq)
 #     print("demestic",demestic)
     series2=(2.7*rzrq["沪深300"]-demestic["融资余额"])*2+5000
@@ -179,7 +182,7 @@ def draw_graph():
     statistics(features["diff"][4:])
 
     print(features)
-    diff_df=features[["diff"]][4:]
+    diff_df=features[["diff"]]
     features.pop("diff")
     features.plot(grid=True,title=date.today())
     
@@ -204,6 +207,6 @@ def draw_graph():
     
 
 draw_graph()
-# draw_predict(60)
+draw_predict(60)
 
 
