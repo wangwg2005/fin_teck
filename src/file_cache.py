@@ -5,12 +5,20 @@ import pandas as pd
 from datetime import datetime, date, timedelta
 import calendar
 
+holiday=["2021-01-01"]
+
 tmp_dir=os.path.join(os.getcwd(),"cache")
 
 print("cache dir:",tmp_dir)
 
 cache_only=False
 no_cache=False
+
+def skip_holiday(day):
+    while str(day) in holiday:
+        day=day+timedelta(-1)
+        
+    return day
 
 def get_prevous_trade_date(currentdate):
     
@@ -25,6 +33,8 @@ def get_prevous_trade_date(currentdate):
         result=currentdate+timedelta(-3)
     else:
         result=currentdate+timedelta(-1)
+        
+    result=skip_holiday(result)
             
     return result
 
