@@ -54,6 +54,7 @@ def get_csi500_realtime():
     rows=get_rows(table, 1)
     
     rows=list(map(lambda row: [row[0], convertUnit(row[4])], rows))
+    df=pd.DataFrame(rows,columns=["日期", "中证500"])
     date_time = pd.to_datetime(df.pop('日期'), format='%Y%m%d')
     df["日期"]=date_time
 #     df.index=date_time
