@@ -195,7 +195,7 @@ def draw_graph(risk=True):
     features.plot(grid=True,title=date.today())
     
     
-    diff_df.plot(grid=True)
+#     diff_df.plot(grid=True)
 
     
     import os
@@ -214,9 +214,9 @@ def draw_graph(risk=True):
     
     
 
-# draw_graph(risk=False)
+draw_graph(risk=True)
 
 # train_model()
-draw_predict(150)
+# draw_predict(150)
 
 
