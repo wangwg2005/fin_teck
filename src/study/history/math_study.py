@@ -8,7 +8,7 @@ csi500 = pd.read_csv("000905.csv", encoding="gbk")
 # 
 # len=min(len(csi300),len(csi500))
 # 
-# csi500=csi500[:len]
+csi500=csi500[:1000]
 # csi300=csi300[:len]
 # 
 # features=pd.DataFrame()
@@ -60,7 +60,9 @@ def mode_std(b):
     return 3000*math.cos(a/60-0.55)+5000+80*math.cos(a/5 *math.pi)
 
  
-features = csi500[["收盘价"]]
-features["sim"] = list(map(mode_long_term, range(len(csi500))))
+# features = csi500[["收盘价"]]
+# features["sim"] = list(map(mode_long_term, range(len(csi500))))
+features=pd.DataFrame()
+
 features.plot(grid=True)
 plt.show()
