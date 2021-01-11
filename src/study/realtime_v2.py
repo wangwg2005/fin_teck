@@ -189,13 +189,13 @@ def draw_graph(risk=True):
     statistics(features["diff"][4:])
 
     print(features)
-    diff_df=features[["diff"]]
-#     diff_df["diff sum"]=diff_df["diff"].cumsum()
-    features.pop("diff")
+#     diff_df=features[["diff"]]
+# #     diff_df["diff sum"]=diff_df["diff"].cumsum()
+#     features.pop("diff")
     features.plot(grid=True,title=date.today())
-    
-    
-    diff_df.plot(grid=True)
+#     
+#     
+#     diff_df.plot(grid=True)
 
     
     import os
