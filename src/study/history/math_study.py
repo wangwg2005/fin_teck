@@ -118,6 +118,6 @@ def filtera(a):
     
 # diff_frame["diff"]=diff_frame["diff"].apply(filtera )
 print(diff_frame)
-
+diff_frame["sum"]=diff_frame["diff"].cumsum()
 diff_frame.plot(grid=True);
 plt.show()

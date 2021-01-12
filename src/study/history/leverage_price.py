@@ -33,8 +33,8 @@ leve_total.index=date_time
 features["price"]=price_csi500["收盘价"]
 features["融资余额500"]=leve_csi500["融资余额(亿元)"]
 features["融资余额"]=leve_total["融资余额(亿元)"]
-# features["risk1"]=series1=(2.7*features["price"]-1000-features["融资余额500"])*2
-features["risk2"]=series1=(2.7*features["price"]-1000-features["融资余额"])*2
+features["risk1"]=series1=(features["price"]-1000-features["融资余额500"])*2
+# features["risk2"]=series1=(2.7*features["price"]-1000-features["融资余额"])*2
 features.plot(grid=True)
 
 plt.show()
