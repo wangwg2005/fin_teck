@@ -47,7 +47,7 @@ delta = len(csi500)-680
 
 gold_ration=0.618
 
-cycle=900
+cycle=1000
 
 w=2*math.pi/cycle
  
@@ -87,7 +87,7 @@ for i in range(len(csi500)):
     adjust=diff+adjust
                  
     
-features["adjust"]=sim_list                 
+# features["adjust"]=sim_list
     
 
 
@@ -99,12 +99,12 @@ features.index=date_time
 # features.pop("shift")
 # features.pop("csi500shift")
 # features=pd.DataFrame()
-sim_seri=features.pop("sim")
+# sim_seri=features.pop("sim")
 print(features)
 features.plot(grid=True)
 
 diff_frame=pd.DataFrame()
-diff_frame["diff"]=features["收盘价"]-features["adjust"]
+diff_frame["diff"]=features["收盘价"]-features["sim"]
 
 print(diff_frame["diff"].mean())
 print(diff_frame["diff"].std())
@@ -117,7 +117,7 @@ def filtera(a):
     
     
 # diff_frame["diff"]=diff_frame["diff"].apply(filtera )
-print(diff_frame)
-diff_frame["sum"]=diff_frame["diff"].cumsum()
-diff_frame.plot(grid=True);
+# print(diff_frame)
+# diff_frame["sum"]=diff_frame["diff"].cumsum()
+# diff_frame.plot(grid=True);
 plt.show()

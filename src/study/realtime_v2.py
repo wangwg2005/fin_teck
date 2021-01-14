@@ -129,7 +129,7 @@ def model_train(x,a,b,c,d):
 def draw_predict(n=70):
     ind=range(n)
     data_m1=list(map(model1,ind))
-    data_m2=list(map(mode_std,ind))
+    data_m2=list(map(model2,ind))
     predict=pd.DataFrame({"model_1":data_m1,"model_2":data_m2})
 #     predict=pd.DataFrame({"model_1":data_m1})
 #     predict["mode2"]=pd.Series(,name="model2")
@@ -214,9 +214,9 @@ def draw_graph(risk=True):
     
     
 
-draw_graph(risk=True)
+# draw_graph(risk=True)
 
 # train_model()
-# draw_predict(80)
+draw_predict(80)
 
 

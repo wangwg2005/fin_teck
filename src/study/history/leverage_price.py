@@ -11,8 +11,8 @@ leve_total = pd.read_excel("融资融券全市场.xls",header=1, encoding="gbk")
 price_csi500=pd.read_csv("000905.csv",encoding="gbk")
 
  
-len=min(len(leve_csi500),len(leve_total),len(price_csi500))
-# len=1200
+# len=min(len(leve_csi500),len(leve_total),len(price_csi500))
+len=200
  
 def mode_std(b):
     a = b - 800
@@ -32,9 +32,12 @@ leve_total.index=date_time
 
 features["price"]=price_csi500["收盘价"]
 features["融资余额500"]=leve_csi500["融资余额(亿元)"]
-features["融资余额"]=leve_total["融资余额(亿元)"]
-features["risk1"]=series1=(features["price"]-1000-features["融资余额500"])*2
+# features["融资余额"]=leve_total["融资余额(亿元)"]
+# features["risk1"]=series1=(features["price"]-1000-features["融资余额500"])*2
 # features["risk2"]=series1=(2.7*features["price"]-1000-features["融资余额"])*2
+features["risk3"]=features["price"]/features["融资余额500"]*1000+4000
+features=features[:400]
 features.plot(grid=True)
+
 
 plt.show()
