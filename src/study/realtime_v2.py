@@ -137,7 +137,7 @@ def draw_predict(n=70):
     predict.plot(grid=True)
     plt.show()
     
-def draw_graph(risk=True):
+def draw_graph(risk=True, show_diff=True):
     
     rzrq=fc.get_cache("rzrq",get_rzrq_realtime)
     rzrq.applymap(convertUnit)
@@ -184,9 +184,9 @@ def draw_graph(risk=True):
 #     features["sim"]=pd.Series(data=list(map(lambda a:math.fabs(3000*math.cos(a/60-0.55)+3400+80*math.cos(a/5 *math.pi)-6200)+6200,num_ser)),name="sim")
 
     features["sim"]=pd.Series(data=list(map(model2,num_ser)),name="sim")
-    
-    features["diff"]=features["sim"]-features["中证500"]
-    statistics(features["diff"][4:])
+    if show_diff:
+        features["diff"]=features["sim"]-features["中证500"]
+        statistics(features["diff"][4:])
 
     print(features)
 #     diff_df=features[["diff"]]
@@ -214,7 +214,7 @@ def draw_graph(risk=True):
     
     
 
-draw_graph(risk=True)
+draw_graph(show_diff=False)
 
 # train_model()
 # draw_predict(80)

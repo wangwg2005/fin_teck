@@ -18,11 +18,16 @@ csi500.index=date_time
 df=csi500[["开盘价","收盘价"]]
 df["min1"]=df.min(axis=1)
 df["shadow"]=df["min1"]-csi500["最低价"]
-df["涨幅"]=csi500["raise"]
+df["raise1"]=csi500["raise"]
 df["high"]=csi500["最高价"]
-# df=df[df.shadow>100]
-df1=df.sort_values(by="shadow", ascending=False)
+df=df[df.shadow>100]
+print("shadow bigger than 100,",len(df))
+dft=df[df.raise1>0.05]
+print("return over 5%",len(dft))
+dft=df[df.raise1==0]
+print("return is 0%",len(dft))
+df1=df.sort_values(by="raise1", ascending=False)
 df1=df1[(df.shadow>df.high - df.min1)]
-df1.plot.scatter(x='shadow' , y='涨幅')
+df1.plot.scatter(x='shadow' , y='raise1')
 plt.show()
-print(df1)
+print(df1[["raise1","shadow"]])
