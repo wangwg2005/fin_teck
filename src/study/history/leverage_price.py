@@ -5,7 +5,6 @@ import math
 import matplotlib.pyplot as plt
 import model_util as models
 import numpy as np
-from scipy import linalg
 
 leve_csi500 = pd.read_excel("融资融券中证500.xls",header=1, encoding="gbk")
 # leve_csi300 = pd.read_excel("融资融券沪深300.xls",header=1, encoding="gbk")
