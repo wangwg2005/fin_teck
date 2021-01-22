@@ -6,7 +6,7 @@ import pandas as pd
 
 csi500 = pd.read_csv("000905.csv", encoding="gbk")
 csi300 = pd.read_csv("000300.csv", encoding="gbk")
- 
+
 len=min(len(csi300),len(csi500))
 # len=1000
  

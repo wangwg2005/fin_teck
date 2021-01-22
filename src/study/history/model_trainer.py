@@ -6,7 +6,7 @@ import pandas as pd
 import model_util as mu
 
 
-trade_days=400
+trade_days=1000
 
 def read_history(fname):
     df=pd.read_csv(fname+".csv",encoding="gbk")
@@ -33,7 +33,9 @@ feature_sse50["lev"]=leve_dfs[0]["融资余额(亿元)"]
 
 feature_sse50=feature_sse50.dropna()
 
-m_sse50=mu.train_model(feature_sse50["lev"],feature_sse50["收盘价"])
+train_level=3
+
+m_sse50=mu.train_model(feature_sse50["lev"],feature_sse50["收盘价"],level=train_level)
 
 feature_sse50["sim"]=m_sse50[1]
 feature_sse50.plot()
@@ -44,7 +46,7 @@ csi300=his_dfs[1][["收盘价"]][:trade_days]
 csi300["lev"]=leve_dfs[1]["融资余额(亿元)"]
 
 csi300=csi300.dropna()
-m_csi300=mu.train_model(csi300["lev"],csi300["收盘价"])
+m_csi300=mu.train_model(csi300["lev"],csi300["收盘价"],level=train_level)
 csi300["sim"]=m_csi300[1]
 csi300.plot()
 plt.show()

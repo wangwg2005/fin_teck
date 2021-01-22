@@ -227,7 +227,7 @@ def draw_graph(risk=True, show_diff=True):
     
     
 
-draw_graph(show_diff=False)
+draw_graph(show_diff=True)
 
 # train_model()
 # draw_predict(80)
