@@ -3,6 +3,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 from numpy import sign
+from numpy import polyfit
 
 csi500_ori = pd.read_csv("000905.csv", encoding="gbk")
 # csi300 = pd.read_csv("000300.csv", encoding="gbk")

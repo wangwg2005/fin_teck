@@ -3,6 +3,9 @@
 import pandas as pd
 import math
 import matplotlib.pyplot as plt
+import model_util as models
+import numpy as np
+from scipy import linalg
 
 leve_csi500 = pd.read_excel("融资融券中证500.xls",header=1, encoding="gbk")
 # leve_csi300 = pd.read_excel("融资融券沪深300.xls",header=1, encoding="gbk")
@@ -35,8 +38,19 @@ features["融资余额500"]=leve_csi500["融资余额(亿元)"]
 # features["融资余额"]=leve_total["融资余额(亿元)"]
 # features["risk1"]=series1=(features["price"]-1000-features["融资余额500"])*2
 # features["risk2"]=series1=(2.7*features["price"]-1000-features["融资余额"])*2
-features["risk3"]=features["price"]/features["融资余额500"]*1000+4000
-features=features[:400]
+# features["risk3"]=features["price"]/features["融资余额500"]*1000+4000
+
+features=features.dropna()
+# features=features[:400]
+# print(features)
+# print(np.array(features["融资余额500"].tolist()))
+# print(np.array(features["price"].tolist()))
+m=models.train_model(np.array(features["融资余额500"].tolist()),np.array(features["price"].tolist()))
+
+features["predict"]=m[1]
+
+
+
 features.plot(grid=True)
 
 

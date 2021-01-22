@@ -13,6 +13,7 @@ import pandas as pd
 import file_cache as fc
 from datetime import date
 import math
+import model_util
 
 url="http://data.eastmoney.com/rzrq/total/all.html"
 
@@ -125,6 +126,13 @@ def model_train(x,a,b,c,d):
     return a*math.cos(b*x+c)+d+80*math.cos(b*x+c)
 
 
+def predict2():
+    leve_csi500 = pd.read_excel("history/融资融券csi500_2021.xls",header=1, encoding="gbk")
+    date_time = pd.to_datetime(leve_csi500.pop('交易日期'), format='%Y-%m-%d')
+    leve_csi500.index=date_time
+    leve_csi500.dropna()
+    return model_util.csi500.predict(leve_csi500["融资余额(亿元)"])
+
 
 def draw_predict(n=70):
     ind=range(n)
@@ -166,6 +174,7 @@ def draw_graph(risk=True, show_diff=True):
         demestic=rzrq-etf
         series1=(2.7*csi500["中证500"]-1000-demestic["融资余额"])*2
         features["风险-中证500"]=series1
+#     features["sim2"]=predict2()
 #     print("rzrq",rzrq)
 #     print("demestic",demestic)
 #     series2=(2.7*rzrq["沪深300"]-demestic["融资余额"])*2+5000
@@ -176,7 +185,7 @@ def draw_graph(risk=True, show_diff=True):
     features.pop("沪深300")
     
     features=features.sort_index(axis=0)
-    
+    old_index=features.index
     num_ser=range(len(features))
     features.index=num_ser
 #     features["sin"]=pd.Series(data=list(map(lambda a:3000*math.cos(a/60-0.55)+3450,num_ser)),name="sin")
@@ -184,14 +193,18 @@ def draw_graph(risk=True, show_diff=True):
 #     features["sim"]=pd.Series(data=list(map(lambda a:math.fabs(3000*math.cos(a/60-0.55)+3400+80*math.cos(a/5 *math.pi)-6200)+6200,num_ser)),name="sim")
 
     features["sim"]=pd.Series(data=list(map(model2,num_ser)),name="sim")
+    
     if show_diff:
         features["diff"]=features["sim"]-features["中证500"]
         statistics(features["diff"][4:])
 
-    print(features)
+    
 #     diff_df=features[["diff"]]
 # #     diff_df["diff sum"]=diff_df["diff"].cumsum()
 #     features.pop("diff")
+    features.index=old_index
+    features["sim2"]=predict2()
+    print(features)
     features.plot(grid=True,title=date.today())
 #     
 #     
