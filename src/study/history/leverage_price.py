@@ -3,19 +3,26 @@
 import pandas as pd
 import math
 import matplotlib.pyplot as plt
-import model_util as models
+import os
 import numpy as np
+import model_util as models
 
-leve_csi500 = pd.read_excel("融资融券中证500.xls",header=1, encoding="gbk")
-# leve_csi300 = pd.read_excel("融资融券沪深300.xls",header=1, encoding="gbk")
-leve_total = pd.read_excel("融资融券全市场.xls",header=1, encoding="gbk")
 
-price_csi500=pd.read_csv("000905.csv",encoding="gbk")
+def cvt_path(fname):
+    return os.path.join("study", "history", fname)
+
+
+leve_csi500 = pd.read_excel(cvt_path("融资融券中证500.xls"),header=1, encoding="gbk")
+leve_csi300 = pd.read_excel(cvt_path("融资融券沪深300.xls"),header=1, encoding="gbk")
+leve_total = pd.read_excel(cvt_path("融资融券全市场.xls"),header=1, encoding="gbk")
+
+price_csi500=pd.read_csv(cvt_path("000905.csv"), encoding="gbk")
 
  
 # len=min(len(leve_csi500),len(leve_total),len(price_csi500))
 len=200
- 
+
+
 def mode_std(b):
     a = b - 800
     return 3000*math.cos(a/60-0.55)+5000+80*math.cos(a/5 *math.pi)
@@ -39,16 +46,16 @@ features["融资余额500"]=leve_csi500["融资余额(亿元)"]
 # features["risk2"]=series1=(2.7*features["price"]-1000-features["融资余额"])*2
 # features["risk3"]=features["price"]/features["融资余额500"]*1000+4000
 
+
+features=features[features.price<8000]
 features=features.dropna()
 # features=features[:400]
 # print(features)
 # print(np.array(features["融资余额500"].tolist()))
 # print(np.array(features["price"].tolist()))
-m=models.train_model(np.array(features["融资余额500"].tolist()),np.array(features["price"].tolist()))
+m = models.train_model(np.array(features["融资余额500"].tolist()),np.array(features["price"].tolist()))
 
 features["predict"]=m[1]
-
-
 
 features.plot(grid=True)
 
