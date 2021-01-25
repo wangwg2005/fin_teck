@@ -9,7 +9,8 @@ import model_util as models
 
 
 def cvt_path(fname):
-    return os.path.join("study", "history", fname)
+    return fname
+#     return os.path.join("study", "history", fname)
 
 
 leve_csi500 = pd.read_excel(cvt_path("融资融券中证500.xls"),header=1, encoding="gbk")
@@ -40,20 +41,21 @@ date_time = pd.to_datetime(leve_total.pop('日期'), format='%Y-%m-%d')
 leve_total.index=date_time
 
 features["price"]=price_csi500["收盘价"]
-features["融资余额500"]=leve_csi500["融资余额(亿元)"]
+features["lev500"]=leve_csi500["融资余额(亿元)"]
 # features["融资余额"]=leve_total["融资余额(亿元)"]
 # features["risk1"]=series1=(features["price"]-1000-features["融资余额500"])*2
 # features["risk2"]=series1=(2.7*features["price"]-1000-features["融资余额"])*2
 # features["risk3"]=features["price"]/features["融资余额500"]*1000+4000
 
 
+# features=features[(features.price<8000) & (features.lev500>1000)]
 features=features[features.price<8000]
 features=features.dropna()
 # features=features[:400]
 # print(features)
 # print(np.array(features["融资余额500"].tolist()))
 # print(np.array(features["price"].tolist()))
-m = models.train_model(np.array(features["融资余额500"].tolist()),np.array(features["price"].tolist()))
+m = models.train_model(np.array(features["lev500"].tolist()),np.array(features["price"].tolist()))
 
 features["predict"]=m[1]
 

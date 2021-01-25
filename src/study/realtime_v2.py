@@ -126,12 +126,14 @@ def model_train(x,a,b,c,d):
     return a*math.cos(b*x+c)+d+80*math.cos(b*x+c)
 
 
-def predict2():
-    leve_csi500 = pd.read_excel("study/history/融资融券csi500_2.xls",header=1, encoding="gbk")
+def predict(type="close"):
+#     leve_csi500 = pd.read_excel("study/history/融资融券csi500_2.xls",header=1, encoding="gbk")
+    leve_csi500 = pd.read_excel("history/融资融券csi500_2.xls",header=1, encoding="gbk")
     date_time = pd.to_datetime(leve_csi500.pop('交易日期'), format='%Y-%m-%d')
     leve_csi500.index=date_time
     leve_csi500.dropna()
-    return model_util.csi500.predict(leve_csi500["融资余额(亿元)"])
+    return model_util.csi500[type].predict(leve_csi500["融资余额(亿元)"])
+
 
 
 def draw_predict(n=70):
@@ -203,7 +205,12 @@ def draw_graph(risk=True, show_diff=True):
 # #     diff_df["diff sum"]=diff_df["diff"].cumsum()
 #     features.pop("diff")
     features.index=old_index
-    features["sim2"]=predict2()
+    features["sim_high"]=predict("high")
+    features["sim_low"]=predict("low")
+    features["close"]=predict("close")
+    
+    pd.set_option('display.width', 200)
+    pd.set_option('max_columns', 100)
     print(features)
     features.plot(grid=True,title=date.today())
 #     
