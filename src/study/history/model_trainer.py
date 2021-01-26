@@ -66,6 +66,7 @@ def multiple_factor_trainer():
     
     features=features[features["最高价"]<8000]
     features=features.dropna()
+    features=features[:1000]
     
     m1 = mu.train_model(np.array(features["lever"].tolist()),np.array(features["最高价"].tolist()))
     m2 = mu.train_model(np.array(features["lever"].tolist()),np.array(features["最低价"].tolist()))
@@ -91,7 +92,7 @@ def multiple_factor_trainer():
     f_open=features[["开盘价"]]
     f_open["sim_open"]=m3[1]
 #     f_open.plot(grid=True)
-    f_sim=features[["sim_high","sim_low","sim_close"]]
+    f_sim=features[["sim_close","收盘价"]]
     f_sim.plot(grid=True)
     
     plt.show()
