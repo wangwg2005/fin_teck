@@ -66,7 +66,7 @@ def multiple_factor_trainer():
     
     features=features[features["最高价"]<8000]
     features=features.dropna()
-    features=features[:1000]
+#     features=features[:1000]
     
     m1 = mu.train_model(np.array(features["lever"].tolist()),np.array(features["最高价"].tolist()))
     m2 = mu.train_model(np.array(features["lever"].tolist()),np.array(features["最低价"].tolist()))
