@@ -69,7 +69,7 @@ def mode_std(b):
     return 3000*math.cos(a/60-0.55)+5000+80*math.cos(a/5 *math.pi)
 
  
-features = csi500[["收盘价"]]
+features = csi500[["最高价"]]
 sim_list = list(map(mode_long_term, range(len(csi500))))
 features["sim"]=sim_list
 # features["shift"]= list(map(mode_long_term, range(-1,len(csi500)-1)))
@@ -105,7 +105,7 @@ print(features)
 features.plot(grid=True)
 
 diff_frame=pd.DataFrame()
-diff_frame["diff"]=features["收盘价"]-features["sim"]
+diff_frame["diff"]=features["最高价"]-features["sim"]
 
 print(diff_frame["diff"].mean())
 print(diff_frame["diff"].std())

@@ -56,7 +56,7 @@ def get_cache(cache_id, func, param=None):
     df=get_from_cache(cache_id)
     result=None
     
-    if is_up_to_date(df):
+    if len(df)!=0 and is_up_to_date(df):
         print("retriving %s from cache" %(cache_id))
         result=df
     else:
