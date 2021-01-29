@@ -7,7 +7,10 @@ import matplotlib.pyplot as plt
 import math
 import pandas as pd
 
-tau = 0.045
+
+def model_train(x,a,b,c,d):
+    return a*np.sin(2*np.pi*b*x+c)+d
+
 def fourier(x,y, a):
     sim=np.zeros(len(y))
     pops=[]
@@ -21,9 +24,11 @@ def fourier(x,y, a):
     
     return (args,sim)
 
-
-def model_train(x,a,b,c,d):
-    return a*np.sin(2*np.pi*b*x+c)+d
+def predict(x, argums):
+    y=np.zeros(len(x))
+    for argu in argums:
+        y+=model_train(x, *argu)
+    return y
 
 
 
@@ -72,36 +77,22 @@ df=csi500[17:58]
 x_data = np.arange(len(df))
 # # print(x_data)
 # # print(df["中证500"].tolist())
-args=np.array([[8,5,1,1000] , [1000,800,10, -3000]])
+args=np.array([[8,5,1,1000] , [3000,1000,20, -1000]])
 
 y_data=df["中证500"].tolist()
 
 (params, sim)=fourier(x_data, y_data, args)
 
-plt.plot(sim)
+pred_df=csi500[["中证500"]][17:]
+
+sim_x=np.arange(len(pred_df))
+
+sim_y = predict(sim_x, params)
 
 
-# popt, pcov = curve_fit(model_train,x_data,df["中证500"].tolist(),[8,5,1,1000])
-# print(popt)
-# # # print(pcov)
-# # #  
-# df["拟合"]=model_train(x_data, *popt)
-# df["diff"]=df["中证500"]-df["拟合"]
-# 
-# popt1, pcov = curve_fit(model_train,x_data,df["diff"].tolist(),[1000,800,10,-3000])
-# print(popt1)
-# 
-# sim_x= np.arange(len(df)+20)
-# df["sim2"] = model_train(x_data, *popt1)
-# df["sim"]=model_train(x_data, *popt1)+model_train(x_data, *popt)
-# df.pop("diff")
-# df.pop("sim2")
-# df.pop("拟合")
-# # df.pop("日期")
-# # df.plot()
-# 
-# pred_df=pd.DataFrame({"sim":model_train(sim_x, *popt1)+model_train(sim_x, *popt)})
-# pred_df["close"]=csi500["中证500"][17:17+len(pred_df)].tolist()
-# pred_df.plot(grid=True)
+pred_df["sim"]=sim_y
+pred_df.plot(grid=True)
+
+
 
 plt.show()
