@@ -14,8 +14,7 @@ import file_cache as fc
 from datetime import date
 import math
 import model_util
-
-url="http://data.eastmoney.com/rzrq/total/all.html"
+from _warnings import warn
 
 chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument('--headless')
@@ -72,6 +71,31 @@ def get_rzrq_realtime():
     date_time = pd.to_datetime(df.pop('日期'), format='%Y-%m-%d')
     df["日期"]=date_time
     return df
+
+warning=None
+
+def get_csi500_currency_flow():
+    url="http://data.eastmoney.com/bkzj/BK0701.html"
+    browser.get(url)
+    sleep(2)
+    tab=browser.find_elements_by_css_selector("li.linklab")
+    tab[1].click()
+    sleep(1)
+    table=browser.find_element_by_id("table_ls")
+    #         table=tables[-1]
+    rows=get_rows(table)
+    print(rows)
+    global warning
+    if rows[0][1][0]!="-":
+        warning="WARNING! capital entered yesterday!"
+        print(warning)
+    cnames="日期,主力净流入净额,主力净流入净占比,超大单净流入净额,超大单净流入净占比,大单净流入净额,大单净流入净占比,中单净流入净额,中单净流入净占比,小单净流入净额,小单净流入净占比".split(",")
+    df=pd.DataFrame(rows,columns=cnames)
+    date_time = pd.to_datetime(df.pop('日期'), format='%Y-%m-%d')
+    df["日期"]=date_time
+    return df
+
+fc.get_cache("csi500cf", get_csi500_currency_flow)
 
 
 import jqka
@@ -213,7 +237,11 @@ def draw_graph(risk=True, show_diff=True):
     pd.set_option('display.width', 200)
     pd.set_option('max_columns', 100)
     print(features)
-    features.plot(grid=True,title=date.today())
+    fig_title=str(date.today())
+    print("warning:",warning)
+    if warning is not None:
+        fig_title=fig_title+" "+warning
+    features.plot(grid=True,title=fig_title)
 #     
 #     
 #     diff_df.plot(grid=True)
@@ -228,7 +256,6 @@ def draw_graph(risk=True, show_diff=True):
     browser.close()
     browser.quit()
     plt.show()
-    
     
 #     print(get_csi500_realtime())
 #     print(get_rzrq_realtime())
