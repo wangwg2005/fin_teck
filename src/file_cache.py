@@ -7,7 +7,7 @@ import calendar
 
 holiday=["2021-01-01"]
 
-tmp_dir=os.path.join(os.getcwd(),"cache")
+tmp_dir=os.path.join(os.getcwd(), "study\\cache")
 
 print("cache dir:",tmp_dir)
 
@@ -50,6 +50,10 @@ def get_from_cache(cache_id):
         df= pd.DataFrame()
     
     return df
+
+def convert_index_to_date(df, iname="日期"):
+    df.index = pd.to_datetime(result.pop(iname), format='%Y-%m-%d')
+
 
 def get_cache(cache_id, func, param=None):
     print("retriving ", cache_id)
