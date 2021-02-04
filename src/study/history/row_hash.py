@@ -60,10 +60,30 @@ class Hmm:
         
         
         cnt=f["涨跌"].sum()
+        size=len(f)
 #         if cnt== 0 :
 #             return -f["涨跌幅"].mean()
 #         else:
         return cnt
+    
+    def history(self, pattern, size=5):
+        m = self.model
+        f = m[m["hash"] == pattern]
+        if len(f)==0:
+            print("no pattern found for",pattern)
+            return
+        
+        for ind in f.index:
+            s = m[ind:][:10]["涨跌幅"].tolist()
+            print(s)
+            val=1
+            vals=[1]
+            for inc in s:
+                val=val*(1+inc/100)
+                vals.append(val)
+            plt.plot(vals, label = str(ind)[:10])
+            print("increament:",val-1)
+        plt.show()
 #         valiti_list=f["涨跌"].tolist()
 #         return valiti_list.count(True)-valiti_list.count(False)
     
@@ -72,6 +92,20 @@ class Hmm:
     
     def get_model(self):
         return self.model
+    
+    def compute_next(self,pattern,updown):
+        mask=(1<<self.circle) - 1
+        return ((pattern<<1) | updown)& mask
+    
+    def plot_by_ratio(self,a):
+        print(a)
+        val=1
+        vals=[1]
+        for inc in a:
+           val=val*(1+inc/100)
+           vals.append(val)
+        print("increament:",val-1)
+        plt.plot(vals, label = "real")
 
 
 def test():
@@ -82,7 +116,7 @@ def test():
     recent = pd.read_csv("000905_20210131.csv", encoding="gbk")[:40]
     rece_model = Hmm(recent)
     rece_model.prepare_model()
-    train_data=rece_model.get_model()[20:]
+    train_data=rece_model.get_model()
 #     print(train_data)
     
     correct = 0
@@ -107,15 +141,23 @@ def test():
     
     
 def predict():
-    current=fc.get_from_cache("csi500")
+    csi500 = pd.read_csv("000905.csv", encoding="gbk")
+    hist_model = Hmm(csi500)
+    hist_model.prepare_model()
     
+    current=fc.get_from_cache("csi500")
+      
     current=current.rename({"中证500":"收盘价"},axis='columns')
     current.index = pd.to_datetime(current["日期"], format='%Y-%m-%d')
     current = current.sort_index()
-    current["涨跌幅"]=current["收盘价"].diff()/current["收盘价"]
+    current["涨跌幅"]=current["收盘价"].diff()/current["收盘价"]*100
     current_model=Hmm(current[1:])
     current_model.prepare_model()
     print(current_model.get_model())
+    
+    hist_model.plot_by_ratio(current[-8:]["涨跌幅"].tolist())
+    hist_model.history(756)
+    
 #     print(current)
 predict()
     
