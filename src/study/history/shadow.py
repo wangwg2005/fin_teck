@@ -42,10 +42,10 @@ def test2():
     csi500["close_raise"]=csi500["收盘价"]/csi500["收盘价"].shift(-1)-1
     csi500["low_raise"]=csi500["最低价"]/csi500["收盘价"].shift(-1)-1
     print(csi500[["日期","收盘价","close_raise","low_raise"]])
-    features=csi500[csi500.low_raise<-0.017]
+    features=csi500[csi500.low_raise<-0.02]
 #     features=csi500
     plt.scatter(features["low_raise"], features["close_raise"])
     plt.show()
     
     
-test1()
+test2()

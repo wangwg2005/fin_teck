@@ -4,6 +4,8 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import datetime
+import numpy as np
+import file_cache as fc
 
 plt.rcParams['font.sans-serif']=['SimHei'] #用来正常显示中文标签
 plt.rcParams['axes.unicode_minus']=False #用来正常显示负号
@@ -11,8 +13,10 @@ plt.rcParams['axes.unicode_minus']=False #用来正常显示负号
 
 class Hmm:
 
-    def __init__(self, df):
+    def __init__(self, df, circle=10):
         self.df = df
+        self.circle=circle
+        self.mask = 1
 
     def prepare_model(self):
 
@@ -22,34 +26,100 @@ class Hmm:
         # csi500 = fc.get_from_cache("csi500")
         csi500.index = pd.to_datetime(csi500.pop("日期"), format='%Y-%m-%d')
         csi500 = csi500.sort_index()
-        csi500 = csi500[["收盘价"]]
+        csi500 = csi500[["收盘价","涨跌幅"]]
 
-        csi500["涨跌幅"] = csi500["收盘价"].diff() / csi500["收盘价"]
-        csi500["涨跌"] = csi500["收盘价"].diff() > 0
+#         csi500["涨跌幅1"] = csi500["收盘价"].diff() / csi500["收盘价"]
+        csi500["涨跌"] = csi500["涨跌幅"].apply(lambda a: np.sign(float(a)))
 
         hash_vals = []
         hash = 0
-        mask = (1 << 10) - 1
-        print(bin(mask))
+        mask = (1 << self.circle) - 1
         for val in csi500["涨跌"].tolist():
 
             hash_vals.append(hash)
             hash = int(hash << 1)
-            hash = (hash | int(val)) & mask
+            hash = (hash | int((val+1))>>1) & mask
 
         csi500["hash"] = hash_vals
+        self.model=csi500
 
     def predict(self, pattern):
-        model = self.df
-        f = model[model["hash"] == pattern]
-        return f["涨跌幅"].mean()
+        m = self.model
+        f = m[m["hash"] == pattern]
+        if len(f)==0:
+            print("no pattern found for",pattern)
+            pos = self.circle
+            p2= (pattern + (1 << (pos-1))) & ((1<<self.circle )-1)
+            f = m[m["hash"] == pattern]
+            if len(f)==0:
+                print("2no has found for ",p2 )
+#             while pos>0:
+#                 pos-=1
+                
+            return 0
+        
+        
+        cnt=f["涨跌"].sum()
+#         if cnt== 0 :
+#             return -f["涨跌幅"].mean()
+#         else:
+        return cnt
+#         valiti_list=f["涨跌"].tolist()
+#         return valiti_list.count(True)-valiti_list.count(False)
+    
+    def __str__(self):
+        return str(self.model)
+    
+    def get_model(self):
+        return self.model
 
 
 def test():
-    csi500 = pd.read_csv("study\\history\\000905_20210131.csv", encoding="gbk")
+    csi500 = pd.read_csv("000905.csv", encoding="gbk")
     hist_model = Hmm(csi500)
-
-
-
+    hist_model.prepare_model()
+    
+    recent = pd.read_csv("000905_20210131.csv", encoding="gbk")[:40]
+    rece_model = Hmm(recent)
+    rece_model.prepare_model()
+    train_data=rece_model.get_model()[20:]
+#     print(train_data)
+    
+    correct = 0
+    wrong = 0
+    
+    for ind, row in train_data.iterrows():
+        hash = row["hash"]
+#         print(row)
+        result=-hist_model.predict(hash)
+        
+        result_str=result>0
+        t=result*row["涨跌"]
+        if t>0:
+            correct+=1
+        elif t<0:
+            wrong+=1
+        print(ind," predict:",result," real:",row["涨跌"])
+        
+    print("correct:",correct)
+    print("wrong",wrong)
+    print("total:",len(train_data))
+    
+    
+def predict():
+    current=fc.get_from_cache("csi500")
+    
+    current=current.rename({"中证500":"收盘价"},axis='columns')
+    current.index = pd.to_datetime(current["日期"], format='%Y-%m-%d')
+    current = current.sort_index()
+    current["涨跌幅"]=current["收盘价"].diff()/current["收盘价"]
+    current_model=Hmm(current[1:])
+    current_model.prepare_model()
+    print(current_model.get_model())
+#     print(current)
+predict()
+    
+#     print(recent)
+# test()
 # for ind in len(range(inflow):
 

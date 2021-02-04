@@ -19,6 +19,4 @@ recent.index=date_time
 
 features=fc.get_from_cache("csi500")
 
-
-
 print(features)
