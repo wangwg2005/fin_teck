@@ -7,6 +7,7 @@ import datetime
 import numpy as np
 import file_cache as fc
 
+
 plt.rcParams['font.sans-serif']=['SimHei'] #用来正常显示中文标签
 plt.rcParams['axes.unicode_minus']=False #用来正常显示负号
 
@@ -149,12 +150,13 @@ class Hmm:
 
 
 def test():
-    csi500 = pd.read_csv("000905.csv", encoding="gbk")
-    hist_model = Hmm(csi500)
+    csi500 = pd.read_csv("000300.csv", encoding="gbk")
+    c=15
+    hist_model = Hmm(csi500,circle=c)
     hist_model.prepare_model()
     
-    recent = pd.read_csv("000905_20210131.csv", encoding="gbk")[:40]
-    rece_model = Hmm(recent)
+    recent = pd.read_csv("000300_20210208.csv", encoding="gbk")[:40]
+    rece_model = Hmm(recent,circle=c)
     rece_model.prepare_model()
     train_data=rece_model.get_model()
 #     print(train_data)
@@ -181,13 +183,13 @@ def test():
     
     
 def predict():
-    csi500 = pd.read_csv("000905.csv", encoding="gbk")
-    hist_model = Hmm(csi500)
+    csi300 = pd.read_csv("000300.csv", encoding="gbk")
+    hist_model = Hmm(csi300)
     hist_model.prepare_model()
     
-    current=fc.get_from_cache("csi500")
+    current=fc.get_from_cache("rzrq")
       
-    current=current.rename({"中证500":"收盘价"},axis='columns')
+    current=current.rename({"沪深300":"收盘价"},axis='columns')
     current.index = pd.to_datetime(current["日期"], format='%Y-%m-%d')
     current = current.sort_index()
     current["涨跌幅"]=current["收盘价"].diff()/current["收盘价"]*100
@@ -196,7 +198,7 @@ def predict():
     print(current_model.get_model())
     
     hist_model.plot_by_ratio(current[-13:]["涨跌幅"].tolist())
-    pattern = 979
+    pattern = 934
     hist_model.history(pattern)
 #     hist_model.history(pattern)
 
@@ -210,9 +212,9 @@ def train_models():
         print(m.groupby(["hash"])["涨跌"].describe())        
 # train_models()
 #     print(current)
-predict()
+# predict()
     
 #     print(recent)
-# test()
+test()
 # for ind in len(range(inflow):
 
