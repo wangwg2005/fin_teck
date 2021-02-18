@@ -37,11 +37,14 @@ def boll(df):
     df["support"]=df["avg20"]-2*std
     features=df[["Close","avg20","stress","support"]]
 #     plt.show()
-    tline=list(df["support"].dropna().to_dict(OrderedDict).items())
-    print(tline)
+    support_line=list(df["support"].dropna().to_dict(OrderedDict).items())
+    stress_line=list(df["stress"].dropna().to_dict(OrderedDict).items())
+    
+    
+    seq_of_points=[support_line,  stress_line  ]
 #     fig,ax0=plt.subplots(1,1)
 #     mpf.plot(df, type="candle",mav=(10,20) , title=df.at[df.index[-1],"名称"],style=get_style(), volume=True,figscale=5)
-    mpf.plot(df, type="candle",mav=(20) , style=get_style(), figscale=5,alines={"alines":tline, "colors":"blue"},volume=True)
+    mpf.plot(df, type="candle",mav=(20) , style=get_style(), figscale=5,alines={"alines":seq_of_points, "colors":"blue"},volume=True)
     
 #     features.plot(grid=True,ax=ax0)
     plt.show()
