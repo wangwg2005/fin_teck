@@ -14,7 +14,6 @@ import file_cache as fc
 from datetime import date
 import math
 import model_util
-from _warnings import warn
 
 chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument('--headless')
@@ -219,7 +218,7 @@ def draw_graph(risk=True, show_diff=True):
 #     features["sin2"]=pd.Series(data=list(map(lambda a:3000*math.cos(a/60-0.55)+3350,num_ser)),name="sin")
 #     features["sim"]=pd.Series(data=list(map(lambda a:math.fabs(3000*math.cos(a/60-0.55)+3400+80*math.cos(a/5 *math.pi)-6200)+6200,num_ser)),name="sim")
 
-    features["sim"]=pd.Series(data=list(map(model2,num_ser)),name="sim")
+#     features["sim"]=pd.Series(data=list(map(model2,num_ser)),name="sim")
     
     if show_diff:
         features["diff"]=features["sim"]-features["中证500"]

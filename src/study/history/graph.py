@@ -41,7 +41,7 @@ def boll(df):
     print(tline)
 #     fig,ax0=plt.subplots(1,1)
 #     mpf.plot(df, type="candle",mav=(10,20) , title=df.at[df.index[-1],"名称"],style=get_style(), volume=True,figscale=5)
-    mpf.plot(df, type="candle",mav=(20) , style=get_style(), figscale=5,alines={"alines":tline, "colors":"blue"})
+    mpf.plot(df, type="candle",mav=(20) , style=get_style(), figscale=5,alines={"alines":tline, "colors":"blue"},volume=True)
     
 #     features.plot(grid=True,ax=ax0)
     plt.show()

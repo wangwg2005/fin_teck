@@ -5,7 +5,7 @@ import pandas as pd
 from datetime import datetime, date, timedelta
 import calendar
 
-holiday=["2021-02-11","2021-02-12"]
+holiday=["2021-02-11","2021-02-12","2021-02-13","2021-02-14","2021-02-15","2021-02-16","2021-02-17"]
 
 # tmp_dir=os.path.join(os.getcwd(), "cache")
 tmp_dir=r"C:\Users\Darren\eclipse-workspace\fin_study\src\study\cache"
