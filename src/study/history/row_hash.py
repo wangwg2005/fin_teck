@@ -197,7 +197,7 @@ def predict():
     
     hist_model.plot_by_ratio(current[-13:]["涨跌幅"].tolist())
     pattern = 979
-    hist_model.history(pattern)
+    hist_model.history(199)
 #     hist_model.history(pattern)
 
 def train_models():

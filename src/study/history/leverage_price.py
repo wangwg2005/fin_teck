@@ -49,16 +49,16 @@ features["lev500"]=leve_csi500["融资余额(亿元)"]
 
 
 # features=features[(features.price<8000) & (features.lev500>1000)]
-features=features[features.price<8000]
-features=features.dropna()
+train_data=features[features.price<8000]
+train_data=features.dropna()
 # features=features[:400]
 # print(features)
 # print(np.array(features["融资余额500"].tolist()))
 # print(np.array(features["price"].tolist()))
-m = models.train_model(np.array(features["lev500"].tolist()),np.array(features["price"].tolist()))
+m = models.train_model(np.array(train_data["lev500"].tolist()),np.array(train_data["price"].tolist()))
 
-features["predict"]=m[1]
-
+features["predict"]=m[0].predict(features["lev500"])
+features=features[:"2012-01-01"]
 features.plot(grid=True)
 
 

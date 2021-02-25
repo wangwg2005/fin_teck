@@ -6,12 +6,13 @@ import pandas as pd
 
 
 def read(filename):
-    df = pd.read_excel("融资融券"+filename+".xls",header=1, encoding="gbk")
+    df = pd.read_excel("融资融券"+filename+"_all_latest.xls",header=1, encoding="gbk")
     return df
 
 
 
-filenames=["全市场","沪深300","中证500","上证50"]
+# filenames=["全市场","沪深300","中证500","上证50"]
+filenames=["沪深300","中证500"]
 
 dfs=list(map(read,filenames))
 # csi500 = pd.read_excel("融资融券中证500.xls",header=1, encoding="gbk")
@@ -45,7 +46,7 @@ if rz:
 #     features["全市场融资"]=total["融资余额(亿元)"]
 #     features["沪深300融资"]=csi300["融资余额(亿元)"]
 #     features["中证500融资"]=csi500["融资余额(亿元)"]
-#     features["融资diff"]=csi500["融资余额(亿元)"]-csi300["融资余额(亿元)"]
+features["融资diff"]=-features["中证500融资"]+features["沪深300融资"]
 
 if rq:
     for i in range(len(filenames)): 
@@ -57,6 +58,7 @@ features=features[:len_df]
 date_time = pd.to_datetime(dfs[1].pop('交易日期'), format='%Y-%m-%d')
 # print(len(date_time))
 features.index=date_time[:len_df]
+# features=features[1200 : 1600]
 print(features)
 features.plot(grid=True)
 plt.show()

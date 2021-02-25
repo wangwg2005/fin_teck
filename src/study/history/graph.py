@@ -31,8 +31,8 @@ def get_style():
 
 def boll(df):
     window=20
-    df["avg20"]=df["Close"].rolling(window,min_periods=0).mean()
-    std=df["Close"].rolling(window,min_periods=0).std()
+    df["avg20"]=df["Close"].rolling(window).mean()
+    std=df["Close"].rolling(window).std()
     df["stress"]=df["avg20"]+2*std
     df["support"]=df["avg20"]-2*std
     features=df[["Close","avg20","stress","support"]]
@@ -61,7 +61,7 @@ def convert_cname(df):
 csi500 = pd.read_csv("000905.csv", encoding="gbk",index_col=0,parse_dates=[0])
 
 convert_cname(csi500)
-boll(csi500[-100:])
+boll(csi500[-1000:])
     
     
     

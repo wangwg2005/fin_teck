@@ -9,7 +9,7 @@ import pandas as pd
 
 
 def model_train(x,a,b,c,d):
-    return a*np.sin(2*np.pi*b*x+c)+d
+    return a*np.sin(2*np.pi*x/b+c)+d
 
 def fourier(x,y, a):
     sim=np.zeros(len(y))
@@ -69,7 +69,10 @@ csi500.index=date_time
 # 
 # 
 csi500=csi500.sort_index()
-df=csi500[17:58]
+
+start_ind=58
+
+df=csi500[start_ind:91]
 # df=df.applymap(lambda a: (a-min_v-wav)/wav)
 # print(df)
 # 
@@ -77,19 +80,23 @@ df=csi500[17:58]
 x_data = np.arange(len(df))
 # # print(x_data)
 # # print(df["中证500"].tolist())
-args=np.array([[8,5,1,1000] , [3000,1000,20, -1000]])
+args=np.array([[80,10,1,1000] , [100,20,3, -1000] ,[1500,800,-200, -1000]])
 
 y_data=df["中证500"].tolist()
 
 (params, sim)=fourier(x_data, y_data, args)
 
-pred_df=csi500[["中证500"]][17:]
+pred_df=csi500[["中证500"]][start_ind:]
 
-sim_x=np.arange(len(pred_df))
+size=len(pred_df)
+sim_x=np.arange(size)
 
 sim_y = predict(sim_x, params)
+# plt.plot(sim_x,sim_y)
+pred_x=np.arange(size,size*2)
+pred_y=predict(pred_x, params)
 
-
+pred_df["pred"]=pred_y
 pred_df["sim"]=sim_y
 pred_df.plot(grid=True)
 

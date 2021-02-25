@@ -13,7 +13,9 @@ class Liner_model:
     def predict(self,x):
         return self.a*x+self.b
 csi500={}
-csi500["close"]=Liner_model(1.10020619, 3132.59399)
+# csi500["close"]=Liner_model(1.10020619, 3132.59399)
+csi500["close"]=Liner_model(1.17576321, 3026.85026)
+1.17576321
 csi500["high"]=Liner_model(1.10621638e+00, 3.15819331e+03)
 csi500["low"]=Liner_model(1.08380267e+00, 3.10799666e+03)
 csi500["open"]=Liner_model(1.09577519e+00, 3.13147470e+03)
