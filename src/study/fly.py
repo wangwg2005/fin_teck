@@ -70,7 +70,7 @@ csi500.index=date_time
 # 
 csi500=csi500.sort_index()
 
-start_ind=58
+start_ind=0
 
 df=csi500[start_ind:91]
 # df=df.applymap(lambda a: (a-min_v-wav)/wav)
@@ -96,7 +96,7 @@ sim_y = predict(sim_x, params)
 pred_x=np.arange(size,size*2)
 pred_y=predict(pred_x, params)
 
-pred_df["pred"]=pred_y
+# pred_df["pred"]=pred_y
 pred_df["sim"]=sim_y
 pred_df.plot(grid=True)
 

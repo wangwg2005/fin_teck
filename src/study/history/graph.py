@@ -52,14 +52,14 @@ def boll(df):
 def convert_cname(df):
     df.rename(columns={'收盘价':'Close', '开盘价':'Open', '最高价':'High',"最低价":"Low",'成交量': 'Volume'}, inplace = True)
     df.sort_index(inplace=True)
-    df=df[-200:]
+#     df=df[-200:]
 #     print(df.at[df.index[-1],"名称"])
     
 #     mpf.plot(df, type="candle",mav=(10) , title=df.at[df.index[-1],"名称"],style=get_style(), volume=True,figscale=5)
     
 
-csi500 = pd.read_csv("000905.csv", encoding="gbk",index_col=0,parse_dates=[0])
-
+csi500 = pd.read_csv("399006.csv", encoding="gbk",index_col=0,parse_dates=[0])
+csi500=csi500[:100]
 convert_cname(csi500)
 boll(csi500[-1000:])
     
