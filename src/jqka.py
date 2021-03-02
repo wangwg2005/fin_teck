@@ -15,7 +15,7 @@ def get_by_code(code):
     
     print("retriveing ",code)
     
-    url = "http://data.10jqka.com.cn/market/rzrqgg/code/"+code
+    url = "http://data.10jqka.com.cn/market/rzrqgg/code/"+code+"/"
     h = session.get(url=url)
     
     ##这个脚本有问题
