@@ -100,8 +100,8 @@ fc.get_cache("csi500cf", get_csi500_currency_flow)
 import jqka
 def deduct_etf():
     total_df=None
-#     target_etf=["510900","518880","159920","159934","601318","600519"]
-    target_etf=["510900","518880","159920","159934"]
+    target_etf=["510900","518880","159920","159934","601318","600519"]
+#     target_etf=["510900","518880","159920","159934"]
 #     total_etf=jqka.foreign_ind+jqka.gold_etf
     for code in target_etf:
         time.sleep(5)
@@ -229,10 +229,10 @@ def draw_graph(risk=True, show_diff=True):
 # #     diff_df["diff sum"]=diff_df["diff"].cumsum()
 #     features.pop("diff")
     features.index=old_index
-    features["sim_high"]=predict("high")
-    features["sim_low"]=predict("low")
+#     features["sim_high"]=predict("high")
+#     features["sim_low"]=predict("low")
     features["close"]=predict("close")
-    
+#     print(features["close"]-features["中证500"])
     pd.set_option('display.width', 200)
     pd.set_option('max_columns', 100)
     print(features)
