@@ -38,7 +38,7 @@ price_csi500.index=date_time
 
 date_time = pd.to_datetime(pred_csi500.pop('交易日期'), format='%Y-%m-%d')
 pred_csi500.index=date_time
-pred_csi500=pred_csi500[:"2020-01-01"]
+
 
 date_time = pd.to_datetime(leve_csi500.pop('交易日期'), format='%Y-%m-%d')
 leve_csi500.index=date_time
