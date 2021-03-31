@@ -55,8 +55,8 @@ def index_trainer():
 
 
 def multiple_factor_trainer():
-    csi500=read_history("000905")
-    features=csi500[["最高价","最低价","开盘价","收盘价"]]
+    df=read_history("000905")
+    features=df[["最高价","最低价","开盘价","收盘价"]]
 #     print(features)
     
     leve_csi500=read_leverage("中证500")

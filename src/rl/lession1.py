@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import time
 
 '''
 Created on 2021��3��30��
@@ -19,4 +19,5 @@ for i_episode in range(20):
         if done:
             print("Episode finished after {} timesteps".format(t+1))
             break
+        time.sleep(0.2)      #每次等待0.2s
 env.close()
