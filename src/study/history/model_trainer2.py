@@ -45,7 +45,6 @@ def model1_train(root,train_start="2019-01-01", train_end="2020-12-31", his_star
     leve_csi500=read_leverage(f1)
     
     features=csi500[["收盘价","成交量"]]
-    print(csi500.index.duplicated())
     features["lev"]=leve_csi500["融资余额(亿元)"]
     features.dropna(inplace=True)
     
@@ -76,7 +75,7 @@ def model1_train(root,train_start="2019-01-01", train_end="2020-12-31", his_star
 # #     model1_train(name)
 # # plt.show()
 # 
-df=model1_train("csi500",his_start="2019-01-01")
-# plt.show()
-df.to_csv(r"C:\Users\Darren\Documents\features.csv",encoding="utf8")
+df=model1_train("000016",his_start="2019-01-01")
+plt.show()
+# df.to_csv(r"C:\Users\Darren\Documents\features.csv",encoding="utf8")
 

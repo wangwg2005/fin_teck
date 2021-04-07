@@ -77,7 +77,7 @@ class IndexEnv(gym.Env):
         while len(self.position)>0 and self.currentStep-self.position[0]["date"]>REWARD_INTERVAL:
             trade=self.position.pop(0)
             fee_rate=0
-            if self.currentStep-trade>NO_FEE_DAYS:
+            if self.currentStep-trade["date"]>NO_FEE_DAYS:
                 fee_rate=0.005
             
             profit_rate=self.currentPrice/trade["price"]-fee_rate
@@ -98,31 +98,29 @@ class IndexEnv(gym.Env):
         
 
     def _takeAction(self, action):
+        rewards=[]
         actionType = action[0]
 #         amount = action[1]
 #         pass
         if actionType==0:
-            return 0
+            return rewards
         
         df=self.features
         self.currentPrice=df.loc[self.currentStep]["收盘价"]
         end=min(self.currentStep+MAX_PRETELL_DAYS,len(df)-1)
         start=max(self.currentStep,end-MIN_PRETELL_DAYS)
-            
+        
+        rewards=[]
         if actionType==1:
             
             self.buy()
-            max_price=df[start:end]["收盘价"].max()
-            return max_price/self.currentPrice-1-FEE_RATE
-        
         
         elif actionType==-1:
-            self.sell() 
-            min_price=df[start:end]["收盘价"].min()            
-            return (self.currentPrice-min_price)/self.currentPrice-FEE_RATE
-            
-
+            rewards= self.sell() 
         
+        
+        return rewards
+                    
 #         elif actionType==-1:
 #             self.balance-=self.currentPrice
         
@@ -143,7 +141,6 @@ class IndexEnv(gym.Env):
 
     def reset(self):
 
-        print("reset env, settle his length",len(self.asset_his))
 
         if len(self.asset_his)>0:
             self.asset_his.to_csv(r"C:\Users\Darren\Documents\rl\settle_{0}.csv".format([self.round]),encoding="utf8")
@@ -159,7 +156,6 @@ class IndexEnv(gym.Env):
         self.delta=0
         self.currentPrice=0
         self.position=[]
-        print("index env reset")
 
         return self._nextObservation()
 
