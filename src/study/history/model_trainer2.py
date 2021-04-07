@@ -32,7 +32,7 @@ def read_dir(path):
         return (files[1],files[0])
     
 
-def model1_train(root,train_start="2019-01-01", train_end="2020-12-31", his_start="2015-01-01", his_end=""):
+def model1_train(root,train_start="2019-01-01", train_end="2020-12-31", his_start="2010-01-01", his_end=""):
     
 #     features=csi500[["最高价","最低价","开盘价","收盘价"]]
 #     print(features)
@@ -66,12 +66,17 @@ def model1_train(root,train_start="2019-01-01", train_end="2020-12-31", his_star
     features['成交量'] = features['成交量'].astype('float64')
     features[:his_start][["收盘价","resid","resid_norm"]].plot(grid=True,subplots=True,title=root)
     
-    
+    return features
 #     test_set["pred"]=lr.predict(np.array(test_set["lev"]).reshape(1, -1))
     
     
 #     test_set.plot(grid=True)
-names=["csi500","hs300","399006","000016"]
-for name in names:
-    model1_train(name)
-plt.show()
+# names=["csi500","hs300","399006","000016"]
+# # for name in names:
+# #     model1_train(name)
+# # plt.show()
+# 
+df=model1_train("csi500",his_start="2019-01-01")
+# plt.show()
+df.to_csv(r"C:\Users\Darren\Documents\features.csv",encoding="utf8")
+
