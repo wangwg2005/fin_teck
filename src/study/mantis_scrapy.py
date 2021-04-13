@@ -9,15 +9,26 @@ import requests
 import matplotlib.pyplot as plt
 # from selenium.webdriver.chrome.options import Options
 
-url="http://data.eastmoney.com/rzrq/total/all.html"
-
 chrome_options = webdriver.ChromeOptions()
 # chrome_options.add_argument('--headless')
 chrome_options.add_argument('--disable-gpu')
 browser=webdriver.Chrome(options=chrome_options)
 
-def parse_content(txt):
+def parse_line(str):
+    cols = str.split()
+    return (cols[0], "".join(cols[1:-1]).strip(), cols[-1])
 
+def extract_obj(sec_code,txt):
+    ind=txt.rfind(sec_code)
+
+
+def parse_content(txt):
+    segments=txt.split('-'*20+'\n')
+
+    part1=segments[1]
+    lines=part1.split("\n")[1:-1]
+    for line in lines:
+        print(parse_line(line))
 
 
 
@@ -35,4 +46,4 @@ btn.click()
 time.sleep(5)
 nav1=browser.find_element_by_id("nav1")
 parse_content(nav1.text)
-browser.close()
+# browser.close()
