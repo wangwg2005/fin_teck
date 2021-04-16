@@ -3,11 +3,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-import model_util as mu
 import os
 
 from sklearn.linear_model import LinearRegression
-from importlib_metadata import files
 
 trade_days=1000
 
@@ -75,7 +73,7 @@ def model1_train(root,train_start="2019-01-01", train_end="2020-12-31", his_star
 # #     model1_train(name)
 # # plt.show()
 # 
-df=model1_train("000016",his_start="2019-01-01")
+df=model1_train("csi500",his_start="2019-01-01")
 plt.show()
 # df.to_csv(r"C:\Users\Darren\Documents\features.csv",encoding="utf8")
 
