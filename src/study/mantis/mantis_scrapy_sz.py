@@ -9,6 +9,7 @@ from datetime import timedelta
 import logging 
 from logging.handlers import RotatingFileHandler
 import json
+import re
 
 # from selenium.webdriver.chrome.options import Options
 
@@ -52,9 +53,10 @@ def parse_item(parts):
     body = body_str.split("  ")
     item = {"证券代码": body[0][-7:-1], "证券简称": body[0][0:-10]}
     for pair in body[1:]:
-        if len(pair) < 2:
-            continue
+
         kv = pair.split(":")
+        if len(kv) < 2:
+            continue
         item[kv[0]] = kv[1].strip()
 
     
@@ -86,7 +88,7 @@ def parse_segment(seg):
 
 
 def parse_content(txt):
-    segments = txt.split('-' * 92)
+    segments = re.split("\-{30,}",txt) 
     
     if len(segments)<2:
         print(txt)
@@ -101,14 +103,20 @@ def parse_content(txt):
     return items
 
 
-def scrap( end_date=None):
+def scrap(start_date=None, end_date=None):
 
     url = "http://www.szse.cn/disclosure/deal/public/index.html"
     browser.get(url)
     time.sleep(5)
     
     
+    
     input_date = browser.find_elements_by_tag_name("input")[13]
+    btn = browser.find_element_by_class_name("txt_btn")
+    
+    if start_date is not None:
+        browser.execute_script("arguments[0].value = arguments[1].toString()", input_date, start_date)
+        btn.click()
     
     
     curr_date= datetime.datetime.strptime(input_date.get_attribute('value'), "%Y-%m-%d")
@@ -117,7 +125,7 @@ def scrap( end_date=None):
         end_date=str(curr_date)[:10]
         
         
-    btn = browser.find_element_by_class_name("txt_btn")
+    
     
     while True:
 
@@ -142,5 +150,5 @@ def scrap( end_date=None):
     browser.close()
     
     
-scrap(end_date="2021-04-19")
+scrap(start_date="2019-10-08",end_date="2019-01-01")
 
