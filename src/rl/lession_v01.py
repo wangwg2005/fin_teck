@@ -18,43 +18,52 @@ import pandas
 
 STATE_DIM, ACTION_DIM = 1, 3
 model = models.Sequential([
-    layers.Dense(32, input_shape=[0,3]),
+    layers.Dense(100, input_dim=STATE_DIM, activation='relu'),
 #     layers.Dropout(0.1),
-    layers.Dense(ACTION_DIM),
-    layers.Dense(1,activation="tanh")
+    layers.Dense(ACTION_DIM, activation="softmax")
 ])
 model.compile(loss='mean_squared_error',
               optimizer=optimizers.Adam(0.001))
 
+
+# 0 buy , 1 nothing, 2 sell
 
 def choose_action(s):
     """预测动作"""
     prob = model.predict(np.array([s]))[0]
 #     prob=prob
 #     print("prob",prob)
-    return -round(prob[0])
+    return np.argmax(prob)
 
 
-def sample_weight(reward):
+def discount_rewards(rewards):
     
-    return -reward*5+1
-
+    print(rewards)
+    n_rewards=np.ones(len(rewards))
+    for groups in rewards:
+        for item in groups:
+            n_rewards[item[0]]=item[2]
+    
+    return n_rewards
+#     n_rewards=[ reward[1] if len(reward)>0 else 1  for reward in rewards]
+    
 
 def train(records):
     s_batch = np.array([record[0] for record in records])
     # action 独热编码处理，方便求动作概率，即 prob_batch
-    a_batch = np.array([[1 if record[1] == i else 0 for i in range(ACTION_DIM)]
+    a_batch = np.array([[1 if record[1]+1 == i else 0 for i in range(ACTION_DIM)]
                         for record in records])
     # 假设predict的概率是 [0.3, 0.7]，选择的动作是 [0, 1]
     # 则动作[0, 1]的概率等于 [0, 0.7] = [0.3, 0.7] * [0, 1]
     prob_batch = model.predict(s_batch) * a_batch
-    r_batch = np.array([sample_weight(record[2]) for record in records])
-    print(r_batch)
+    r_batch = np.array(discount_rewards([record[2] for record in records]))+0.03
+    print("r_batch",r_batch)
     model.fit(s_batch, prob_batch,sample_weight=r_batch,  verbose=0)
 #     model.fit(s_batch, prob_batch,  verbose=0)
 
 def target_feature(state):
-    return [state["resid"]*5+0.5,state["chg1"],state["chg2"]]
+    return [state["resid"]*5+0.5]
+#     return [state["resid"]*5+0.5,state["chg1"],state["chg2"]]
 
 df=pd.DataFrame()
 
@@ -86,8 +95,12 @@ for i_episode in range(20):
         reward_list.append(info["total"])
         step +=1
         obs=next_obs
-        
+    state, reward, done, info=env.step([0])
+    reward_list.append(info["total"])
+    
     score=reward_list[-1]
+    if len(score_list)==0 or score>max(score_list):
+        model.save("models/csi500.model")
     score_list.append(score)
     train(replay_records)
     profits=reward_list

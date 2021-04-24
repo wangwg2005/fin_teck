@@ -60,21 +60,24 @@ class IndexEnv(gym.Env):
         
         return {"resid":row["resid"],"chg1":chg1,"chg2":chg2}
     
-    def buy(self):
+    def buy(self,amount):
         
-        if self.balance<ONE_HAND:
+        if self.balance<amount:
             return
     
         
-        self.balance-=ONE_HAND
-        self.position.append({"date":self.currentStep,"price":self.currentPrice})
+        self.balance-=amount
+        self.position.append({"date":self.currentStep,"price":self.currentPrice,"amount":amount})
         
-        
-    def sell(self):
+    def sell(self,amount):
         
         rewards=[]
         
+        trade_cnt=0
+        
+        profit=0
         while len(self.position)>0 and self.currentStep-self.position[0]["date"]>REWARD_INTERVAL:
+            trade_cnt+=1
             trade=self.position.pop(0)
             fee_rate=0
             if self.currentStep-trade["date"]>NO_FEE_DAYS:
@@ -83,7 +86,10 @@ class IndexEnv(gym.Env):
             profit_rate=self.currentPrice/trade["price"]-fee_rate
             rewards.append((trade["date"],self.currentStep,profit_rate))
             self.balance+=profit_rate*ONE_HAND
+            profit+=profit_rate-1
             
+        if trade_cnt>0:
+            rewards.append((self.currentStep,self.currentStep,(1+profit)/trade_cnt))
         return rewards
         
     def settle(self):
@@ -98,28 +104,30 @@ class IndexEnv(gym.Env):
         
 
     def _takeAction(self, action):
+        rewards=[]
         actionType = action[0]
-#         amount = action[1]
+#         amount = action[1]*ONE_HAND
+        amount=ONE_HAND
+        
+#         print("take action", actionType)
 #         pass
-        if actionType==0:
-            return 0
+        if actionType==1:
+            return rewards
         
         df=self.features
         self.currentPrice=df.loc[self.currentStep]["收盘价"]
         end=min(self.currentStep+MAX_PRETELL_DAYS,len(df)-1)
         start=max(self.currentStep,end-MIN_PRETELL_DAYS)
-            
-        if actionType==1:
-            
-            self.buy()
-            max_price=df[start:end]["收盘价"].max()
-            return max_price/self.currentPrice-1-FEE_RATE
         
+        if actionType==2:
+            
+            self.buy(amount)
         
-        elif actionType==-1:
-            self.sell() 
-            min_price=df[start:end]["收盘价"].min()            
-            return (self.currentPrice-min_price)/self.currentPrice-FEE_RATE
+        elif actionType==0:
+            rewards= self.sell(amount) 
+    
+        
+        return rewards
             
 
         
@@ -129,16 +137,15 @@ class IndexEnv(gym.Env):
 
     def step(self, action):
         # Execute one time step within the environment
+        
         reward=self._takeAction(action)
         result=self.settle()
         self.currentStep += 1
 
-        done = self.currentStep == len(self.features) -1
+        done = self.currentStep == len(self.features) -2
 
         obs = self._nextObservation()
         
-        
-
         return obs, reward, done, result
 
     def reset(self):
