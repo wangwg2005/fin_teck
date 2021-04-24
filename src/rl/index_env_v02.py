@@ -25,6 +25,9 @@ MIN_PRETELL_DAYS=5
 CIRCLE=10
 
 
+# this version , the amount trade each time is variable.
+
+
 class IndexEnv(gym.Env):
     """A stock trading environment for OpenAI gym"""
     metadata = {'render.modes': ['human']}
@@ -60,28 +63,46 @@ class IndexEnv(gym.Env):
         
         return {"resid":row["resid"],"chg1":chg1,"chg2":chg2}
     
-    def buy(self):
+    def buy(self,amount):
         
-        if self.balance<ONE_HAND:
+        if self.balance<amount:
             return
     
         
-        self.balance-=ONE_HAND
-        self.position.append({"date":self.currentStep,"price":self.currentPrice})
+        self.balance-=amount
+        self.position.append({"date":self.currentStep,"price":self.currentPrice,"amount":amount})
         
         
-    def sell(self):
+    def sell(self,amount):
         
         rewards=[]
         
+        cumu=amount
+        
         while len(self.position)>0 and self.currentStep-self.position[0]["date"]>REWARD_INTERVAL:
-            trade=self.position.pop(0)
+            trade=self.position[0]
+            
+            trade_amount=0
+            if trade["amount"]<=cumu:
+                self.position.pop(0)
+                cumu-=trade["amount"]
+                trade_amount=trade["amount"]
+            else:
+                trade["amount"]-=cumu
+                trade_amount=cumu
+                
+            
             fee_rate=0
             if self.currentStep-trade["date"]>NO_FEE_DAYS:
                 fee_rate=0.005
+                
+                
             
             profit_rate=self.currentPrice/trade["price"]-fee_rate
             rewards.append((trade["date"],self.currentStep,profit_rate))
+            
+            # something left, logic not completed
+            
             self.balance+=profit_rate*ONE_HAND
             
         return rewards
@@ -100,7 +121,7 @@ class IndexEnv(gym.Env):
     def _takeAction(self, action):
         rewards=[]
         actionType = action[0]
-#         amount = action[1]
+        amount = action[1]*ONE_HAND
 #         pass
         if actionType==0:
             return rewards
@@ -110,13 +131,12 @@ class IndexEnv(gym.Env):
         end=min(self.currentStep+MAX_PRETELL_DAYS,len(df)-1)
         start=max(self.currentStep,end-MIN_PRETELL_DAYS)
         
-        rewards=[]
         if actionType==1:
             
-            self.buy()
+            self.buy(amount)
         
         elif actionType==-1:
-            rewards= self.sell() 
+            rewards= self.sell(amount) 
         
         
         return rewards

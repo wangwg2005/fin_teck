@@ -16,9 +16,9 @@ import gym
 import pandas
 
 
-STATE_DIM, ACTION_DIM = 1, 3
+STATE_DIM, ACTION_DIM = 3, 3
 model = models.Sequential([
-    layers.Dense(32, input_shape=(None,3)),
+    layers.Dense(32, input_shape=[STATE_DIM]),
 #     layers.Dropout(0.1),
     layers.Dense(ACTION_DIM),
     layers.Dense(1,activation="tanh")
@@ -32,7 +32,8 @@ def choose_action(s):
     prob = model.predict(np.array([s]))[0]
 #     prob=prob
 #     print("prob",prob)
-    return -round(prob[0])
+    actionType=-round(prob[0])
+    return -round(prob[0]),math.fabs(prob[0])*3-1
 
 
 def sample_weight(reward):

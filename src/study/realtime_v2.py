@@ -10,7 +10,7 @@ import requests
 import matplotlib.pyplot as plt
 from jqka import *
 import pandas as pd
-import file_cache as fc
+import file_cache as fcl
 from datetime import date
 import math
 import model_util
@@ -100,8 +100,8 @@ fc.get_cache("csi500cf", get_csi500_currency_flow)
 import jqka
 def deduct_etf():
     total_df=None
-    target_etf=["510900","518880","159920","159934","601318","600519"]
-#     target_etf=["510900","518880","159920","159934"]
+#     target_etf=["510900","518880","159920","159934","601318","600519"]
+    target_etf=["510900","518880","159920","159934"]
 #     total_etf=jqka.foreign_ind+jqka.gold_etf
     for code in target_etf:
         time.sleep(5)

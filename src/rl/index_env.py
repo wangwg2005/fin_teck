@@ -77,7 +77,7 @@ class IndexEnv(gym.Env):
         while len(self.position)>0 and self.currentStep-self.position[0]["date"]>REWARD_INTERVAL:
             trade=self.position.pop(0)
             fee_rate=0
-            if self.currentStep-trade>NO_FEE_DAYS:
+            if self.currentStep-trade["date"]>NO_FEE_DAYS:
                 fee_rate=0.005
             
             profit_rate=self.currentPrice/trade["price"]-fee_rate

@@ -18,7 +18,7 @@ import pandas
 
 STATE_DIM, ACTION_DIM = 1, 3
 model = models.Sequential([
-    layers.Dense(32, input_shape=(None,3)),
+    layers.Dense(32, input_shape=[0,3]),
 #     layers.Dropout(0.1),
     layers.Dense(ACTION_DIM),
     layers.Dense(1,activation="tanh")
