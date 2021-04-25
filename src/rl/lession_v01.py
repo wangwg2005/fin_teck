@@ -33,7 +33,9 @@ def choose_action(s):
     prob = model.predict(np.array([s]))[0]
 #     prob=prob
 #     print("prob",prob)
-    return np.argmax(prob)
+    actionType=np.argmax(prob)
+    amount=prob[actionType]*2
+    return actionType, amount
 
 
 def discount_rewards(rewards):
@@ -84,18 +86,18 @@ for i_episode in range(20):
         action=choose_action(obs)
 #         print("obs:",obs,"action",action)
         
-        state, reward, done, info = env.step([action])
+        state, reward, done, info = env.step(action)
 #         if reward>0.1:
 #             print("wrong reward：",reward)
         next_obs=target_feature(state)
         work= not done
 #         if reward>-1:
-        replay_records.append([obs,action,reward])
+        replay_records.append([obs,action[0],reward])
         
         reward_list.append(info["total"])
         step +=1
         obs=next_obs
-    state, reward, done, info=env.step([0])
+    state, reward, done, info=env.step([0,100000])
     reward_list.append(info["total"])
     
     score=reward_list[-1]

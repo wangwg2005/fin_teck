@@ -25,9 +25,6 @@ MIN_PRETELL_DAYS=5
 CIRCLE=10
 
 
-# this version , the amount trade each time is variable.
-
-
 class IndexEnv(gym.Env):
     """A stock trading environment for OpenAI gym"""
     metadata = {'render.modes': ['human']}
@@ -65,53 +62,54 @@ class IndexEnv(gym.Env):
     
     def buy(self,amount):
         
+        amount_buy=amount
         if self.balance<amount:
-            return
+            amount_buy=self.balance
     
         
-        self.balance-=amount
-        self.position.append({"date":self.currentStep,"price":self.currentPrice,"amount":amount})
-        
+        self.balance-=amount_buy
+        self.position.append({"date":self.currentStep,"price":self.currentPrice,"amount":amount_buy})
         
     def sell(self,amount):
         
         rewards=[]
         
-        cumu=amount
+        trade_cnt=0
         
-        while len(self.position)>0 and self.currentStep-self.position[0]["date"]>REWARD_INTERVAL:
+        profit_total=0
+        amount_left=amount
+        while len(self.position)>0 and self.currentStep-self.position[0]["date"]>REWARD_INTERVAL and amount_left>0:
+            trade_cnt+=1
             trade=self.position[0]
-            
-            trade_amount=0
-            if trade["amount"]<=cumu:
+            amount_sell=0
+            if  amount_left>=trade["amount"]:
                 self.position.pop(0)
-                cumu-=trade["amount"]
-                trade_amount=trade["amount"]
+                amount_sell=trade["amount"]                
             else:
-                trade["amount"]-=cumu
-                trade_amount=cumu
+                amount_sell=amount_left
+                trade["amount"]-=amount_left
                 
-            
+            amount_left-=amount_sell
             fee_rate=0
+            
             if self.currentStep-trade["date"]>NO_FEE_DAYS:
                 fee_rate=0.005
-                
-                
             
-            profit_rate=self.currentPrice/trade["price"]-fee_rate
-            rewards.append((trade["date"],self.currentStep,profit_rate))
+            profit_rate=(self.currentPrice/trade["price"]-fee_rate)
+            profit=(profit_rate-1)*amount_sell
+            rewards.append((trade["date"],self.currentStep,profit/2/1000+1))
+            self.balance+=profit+amount_sell
+            profit_total+=profit/2
             
-            # something left, logic not completed
-            
-            self.balance+=profit_rate*ONE_HAND
-            
+        if trade_cnt>0:
+            rewards.append((self.currentStep,self.currentStep,profit_total/1000/trade_cnt+1))
         return rewards
         
     def settle(self):
         
         market_value=0
         for trade in self.position:
-            market_value+= self.currentPrice/trade["price"]*ONE_HAND
+            market_value+= self.currentPrice/trade["price"]*trade["amount"]
         
         settle_result={"balance":self.balance,"stock_value":market_value,"total":self.balance+market_value}
         self.asset_his=self.asset_his.append(settle_result, ignore_index=True)
@@ -121,9 +119,12 @@ class IndexEnv(gym.Env):
     def _takeAction(self, action):
         rewards=[]
         actionType = action[0]
-        amount = action[1]*ONE_HAND
+#         amount = action[1]*ONE_HAND 
+        amount=ONE_HAND*action[1]
+        
+#         print("take action", actionType)
 #         pass
-        if actionType==0:
+        if actionType==1:
             return rewards
         
         df=self.features
@@ -131,36 +132,38 @@ class IndexEnv(gym.Env):
         end=min(self.currentStep+MAX_PRETELL_DAYS,len(df)-1)
         start=max(self.currentStep,end-MIN_PRETELL_DAYS)
         
-        if actionType==1:
+        if actionType==2:
             
             self.buy(amount)
         
-        elif actionType==-1:
+        elif actionType==0:
             rewards= self.sell(amount) 
-        
+    
         
         return rewards
-                    
+            
+
+        
 #         elif actionType==-1:
 #             self.balance-=self.currentPrice
         
 
     def step(self, action):
         # Execute one time step within the environment
+        
         reward=self._takeAction(action)
         result=self.settle()
         self.currentStep += 1
 
-        done = self.currentStep == len(self.features) -1
+        done = self.currentStep == len(self.features) -2
 
         obs = self._nextObservation()
         
-        
-
         return obs, reward, done, result
 
     def reset(self):
 
+        print("reset env, settle his length",len(self.asset_his))
 
         if len(self.asset_his)>0:
             self.asset_his.to_csv(r"C:\Users\Darren\Documents\rl\settle_{0}.csv".format([self.round]),encoding="utf8")
@@ -176,6 +179,7 @@ class IndexEnv(gym.Env):
         self.delta=0
         self.currentPrice=0
         self.position=[]
+        print("index env reset")
 
         return self._nextObservation()
 
