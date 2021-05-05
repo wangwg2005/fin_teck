@@ -10,7 +10,7 @@ import requests
 import matplotlib.pyplot as plt
 from jqka import *
 import pandas as pd
-import file_cache as fcl
+import file_cache as fc
 from datetime import date
 import math
 import model_util
