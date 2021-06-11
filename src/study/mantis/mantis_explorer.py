@@ -41,7 +41,7 @@ for ann in ann_p:
     
         
 
-plt.plot(x,y)
+plt.scatter(x,y)
 
 for i in range(len(x)):
     plt.annotate(txt[i], xy = (x[i], y[i]), xytext = (x[i]+0.001, y[i]+0.001))

@@ -8,3 +8,4 @@ end_date="2020-12-31"
 print(cninfo.get_by_stock("002118,9900002187", start_date,end_date))
 df = web.get_data_yahoo("002118.SZ", start=start_date, end=end_date)
 
+df=
