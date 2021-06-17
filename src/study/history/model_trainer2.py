@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import os
+from scipy import stats
 
 from sklearn.linear_model import LinearRegression
 
@@ -30,7 +31,7 @@ def read_dir(path):
         return (files[1],files[0])
     
 
-def model1_train(root,train_start="2019-01-01", train_end="2020-12-31", his_start="2020-01-01", his_end=""):
+def model1_train(root,train_start="2019-01-01", train_end="2020-12-31", his_start="2018-01-01", his_end=""):
     
 #     features=csi500[["最高价","最低价","开盘价","收盘价"]]
 #     print(features)
@@ -58,19 +59,37 @@ def model1_train(root,train_start="2019-01-01", train_end="2020-12-31", his_star
     features["pred"]=lr.predict(features[["lev"]])
     features["resid"]=features["收盘价"]-features["pred"]
     features["resid_norm"]=features["resid"]/features["收盘价"]
+
 #     features[:"2020-01-01"].plot(grid=True)
 #     plt.show()
     features['成交量'] = features['成交量'].astype('float64')
-    features[:his_start][["收盘价","resid","resid_norm"]].plot(grid=True,subplots=True,title=root)
+    features=features[:his_start][["收盘价","resid","resid_norm"]]
     
-    return features
+
+    val=features["resid_norm"][0]
+    print("val",val)
+    
+
+        
+    msg = "{:.2f}".format(100-stats.percentileofscore(features["resid_norm"], val))+"%"
+#     msg=" low than "+msg
+#     features.plot(grid=True,subplots=True,title=root+msg)
+     
+    return msg, features
 #     test_set["pred"]=lr.predict(np.array(test_set["lev"]).reshape(1, -1))
     
     
 #     test_set.plot(grid=True)
 names=["csi500","hs300","399006","000016"]
+# names=["000016"]
+data={}
+
 for name in names:
-    model1_train(name)
+    percentile,features= model1_train(name)
+    data[name+" "+percentile] = features["resid_norm"]
+    
+df=pd.DataFrame(data)
+df.plot(grid=True,subplots=True)
 plt.show()
 # 
 # df=model1_train("csi500",his_start="2019-01-01")
