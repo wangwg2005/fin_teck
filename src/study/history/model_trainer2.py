@@ -31,7 +31,7 @@ def read_dir(path):
         return (files[1],files[0])
     
 
-def model1_train(root,train_start="2019-01-01", train_end="2020-12-31", his_start="2018-01-01", his_end=""):
+def model1_train(root,train_start="2019-01-01", train_end="2020-12-31", his_start="2015-01-01", his_end=""):
     
 #     features=csi500[["最高价","最低价","开盘价","收盘价"]]
 #     print(features)
@@ -73,7 +73,7 @@ def model1_train(root,train_start="2019-01-01", train_end="2020-12-31", his_star
         
     msg = "{:.2f}".format(100-stats.percentileofscore(features["resid_norm"], val))+"%"
 #     msg=" low than "+msg
-#     features.plot(grid=True,subplots=True,title=root+msg)
+    features.plot(grid=True,subplots=True,title=root+msg)
      
     return msg, features
 #     test_set["pred"]=lr.predict(np.array(test_set["lev"]).reshape(1, -1))
@@ -89,7 +89,7 @@ for name in names:
     data[name+" "+percentile] = features["resid_norm"]
     
 df=pd.DataFrame(data)
-df.plot(grid=True,subplots=True)
+# df.plot(grid=True,subplots=True)
 plt.show()
 # 
 # df=model1_train("csi500",his_start="2019-01-01")
