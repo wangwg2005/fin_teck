@@ -9,7 +9,7 @@ userAgent="User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537
 
 sse_url='http://www.sse.com.cn/market/dealingdata/overview/margin/a/rzrqjygk{0}.xls'
 
-szse_url='http://www.szse.cn/api/report/ShowReport?SHOWTYPE=xlsx&CATALOGID=1837_xxpl&txtDate={0}&tab2PAGENO=1&random={1}&TABKEY=tab2'
+szse_url='http://www.szse.cn/api/report/ShowReport?SHOWTYPE=xlsx&CATALOGID=1837_xxpl&txtDate={0}&tab2PAGENO=1&random=0.8927812381738702&TABKEY=tab2'
 szse_index='http://www.szse.cn/disclosure/margin/margin/index.html'
 
 
@@ -47,7 +47,11 @@ def download(url,target_path=None):
         r.close()
         
 def download_leverage_szse(date_str):
-    from requests_html import HTMLSession
-    session = HTMLSession()
+    url=szse_url.format(date_str)
+    print(url)
     
-    res= session.get(url = szse_index)
+    fpath=os.path.join('szse','rzrqjygk'+date_str+'.xls')
+    
+    download(url, fpath)
+    
+    
