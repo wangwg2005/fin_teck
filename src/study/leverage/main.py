@@ -4,6 +4,7 @@ from study.leverage import time_util as tutil
 from study.leverage import leverage_reader as lreader
 import pandas as pd
 import matplotlib.pyplot as plt 
+from pandas_datareader import data, wb
 
 ttoday=datetime.date.today()
 
@@ -12,7 +13,7 @@ pre_day=tutil.get_prevous_trade_date(ttoday)
 pre2_day=tutil.get_prevous_trade_date(pre_day)
 
 
-def analyze_sse():
+def filter_sse():
 
     pre_day_str=tutil.stringfy(pre_day)
     df1=lreader.read_detail_sse(pre_day_str)
@@ -46,7 +47,7 @@ def analyze_sse():
 def convert_number(a):
     return int(a.replace(",",""))
     
-def analyze_szse():
+def filter_szse():
     pre_day_str=str(pre_day)
     df1=lreader.read_detail_szse(pre_day_str)
     
@@ -71,19 +72,23 @@ def analyze_szse():
     
     return dfn[:20],dfn2[:20]
 
-sse1, sse2=analyze_sse()
-szse1, szse2=analyze_szse()
-
-incr=pd.concat([sse1,szse1])
-ratio = pd.concat([sse2,szse2])
-
-figure,ax=plt.subplots(2,1)
-figure.suptitle(pre_day)
-# ax1=plt.figure(2,1,1)
-incr=incr.sort_values(by=['incr'],ascending=False)
-incr[:20].plot(x="证券简称",y="incr",kind="bar",rot="30",ax=ax[0])
-# ax2=plt.figure(2,1,2)
-ratio=ratio.sort_values(by=['quant'],ascending=False)
-ratio[:20].plot(x="证券简称",y="quant",kind="bar",rot="30",ax=ax[1])
-
-plt.show()
+def process():
+    sse1, sse2=filter_sse()
+    szse1, szse2=filter_szse()
+    
+    incr=pd.concat([sse1,szse1])
+    ratio = pd.concat([sse2,szse2])
+    
+    figure,ax=plt.subplots(2,1)
+    figure.suptitle(pre_day)
+    # ax1=plt.figure(2,1,1)
+    incr=incr.sort_values(by=['incr'],ascending=False)
+    incr[:20].plot(x="证券简称",y="incr",kind="bar",rot="30",ax=ax[0])
+    # ax2=plt.figure(2,1,2)
+    ratio=ratio.sort_values(by=['quant'],ascending=False)
+    ratio[:20].plot(x="证券简称",y="quant",kind="bar",rot="30",ax=ax[1])
+    
+    
+    plt.show()
+    
+process()

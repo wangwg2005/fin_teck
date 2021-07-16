@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import mplfinance as mpf
 import matplotlib as mpl# 用于设置曲线参数
 
-df = web.get_data_yahoo("002118.SZ", start="2020-01-01", end="2021-03-30")
+df = web.get_data_yahoo("002118.SZ", start="2021-01-01", end="2021-03-30")
 
 def get_style():
     mc = mpf.make_marketcolors(

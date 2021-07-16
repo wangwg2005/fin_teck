@@ -11,7 +11,9 @@ def read_detail_sse(date_str):
         print("downloading file for",date_str)
         downloader.download_leverage_sse(date_str)
     
-    df=pd.read_excel(fpath,sheet_name="明细信息",index_col="标的证券代码")
+    df=pd.read_excel(fpath,sheet_name="明细信息")
+    df["标的证券代码"]=df["标的证券代码"].map(lambda x:str(x) +".SH")
+    df.set_index("标的证券代码",inplace=True)
     
     return df
 
@@ -24,6 +26,7 @@ def read_detail_szse(date_str):
         downloader.download_leverage_szse(date_str)
     
     df=pd.read_excel(fpath,dtype={'证券代码' :str})
+    df["证券代码"]=df["证券代码"].map(lambda x:str(x) +".SZ")
     df.set_index("证券代码",inplace=True)
     
     return df
