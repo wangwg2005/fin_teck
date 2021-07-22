@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import pandas_datareader.data as web
-import datetime
-import matplotlib.pyplot as plt
+import yfinance as yf
 import mplfinance as mpf
 import matplotlib as mpl# 用于设置曲线参数
 
-df = web.get_data_yahoo("002118.SZ", start="2021-01-01", end="2021-03-30")
+aapl = yf.Ticker("002118.sz")
+
+df = aapl.history(period="1y")
 
 def get_style():
     mc = mpf.make_marketcolors(
