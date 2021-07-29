@@ -152,7 +152,7 @@ def model_train(x,a,b,c,d):
 
 def predict(type="close"):
 #     leve_csi500 = pd.read_excel("study/history/融资融券csi500_2.xls",header=1, encoding="gbk")
-    leve_csi500 = pd.read_excel("history/融资融券csi500_2.xls",header=1, encoding="gbk")
+    leve_csi500 = pd.read_excel("history/融资融券csi500_2.xls",header=1)
     date_time = pd.to_datetime(leve_csi500.pop('交易日期'), format='%Y-%m-%d')
     leve_csi500.index=date_time
     leve_csi500.dropna()

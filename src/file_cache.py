@@ -15,6 +15,9 @@ print("cache dir:",tmp_dir)
 cache_only=False
 no_cache=False
 
+
+
+
 def skip_holiday(day):
     while str(day) in holiday:
         day=day+timedelta(-1)
@@ -38,6 +41,8 @@ def get_prevous_trade_date(currentdate):
     result=skip_holiday(result)
             
     return result
+
+ptd=get_prevous_trade_date(date.today())
 
 def get_from_cache(cache_id):
     if no_cache:
@@ -70,7 +75,9 @@ def get_cache(cache_id, func, param=None):
             latest=func()
         else:
             latest=func(param)
-        if len(df)>0 and is_up_to_date(latest):
+        u2d=is_up_to_date(latest)
+        print("is up to date:",u2d)
+        if len(df)>0 and u2d:
             result=merge(df, latest)
             print("%d new rows got" %(len(result)-len(df)))
         else:
@@ -86,9 +93,7 @@ def get_cache(cache_id, func, param=None):
     return result
 
 def is_up_to_date(df):
-    pre_trade_date=get_prevous_trade_date(date.today())
-    
-    return  len(df.loc[df['日期'] == pre_trade_date])
+    return  len(df[df['日期'] == str(ptd)])
     
 
 def merge(df1,df2):
@@ -106,4 +111,12 @@ def push(cache_id,pd):
     pd.to_csv(fpath)
     
     
-print("previous trade date",get_prevous_trade_date(date.today()))
+print("previous trade date", ptd)
+
+
+def test_file(cache_id):
+    df=get_from_cache(cache_id)
+    df=df.sort_values(by="日期")
+    print(df)
+    
+#test_file("csi500")
