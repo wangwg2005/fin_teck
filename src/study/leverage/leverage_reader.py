@@ -30,6 +30,12 @@ def read_detail_szse(date_str):
     df.set_index("证券代码",inplace=True)
     
     return df
+
+def read_detail(date_str,exchange):
+    if exchange=="sse":
+        return read_detail_sse(date_str)
+    else:
+        return read_detail_szse(date_str)
     
 # df=read_detail_szse("2021-06-28")
 # print(df)

@@ -87,10 +87,15 @@ def process():
     incr=incr.sort_values(by=['incr'],ascending=False)
     incr[:20].plot(x="证券简称",y="incr",kind="bar",rot="30",ax=ax[0])
     # ax2=plt.figure(2,1,2)
-    ratio=ratio.sort_values(by=["融资买入额(元)"],ascending=False)
-    ratio[:20].plot(x="证券简称",y=["quant","融资买入额(元)"],kind="bar",rot="30",ax=ax[1])
-    
+#     ratio=ratio.sort_values(by=["融资买入额(元)"],ascending=False)
+#     ratio[:20].plot(x="证券简称",y=["quant","融资买入额(元)"],kind="bar",rot="30",ax=ax[1])
+  
+    ratio=ratio.sort_values(by=["quant"],ascending=False)
+    ratio[:20].plot(x="证券简称",y="quant",kind="bar",rot="30",ax=ax[1])
+  
     
     plt.show()
+    
+
     
 process()
