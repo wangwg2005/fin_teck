@@ -4,7 +4,7 @@ from datetime import datetime, date, timedelta
 holiday=[]
 
 def stringfy(date):
-    return str(date).replace("-","")
+    return str(date)[:10].replace("-","")
 
 def skip_holiday(day):
     while str(day) in holiday:

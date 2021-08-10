@@ -8,22 +8,26 @@ def read_detail_sse(date_str):
     fpath=os.path.join("sse","rzrqjygk"+date_str+".xls")
     
     if not os.path.exists(fpath):
-        print("downloading file for",date_str)
+#         print("downloading file for",date_str)
         downloader.download_leverage_sse(date_str)
     
     df=pd.read_excel(fpath,sheet_name="明细信息")
-    df["标的证券代码"]=df["标的证券代码"].map(lambda x:str(x) +".SH")
+    df["标的证券代码"]=df["标的证券代码"].map(lambda x:str(x) +".SS")
     df.set_index("标的证券代码",inplace=True)
     
     return df
 
 #
 def read_detail_szse(date_str):
+    if len(date_str)>10:
+        date_str=date_str[:10]
     fpath=os.path.join("szse","rzrqjygk"+date_str+".xls")
     
     if not os.path.exists(fpath):
         print("downloading file for",date_str)
         downloader.download_leverage_szse(date_str)
+#     else:
+#         print("file exists, skip downloading, date:",date_str)
     
     df=pd.read_excel(fpath,dtype={'证券代码' :str})
     df["证券代码"]=df["证券代码"].map(lambda x:str(x) +".SZ")

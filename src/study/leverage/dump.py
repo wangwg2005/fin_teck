@@ -6,6 +6,7 @@ import business_day
 import time
 import os
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 ttoday=datetime.date.today()
@@ -50,8 +51,10 @@ def summary_sse():
             data=a
         else:
             data=np.append(data,a,axis=0)
+    
+    cnames=list(map(lambda s : s[2:], df.columns))
 
-    output=pd.DataFrame(data=data,index=index,columns=column_names)
+    output=pd.DataFrame(data=data,index=index,columns=cnames)
     
     output.to_excel("sse2020.xls")
     
@@ -106,7 +109,7 @@ def extract(security_codes,exchange,prefix="2020"):
         if pref not in file :
             continue
         index.append(file[8:-4])
-        df=pd.read_excel(os.path.join(exchange,file),sheet_name=-1,dtype={"证券代码":str})
+        df=pd.read_excel(os.path.join(exchange,file),sheet_name=-1,dtype={"标的证券代码":str})
         for code in security_codes:
             row=df[df[df.columns[0]]==code][df.columns[2:]][:1].to_numpy()
             if code not in kv:
@@ -114,12 +117,42 @@ def extract(security_codes,exchange,prefix="2020"):
             else:
                 kv[code]=np.append(kv[code],row,axis=0)
     for code in security_codes:
-        df=pd.DataFrame(kv[code],columns=column_names,index=index)
+        df=pd.DataFrame(kv[code],columns=column_names,index=index).applymap(lambda x:int(x.replace(",","")))
         fname=code+"_2020.xls"
         print("saving",fname)
         df.to_excel(fname)
         
 if __name__ == '__main__':
+    
+#     summary()
+    parent_dir=os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+    csi500=pd.read_csv(os.path.join(parent_dir,"history","csi500","000905.csv"),index_col="日期",encoding="gbk",parse_dates=True)
+    print(csi500["2020-01-01":"2020-12-31"]["收盘价"])
+       
+    kv={}
+    targ_dir="study"
+    for file in os.listdir(targ_dir):
+        kv[file[:-4]]=pd.read_excel(os.path.join(targ_dir,file),index_col=0,parse_dates=True)
+       
+    total=kv.pop("2020_total")
+       
+    print("tag1-------------")
+    print(total[column_names[1]]) 
+       
+    for k,v in kv.items():
+        total[column_names[1]]-=v[column_names[1]]
+          
+          
+    print("tag2-------------")
+    print(total[column_names[1]])
+           
+    total["risk"]=(2.7*csi500["收盘价"]-1000-total[column_names[1]]/100000000)*2
+    total["risk"].plot()
+    plt.show()
+    
+    
+    
+    
 #     extract(["510900","518880"],"sse")     
 #     extract(["518880"],"sse")
 #     extract(["159920","159934"],"szse")
