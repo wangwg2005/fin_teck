@@ -103,56 +103,80 @@ def summary():
 def extract(security_codes,exchange,prefix="2020"):
     pref="rzrqjygk"+prefix
     
+    if exchange=="sse":
+        sid_cname='标的证券代码'
+    else:
+        sid_cname="证券代码"
+    
     kv={}
     index=[]
     for file in os.listdir(exchange):
         if pref not in file :
             continue
         index.append(file[8:-4])
-        df=pd.read_excel(os.path.join(exchange,file),sheet_name=-1,dtype={"标的证券代码":str})
+        df=pd.read_excel(os.path.join(exchange,file),sheet_name=-1,dtype={sid_cname:str})
+        
         for code in security_codes:
-            row=df[df[df.columns[0]]==code][df.columns[2:]][:1].to_numpy()
+            row=df[df[sid_cname]==code][df.columns[2:]][:1].to_numpy()
             if code not in kv:
                 kv[code]=row
             else:
                 kv[code]=np.append(kv[code],row,axis=0)
+    print(df.columns)
     for code in security_codes:
-        df=pd.DataFrame(kv[code],columns=column_names,index=index).applymap(lambda x:int(x.replace(",","")))
-        fname=code+"_2020.xls"
+        data=kv[code]
+        if len(data)==0 :
+            print("no data for",code)
+            continue
+        elif len(data)!=len(index):
+            print("data length dosn't match index length:",code)
+            continue
+        df=pd.DataFrame(data,columns=column_names,index=index).applymap(lambda x: x if type(x)==int else int(x.replace(",","")))
+        fname=os.path.join("cache",code+"_2020.xls")
         print("saving",fname)
         df.to_excel(fname)
         
 if __name__ == '__main__':
-    
+    sse_stock=[]
+    szse_stock=[]
+    for file in os.listdir("cache"):
+        if len(file)>10:
+            continue
+        if file[0]=='6':
+            sse_stock.append(file[:6])
+        else:
+            szse_stock.append(file[:6])
+    extract(sse_stock, "sse")
+    extract(szse_stock, "szse")
 #     summary()
-    parent_dir=os.path.abspath(os.path.join(os.getcwd(), os.pardir))
-    csi500=pd.read_csv(os.path.join(parent_dir,"history","csi500","000905.csv"),index_col="日期",encoding="gbk",parse_dates=True)
-    print(csi500["2020-01-01":"2020-12-31"]["收盘价"])
-       
-    kv={}
-    targ_dir="study"
-    for file in os.listdir(targ_dir):
-        kv[file[:-4]]=pd.read_excel(os.path.join(targ_dir,file),index_col=0,parse_dates=True)
-       
-    total=kv.pop("2020_total")
-       
-    print("tag1-------------")
-    print(total[column_names[1]]) 
-       
-    for k,v in kv.items():
-        total[column_names[1]]-=v[column_names[1]]
-          
-          
-    print("tag2-------------")
-    print(total[column_names[1]])
-           
-    total["risk"]=(2.7*csi500["收盘价"]-1000-total[column_names[1]]/100000000)*2
-    total["risk"].plot()
-    plt.show()
+#     parent_dir=os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+#     csi500=pd.read_csv(os.path.join(parent_dir,"history","csi500","000905.csv"),index_col="日期",encoding="gbk",parse_dates=True)
+#     print(csi500["2020-01-01":"2020-12-31"]["收盘价"])
+#        
+#     kv={}
+#     targ_dir="study"
+#     for file in os.listdir(targ_dir):
+#         kv[file[:-4]]=pd.read_excel(os.path.join(targ_dir,file),index_col=0,parse_dates=True)
+#        
+#     total=kv.pop("2020_total")
+#        
+#     print("tag1-------------")
+#     print(total[column_names[1]]) 
+#        
+#     for k,v in kv.items():
+#         total[column_names[1]]-=v[column_names[1]]
+#           
+#           
+#     print("tag2-------------")
+#     print(total[column_names[1]])
+#            
+#     total["risk"]=(2.7*csi500["收盘价"]-1000-total[column_names[1]]/100000000)*2
+#     total["risk"].plot()
+#     plt.show()
     
     
     
     
 #     extract(["510900","518880"],"sse")     
-#     extract(["518880"],"sse")
+#     extract(["600375"],"sse")
 #     extract(["159920","159934"],"szse")

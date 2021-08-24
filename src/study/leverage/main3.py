@@ -10,8 +10,6 @@ import json
 import os
 import numpy as np
 from math import ceil
-import mplfinance as mpf
-
 
 ttoday=datetime.date.today()
 
@@ -141,7 +139,7 @@ def simulate(df,indexes ):
     o_price=df.at[indexes[1],"Open"]
     buy_stand=stand_price*0.97
     if f_price>buy_stand:
-        return 0,0,0
+        return 0
     buy_price=buy_stand if o_price>buy_stand else (f_price+o_price)/2
     
     quota=ceil(10000/(buy_price*100))
@@ -157,27 +155,13 @@ def simulate(df,indexes ):
         sell_price=df.at[ind,"Close"]
         
     profit=(sell_price-buy_price)*quota*100
-    return profit,buy_price, sell_price
-
-
-def get_style():
-    mc = mpf.make_marketcolors(
-        up='red', 
-        down='green', 
-        edge='i', 
-        wick='i', 
-        volume='in', 
-        inherit=True)
-    
-    style = mpf.make_mpf_style(base_mpl_style="ggplot", marketcolors=mc)
-    return style
-
+    return profit
 
 def batch_analyze():
     dump()
     bds=bd.get_business_day_cn("2020")
 #     days=pd.date_range(start="2020-01-01",end="2020-12-31",freq=bds)
-    duration=14
+    
     profits=[]
     profit=0
     indexes=[]
@@ -186,14 +170,11 @@ def batch_analyze():
         kv=json.load(f)
     kv2={}
     pre_k="2020"
-    
-    candle_data=pd.DataFrame(columns=["Date","Open","High","Low","Close"])
-    
     for k in list(kv.keys())[:-7]:
-#         if pre_k>k:
-#             print(pre_k,k," disorder")
-#             return
-        
+        if pre_k>k:
+            print(pre_k,k," disorder")
+            return
+        indexes.append(k)
         sid=kv[k]
         fpath=os.path.join("cache",sid[:6]+".csv")
         
@@ -206,56 +187,22 @@ def batch_analyze():
                 print("no data fetched, stopping")
                 break
             df.to_csv(fpath)
-        term=pd.date_range(start=k,periods=duration,freq=bds)
-        start_d=term[0]
+        term=pd.date_range(start=k,periods=7,freq=bds)
+        start_d=term[1]
         cprice=df.at[start_d,"Close"]
-        c_item=simulate(df, term)
-#         print(c_item)
-        profit+=c_item[0]
+        profit+=simulate(df, term)
         profits.append(profit)
-        
-        df_s=df[term[1]:term[-1]]
-        
-        max_p=df_s["High"].max()
-        min_p=df_s["Low"].min()
-
-        print(max_p,min_p,cprice)
-#         if c_item[1]==0:
-
-        max_d=str(df_s[df_s["High"]==max_p].index)
-        min_d=str(df_s[df_s["Low"]==min_p].index)
-        
-        if max_d>min_d:
-            open_p=min_p
-            close_p=max_p
-        else:
-            close_p=min_p
-            open_p=max_p
-
-        
-        candle_item={"Date":k,"High":max_p/cprice,"Low":min_p/cprice,"Open":open_p/cprice,"Close":close_p/cprice}
-#         else:
-#             
-#             candle_item={"Date":k,"High":max_p/c_item[1],"Low":min_p/c_item[1],"Open":c_item[1],"Close":c_item[2]/c_item[1]}
-        indexes.append(k)
-        candle_data=candle_data.append(candle_item,ignore_index=True)
-        rate=max_p/cprice-1
-        rate1=df.at[term[0],"Close"]/cprice-1
-        if rate1<-0.05:
-            kv2[k]=rate
-#         if rate>0.1:
-#             print(k,sid,rate)
-#             plt.plot(term,df[term[0]:term[-1]]["Close"])
-    x=list(kv2.keys())
-#     plt.plot(x,kv2.values())
-    print("len1",len(indexes),"Len2",len(candle_data))
-    candle_data.index=pd.to_datetime(indexes)
-    print(candle_data.describe())
-    mpf.plot(candle_data, type="candle",mav=(20) , style=get_style(), figscale=5)
-#     plt.plot(indexes,profits)
+        mprice=df[term[2]:term[-1]]["Close"].max()
+        rate=mprice/cprice-1
+        kv2[k]=rate
+        if rate>0.1:
+            print(k,sid,rate)
+#     plt.plot(indexes,kv2.values())
+    plt.plot(indexes,profits)
     ss=list(kv2.values())
-    
-#     plt.xticks(x[::22],rotation=45)
-#     plt.show()
+    print("mean",np.mean(ss))
+    print("median",np.median(ss))
+    plt.xticks(indexes[::22],rotation=45)
+    plt.show()
 # process()
 batch_analyze()
