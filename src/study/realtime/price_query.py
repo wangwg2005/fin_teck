@@ -15,14 +15,14 @@ keys=['stock_name','open','close_pre','current','high','low','bid_price','offer_
 
 
 def get_price(*stockid):
-    url='https://hq.sinajs.cn/list={0}'.format(','.join(stockid))
+    url='https://hq.sinajs.cn/list={0}'.format(','.join(stockid).lower())
 
     response=requests.get(url)
     res_body=response.text.strip()
-    
     lines=res_body.split('\n')
     result=[]
     for line in lines:
+#         print(line)
         start_ind=line.find('=')
         body=line[start_ind+2:-4]
         infos=body.split(',')
@@ -48,6 +48,8 @@ def get_time_window(stock_id,date):
     
 # rs=search(sse,["2020-02-27","2020-02-24"])
 # print(rs)
+
+print(get_price('sh600618'))
 
 # get_time_window('sh601006','2021-09-01')
 # print(datetime.now().timestamp())
