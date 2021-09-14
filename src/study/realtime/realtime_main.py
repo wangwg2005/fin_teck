@@ -7,8 +7,8 @@ from study.realtime import boll
 from study.realtime import price_query
 import time
 # stk1, stk2=main2.process(retn=True)
-today_str=str(datetime.date.today())
-# today_str='2021-09-09'
+# today_str=str(datetime.date.today())
+today_str='2021-09-13'
 fpath="..\\cache\\"+today_str+"_incr.csv"
 df1=pd.read_csv(fpath,index_col=0)
 print(df1)
