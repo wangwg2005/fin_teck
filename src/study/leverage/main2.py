@@ -8,7 +8,6 @@ import business_day as bd
 import yfinance as yf
 import json
 import os
-import numpy as np
 from math import ceil
 import mplfinance as mpf
 
@@ -50,7 +49,7 @@ def filter_sse():
 #     dfn[:20].plot(x="证券简称",y="incr",kind="bar",rot="30")
 #     dfn2[:20].plot(x="证券简称",y="incr",kind="bar",rot="30")
     
-    return dfn[:20],dfn2[:20]
+    return dfn[:20],dfn2[:20],dfn[-20:],dfn2[-20:]
     
     
 def convert_number(a):
@@ -81,58 +80,69 @@ def filter_szse():
 #     dfn2[:20].plot(x="证券简称",y="incr",kind="bar",rot="30")
 #     print(dfn2.head(20))
     
-    return dfn[:20],dfn2[:20]
+    return dfn[:20],dfn2[:20],dfn[-20:],dfn2[-20:]
 
-def process():
-    sse1, sse2=filter_sse()
-    szse1, szse2=filter_szse()
+def merge_ordered(df1,df2,columns,ascending=False):
+    df=pd.concat([df1,df2])
+    df=df.sort_values(by=columns,ascending=ascending)
+    return df
     
-    incr=pd.concat([sse1,szse1])
-    abs_val = pd.concat([sse2,szse2])
+
+def process(retn=False):
+    sse1, sse2,sse3,sse4=filter_sse()
+    szse1,szse2,szse3,szse4=filter_szse()
+        # ax1=plt.figure(2,1,1)
+    incr=merge_ordered(sse1, szse1, ['incr'])
     
-    figure,ax=plt.subplots(2,1)
-    figure.suptitle(pre_day)
-    # ax1=plt.figure(2,1,1)
-    incr=incr.sort_values(by=['incr'],ascending=False)
-    incr[:20].plot(x="证券简称",y="incr",kind="bar",rot="30",ax=ax[0])
 #     incr[:20].plot(y="incr",kind="bar",rot="30",ax=ax[0])
     # ax2=plt.figure(2,1,2)
-    ratio=abs_val.sort_values(by=['quant'],ascending=False)
-    ratio[:20].plot(x="证券简称",y="quant",kind="bar",rot="30",ax=ax[1],stacked=True)
+    ratio=merge_ordered(sse2,szse2,['quant'])
+    
 #     ratio[:20].plot(y="quant",kind="bar",rot="30",ax=ax[1],stacked=True)
+#     if(retn):
+        
+#     abs_path=os.path.abspath("..")
+#     print(abs_path)
+    incr[:20].to_csv('..\\cache\\'+str(ttoday)+'_incr.csv')
+    ratio[:20].to_csv('..\\cache\\'+str(ttoday)+'_ratio.csv')
+
+    figure,ax=plt.subplots(2,1)
+    figure.suptitle(pre_day)
     
-    
+    incr[:20].plot(x="证券简称",y="incr",kind="bar",rot="30",ax=ax[0])
+    ratio[:20].plot(x="证券简称",y="quant",kind="bar",rot="30",ax=ax[1],stacked=True)
+
     plt.show()
 
 
-def dump():
-    if os.path.exists(dump_path):
+def dump(year="2020"):
+    fname=year+"_extreme_value.json"
+    if os.path.exists(fname):
         return
     else:
         print("dummping price data")
-    bds=bd.get_business_day_cn("2020")
-    days=pd.date_range(start="2020-01-01",end="2020-12-31",freq=bds)
+    bds=bd.get_business_day_cn(year)
+    days=pd.date_range(start=year+"-01-01",end=year+"-12-31",freq=bds)
     kv={}
-    ind=1
-    range_s=ind
-    range_e=ind+1
     for i in range(1,len(days)):
         global pre_day, pre2_day
         pre_day=days[i]
         pre2_day=days[i-1]
-        sse1, sse2=filter_sse()
-        szse1, szse2=filter_szse()
+        sse1, sse2, sse3, sse4=filter_sse()
+        szse1, szse2,szse3,szse4=filter_szse()
         
-        sse=sse1
-        szse=szse1
+        top_quant=merge_ordered(sse1, szse1, "quant")[:10]
+        top_ratio=merge_ordered(sse2, szse2, "incr")[:10]
+        buttom_quant=merge_ordered(sse3, szse3, "quant",ascending=True)[:10]
+        buttom_ratio=merge_ordered(sse4, szse4, "incr",ascending=True)[:10]
          
-        sid=sse.index[ind] if sse[range_s:range_e]["quant"].values[0]>szse[range_s:range_e]["quant"].values[0] else szse.index[ind]
-        print(days[i],sid)
-        kv[str(pre_day)[:10]]=sid
+        val={"quant_top":top_quant.index.to_list(),"quant_buttom":buttom_quant.index.to_list(),"ratio_top":top_ratio.index.to_list(),"ratio_buttom":buttom_ratio.index.to_list()}
+        print(days[i],val)
+        kv[str(pre_day)[:10]]=val
         
     #         ratio = pd.concat([sse2,szse2])
-    with open(dump_path,"w",encoding="gbk") as ff:
-        ff.write(json.dumps(kv))    
+    with open(fname,"w",encoding="gbk") as ff:
+        ff.write(json.dumps(kv))
 
 def simulate(df,indexes ):
     stand_price=df.at[indexes[0],"Close"]
@@ -159,6 +169,9 @@ def simulate(df,indexes ):
     profit=(sell_price-buy_price)*quota*100
     return profit,buy_price, sell_price
 
+def normalize(price_open,*prices):
+    
+    return (1, *[p/price_open for p in prices])
 
 def get_style():
     mc = mpf.make_marketcolors(
@@ -172,23 +185,14 @@ def get_style():
     style = mpf.make_mpf_style(base_mpl_style="ggplot", marketcolors=mc)
     return style
 
+def filter_out(df_range,i_tems):
+    cell_v=df_range.at[i_tems[1],'Low']
+    return  cell_v<-0.8
 
-def batch_analyze():
-    dump()
+def retrive_price_data(kv,duration):
+
     bds=bd.get_business_day_cn("2020")
-#     days=pd.date_range(start="2020-01-01",end="2020-12-31",freq=bds)
-    duration=14
-    profits=[]
-    profit=0
-    indexes=[]
-
-    with open(dump_path,"r") as f:
-        kv=json.load(f)
-    kv2={}
-    pre_k="2020"
-    
-    candle_data=pd.DataFrame(columns=["Date","Open","High","Low","Close"])
-    
+    result={}
     for k in list(kv.keys())[:-7]:
 #         if pre_k>k:
 #             print(pre_k,k," disorder")
@@ -206,56 +210,91 @@ def batch_analyze():
                 print("no data fetched, stopping")
                 break
             df.to_csv(fpath)
+
         term=pd.date_range(start=k,periods=duration,freq=bds)
-        start_d=term[0]
+        start_d=term[1]
         cprice=df.at[start_d,"Close"]
-        c_item=simulate(df, term)
-#         print(c_item)
-        profit+=c_item[0]
-        profits.append(profit)
-        
-        df_s=df[term[1]:term[-1]]
-        
-        max_p=df_s["High"].max()
-        min_p=df_s["Low"].min()
-
-        print(max_p,min_p,cprice)
-#         if c_item[1]==0:
-
-        max_d=str(df_s[df_s["High"]==max_p].index)
-        min_d=str(df_s[df_s["Low"]==min_p].index)
-        
-        if max_d>min_d:
-            open_p=min_p
-            close_p=max_p
-        else:
-            close_p=min_p
-            open_p=max_p
-
-        
-        candle_item={"Date":k,"High":max_p/cprice,"Low":min_p/cprice,"Open":open_p/cprice,"Close":close_p/cprice}
-#         else:
-#             
-#             candle_item={"Date":k,"High":max_p/c_item[1],"Low":min_p/c_item[1],"Open":c_item[1],"Close":c_item[2]/c_item[1]}
-        indexes.append(k)
-        candle_data=candle_data.append(candle_item,ignore_index=True)
-        rate=max_p/cprice-1
-        rate1=df.at[term[0],"Close"]/cprice-1
-        if rate1<-0.05:
-            kv2[k]=rate
-#         if rate>0.1:
-#             print(k,sid,rate)
-#             plt.plot(term,df[term[0]:term[-1]]["Close"])
-    x=list(kv2.keys())
-#     plt.plot(x,kv2.values())
-    print("len1",len(indexes),"Len2",len(candle_data))
-    candle_data.index=pd.to_datetime(indexes)
-    print(candle_data.describe())
-    mpf.plot(candle_data, type="candle",mav=(20) , style=get_style(), figscale=5)
-#     plt.plot(indexes,profits)
-    ss=list(kv2.values())
+        df_s=df[term[0]:term[-1]]/cprice
+        result[k]=df_s
+        result[k+'pre']=df[:term[0]][-1:]
     
-#     plt.xticks(x[::22],rotation=45)
-#     plt.show()
+    return result
+
+
+def group_stock(df):
+    pass
+
+
+def avg_reach_10_days():
+    dump()
+    
+    with open(dump_path,"r") as f:
+        top_sec=json.load(f)
+    
+    prices=retrive_price_data(top_sec, 30)
+    x=[]
+    y=[]
+    c=[]
+    for k in list(top_sec.keys())[:-7]:
+        df=prices[k]
+        df=df.reset_index()
+#         print(df)
+        result=df[df['High']>1.10]
+        if len(result)>0:
+            y.append(result.index[0])
+        else:
+            y.append(-1)
+            
+        x.append(k)
+    
+    
+    print('x',x)
+    print('y',y)
+    
+    print('total trade number',len(y))
+    print('number of -1 :',y.count(-1))
+    above_0=list(filter(lambda a: a>0,y))
+    avg_number=sum(above_0)/len(above_0)
+    print('avg 10% day',avg_number)
+    plt.scatter(x,y)
+    plt.show()
+
+def top_profit():
+    with open("2020_extreme_value.json","r") as f:
+        top_sec=json.load(f)
+    
+    bds=bd.get_business_day_cn("2020")
+    duration=20
+#     term=pd.date_range(end='2020-12-31',periods=duration,freq=bds)
+#     for i in term:
+#         if i in top_sec:
+#             del top_sec[i]
+    
+    prices=retrive_price_data(top_sec, duration)
+    print(prices.keys())
+    print(len(prices))
+    
+    
+    dfs=[ df.reset_index() for df in prices.values() if len(df)==duration]
+
+    y=[]
+    y1=[]
+    y2=[]
+    for i in range(duration):
+        prices_list=list(map(lambda a: a.at[i,'High'], dfs))
+        y.append(sum(prices_list)/len(prices_list)-1)
+        prices_list=list(map(lambda a: a.at[i,'Low'], dfs))
+        y1.append(sum(prices_list)/len(prices_list)-1)
+        prices_list=list(map(lambda a: a.at[i,'Close'], dfs))
+        y2.append(sum(prices_list)/len(prices_list)-1)
+        
+    print(y)
+    plt.plot(y)
+    plt.plot(y1)
+    plt.plot(y2)
+    plt.show()
+    
+
+# dump()
+top_profit()
 # process()
-batch_analyze()
