@@ -20,21 +20,6 @@ def load_model():
         model= json.load(f)
         return model
     
-def load_stocks(duration):
-    
-    
-    days=pd.date_range(end=today_str, periods=duration+1, freq=bd.get_business_day_cn("2021"))
-
-    sid=[]
-    
-    for day in days[:duration]:
-        fpath="..\\cache\\"+day+"_incr.csv"
-        with open(fpath,'r') as f:
-            f.read_line()
-            l=f.read_line()
-            sid=l[:9]
-            
-    return sid.reverse()
 
 def sell(sid,curr_price,target_price):
     print(sid,"should be sold out, target price:",target_price,"current price",curr_price,",",curr_price/target_price-1)
@@ -48,9 +33,12 @@ def monitor(sids,val):
         res=price_query.get_price(*sids)
         curr=list(map(lambda r:float(r["current"]),res))
         for j in range(len(sids)):
+            print("days before today:",j, end=".")
             if curr[j]>val[j][0]:
+#                 print("days before today:",j, end=".")
                 sell(sids[j],curr[j],val[j][0])
             elif curr[j]<val[j][1]:
+#                 print("days before today:",j, end=".")
                 buy(sids[j],curr[j],val[j][1])
         print("sleep 3 seconds--------------")
         time.sleep(3)
@@ -86,6 +74,7 @@ def prepare_leverage_data(duration):
             with open(fname,"w",encoding="gbk") as ff:
                 ff.write(json.dumps(val))
                 
+    vals.reverse()
     return vals
 
 def prepare_prices(sids):
@@ -93,8 +82,8 @@ def prepare_prices(sids):
     
     size=len(sids)
     for i in range(size):
-        p=price_query.get_history_price(sids[i], size-i)
-        print(p)
+        p=price_query.get_history_price(sids[i], i+1)
+        print("sid",sids[i],"p",p)
     
         prices.append(p[0])
         
@@ -109,8 +98,9 @@ if __name__ == '__main__':
     datas=prepare_leverage_data(duration)
     
     sids=list(map(lambda a:price_query.convert_sid(a["quant_buttom"][0]),datas))
+    print("sids",sids)
     prices=prepare_prices(sids)
-    print(prices)
+    print("prices",prices)
     base_prices=np.array(list(map(lambda a:float(a["close"]),prices)))
 
     monitor_val=zip((np.array(model["high"])+1)*base_prices,(1+np.array(model["low"]))*base_prices)

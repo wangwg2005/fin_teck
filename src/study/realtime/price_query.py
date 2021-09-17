@@ -52,7 +52,7 @@ def convert_sid(sid):
 def get_history_price(stock_id,day_number,scale=240):
     template="https://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData?symbol={0}&scale={2}&ma=20&datalen={1}"
     url=template.format(stock_id,day_number,scale)
-    print(url)
+#     print(url)
     res=requests.get(url).json()
     return res
 # rs=search(sse,["2020-02-27","2020-02-24"])
