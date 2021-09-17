@@ -21,7 +21,9 @@ def get_business_day_cn(year):
         return BusinessDay()
     
 def test():
-    hodiday_cn=pd.date_range(start='2/01/2021', end='3/01/2021',freq= get_business_day_cn('2021'))
-    print(hodiday_cn)
+#     hodiday_cn=pd.date_range(start='2/01/2021', end='3/01/2021',freq= get_business_day_cn('2021'))
+    days=pd.date_range(end="2020-09-16", periods=20, freq=get_business_day_cn("2021"))
+    print(days)
     
-# test()
+if __name__=="__main__":
+    test()

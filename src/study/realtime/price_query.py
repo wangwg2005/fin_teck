@@ -45,11 +45,20 @@ def get_time_window(stock_id,date):
     res2=requests.get(url).text
     print(res2)
 #         return
+
+def convert_sid(sid):
+    return (sid[-2:]+sid[:6]).replace("SS",'sh')
     
+def get_history_price(stock_id,day_number,scale=240):
+    template="https://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData?symbol={0}&scale={2}&ma=20&datalen={1}"
+    url=template.format(stock_id,day_number,scale)
+    print(url)
+    res=requests.get(url).json()
+    return res
 # rs=search(sse,["2020-02-27","2020-02-24"])
 # print(rs)
-
-print(get_price('sh600618'))
+if __name__=="__main__":
+    print(get_price('sh600618'))
 
 # get_time_window('sh601006','2021-09-01')
 # print(datetime.now().timestamp())
