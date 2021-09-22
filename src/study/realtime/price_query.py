@@ -2,6 +2,7 @@
 
 import requests
 from datetime import datetime
+from json.decoder import JSONDecodeError
 
 # session = HTMLSession()
 # url = "http://www.sse.com.cn/disclosure/credibility/supervision/inquiries/"
@@ -49,12 +50,17 @@ def get_time_window(stock_id,date):
 def convert_sid(sid):
     return (sid[-2:]+sid[:6]).replace("SS",'sh')
     
-def get_history_price(stock_id,day_number,scale=240):
-    template="https://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData?symbol={0}&scale={2}&ma=20&datalen={1}"
+def get_history_price(stock_id,day_number=1023,scale=240):
+    template="https://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData?symbol={0}&scale={2}&ma=no&datalen={1}"
     url=template.format(stock_id,day_number,scale)
-#     print(url)
-    res=requests.get(url).json()
-    return res
+    print(url)
+    try:
+        res=requests.get(url)
+        res_j=res.json()
+        return res_j
+    except JSONDecodeError as e:
+        print(res.status_code)
+        print(res.text)
 # rs=search(sse,["2020-02-27","2020-02-24"])
 # print(rs)
 if __name__=="__main__":

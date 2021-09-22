@@ -4,6 +4,7 @@ import os
 import pandas as pd
 from datetime import datetime, date, timedelta
 import calendar
+import json
 
 holiday=["2021-02-11","2021-02-12","2021-02-13","2021-02-14","2021-02-15","2021-02-16","2021-02-17","2021-04-05"]
 
@@ -110,6 +111,20 @@ def push(cache_id,pd):
     fpath=os.path.join(tmp_dir,cache_id+".csv")
     pd.to_csv(fpath)
     
+    
+def json_cache(fname,get_func,*param):
+    fpath=os.path.join(tmp_dir,fname)
+    if os.path.exists(fpath):
+        with open(fpath,"r",encoding="utf8") as f:
+            j= json.load(f)
+            return j
+    else:
+        result= get_func(*param)
+        print("to cache",result)
+        with open(fpath,"w",encoding="utf8") as f:
+            json.dump(result, f)
+        print("caching",fpath)
+        return result
     
 print("previous trade date", ptd)
 
