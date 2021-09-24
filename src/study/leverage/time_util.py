@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import calendar
 from datetime import datetime, date, timedelta
-holiday=[]
+holiday=["2012-09-20","2021-09-21"]
 
 def stringfy(date):
     return str(date)[:10].replace("-","")
