@@ -50,6 +50,37 @@ def filter_sse():
     
     return dfn[:20],dfn2[:20]
     
+
+
+def retrive_price_data(sid,start_date,duration):
+
+    bds=bd.get_business_day_cn("2020")
+#         if pre_k>k:
+#             print(pre_k,k," disorder")
+#             return
+        
+    fpath=os.path.join("cache",sid[:6]+".csv")
+    
+    if os.path.exists(fpath):
+        df=pd.read_csv(fpath,index_col="Date",parse_dates=True)
+    else:
+        print("downloading",sid)
+        df=yf.download(sid,start="2020-01-01",end="2021-01-01")
+        if len(df)==0:
+            print("no data fetched, stopping")
+            return
+        df.to_csv(fpath)
+
+    term=pd.date_range(start=start_date,periods=duration,freq=bds)
+    start_d=term[0]
+    cprice=df.at[start_d,"Close"]
+    df_s=df[term[0]:term[-1]]/cprice
+#         result[k+'pre']=df[:term[0]][-1:]
+    
+    return df_s
+
+
+
     
 def convert_number(a):
     return int(a.replace(",",""))
@@ -204,5 +235,32 @@ def batch_analyze():
     print("median",np.median(ss))
     plt.xticks(indexes[::22],rotation=45)
     plt.show()
+    
+def explore():
+    with open("2020_extreme_value.json","r") as f:
+        top_sec=json.load(f)
+#     print(top_sec)
+    col_name="quant_buttom"
+#     kv=list(map(lambda a:(a[0], a[1]["quant_buttom"][0]), top_sec.items()))
+#     print(kv)
+    
+    duration=30
+    
+    sid_pricedf=map(lambda item:(item[0],retrive_price_data(item[1][col_name][0],item[0],duration)),top_sec.items())
+    final_df=filter(lambda a:len(a[1])==duration,sid_pricedf);
+    highs=[]
+    lows=[]
+    closes=[]
+    for i in range(duration):
+        prices_list=list(map(lambda a: a.at[i,'High'], dfs))
+#         if
+        highs.append(np.mean(prices_list)-1)
+        prices_list=list(map(lambda a: a.at[i,'Low'], dfs))
+        lows.append(np.mean(prices_list)-1)
+        prices_list=list(map(lambda a: a.at[i,'Close'], dfs))
+        closes.append(np.mean(prices_list)-1)
 # process()
-batch_analyze()
+# batch_analyze()
+
+
+explore()

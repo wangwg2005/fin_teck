@@ -5,7 +5,7 @@ import os
 from study.leverage import downloader
 
 def read_detail_sse(date_str):
-    fpath=os.path.join("sse","rzrqjygk"+date_str+".xls")
+    fpath=os.path.join("..\\leverage\\sse","rzrqjygk"+date_str+".xls")
     
     if not os.path.exists(fpath):
 #         print("downloading file for",date_str)
@@ -21,7 +21,7 @@ def read_detail_sse(date_str):
 def read_detail_szse(date_str):
     if len(date_str)>10:
         date_str=date_str[:10]
-    fpath=os.path.join("szse","rzrqjygk"+date_str+".xls")
+    fpath=os.path.join("..//leverage//szse","rzrqjygk"+date_str+".xls")
     
     if not os.path.exists(fpath):
         print("downloading file for",date_str)

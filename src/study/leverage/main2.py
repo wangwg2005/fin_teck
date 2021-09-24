@@ -10,13 +10,21 @@ import json
 import os
 from math import ceil
 import mplfinance as mpf
+import numpy as np
+from study.realtime import price_query
+import file_cache as fc
+import business_day as bd
+
 
 
 ttoday=datetime.date.today()
+today_str=str(ttoday)
 
-pre_day=tutil.get_prevous_trade_date(ttoday)
 
-pre2_day=tutil.get_prevous_trade_date(pre_day)
+bdays=pd.date_range(end=datetime.date.today(),periods=3,freq=bd.get_business_day_cn("all"))[:2]
+
+pre2_day,pre_day=bdays
+
 
 ind=0
 dump_path="top"+str(ind)+".json"
@@ -103,8 +111,8 @@ def process(retn=False):
         
 #     abs_path=os.path.abspath("..")
 #     print(abs_path)
-    incr[:20].to_csv('..\\cache\\'+str(ttoday)+'_incr.csv')
-    ratio[:20].to_csv('..\\cache\\'+str(ttoday)+'_ratio.csv')
+    incr[:20].to_csv('..\\cache\\'+today_str+'_incr.csv')
+    ratio[:20].to_csv('..\\cache\\'+today_str+'_ratio.csv')
 
     figure,ax=plt.subplots(2,1)
     figure.suptitle(pre_day)
@@ -115,6 +123,19 @@ def process(retn=False):
     plt.show()
 
 
+def get_bussness_days_2019():
+    res=price_query.get_history_price("sh000001", 800)
+    days=[ a["day"] for a in res if "2019" in a["day"] ]
+    
+    return days
+
+def get_bussness_days_recent(day_num):
+    res=price_query.get_history_price("sh000001", day_num)
+    days=[ a["day"] for a in res ]
+    
+    return days
+    
+
 def dump(year="2020"):
     fname=year+"_extreme_value.json"
     if os.path.exists(fname):
@@ -122,7 +143,9 @@ def dump(year="2020"):
     else:
         print("dummping price data")
     bds=bd.get_business_day_cn(year)
-    days=pd.date_range(start=year+"-01-01",end=year+"-12-31",freq=bds)
+    days=pd.date_range(start=year+"-01-01",end=year+"-09-18",freq=bds)
+#     days=get_bussness_days_recent(1023)
+    print("trade days back from today",len(days))
     kv={}
     for i in range(1,len(days)):
         global pre_day, pre2_day
@@ -189,36 +212,63 @@ def filter_out(df_range,i_tems):
     cell_v=df_range.at[i_tems[1],'Low']
     return  cell_v<-0.8
 
-def retrive_price_data(kv,duration):
 
-    bds=bd.get_business_day_cn("2020")
-    result={}
-    for k in list(kv.keys())[:-7]:
+
+def retrive_price_data(sid,start_date,duration):
+    year=start_date[:4]
+    next_year=str(int(year)+1)
+
+    bds=bd.get_business_day_cn(year)
+    term=pd.date_range(start=start_date,periods=duration,freq=bds)
 #         if pre_k>k:
 #             print(pre_k,k," disorder")
 #             return
+    if term[0].year==term[-1].year:
         
-        sid=kv[k]
-        fpath=os.path.join("cache",sid[:6]+".csv")
+        fpath=os.path.join("cache",sid[:6]+"_"+year+".csv")
         
         if os.path.exists(fpath):
             df=pd.read_csv(fpath,index_col="Date",parse_dates=True)
         else:
-            print("downloading",sid)
-            df=yf.download(sid,start="2020-01-01",end="2021-01-01")
+            print("downloading",sid,"for date",start_date)
+            df=yf.download(sid,start=year+"-01-01",end=next_year+"-01-01")
+            df.to_csv(fpath)
             if len(df)==0:
                 print("no data fetched, stopping")
-                break
-            df.to_csv(fpath)
-
-        term=pd.date_range(start=k,periods=duration,freq=bds)
-        start_d=term[1]
+                return
+            
+    
+        
+        start_d=term[0]
+        if start_d not in df.index:
+            return None
         cprice=df.at[start_d,"Close"]
         df_s=df[term[0]:term[-1]]/cprice
-        result[k]=df_s
-        result[k+'pre']=df[:term[0]][-1:]
+    else:
+        
+#         fpath=os.path.join("cache",sid[:6]+"_"+start_date+"_"+str(duration)+".csv")
+#         
+#         if os.path.exists(fpath):
+#             df=pd.read_csv(fpath,index_col="Date",parse_dates=True)
+#         else:
+#             print("downloading",sid,"for date",start_date)
+#             df=yf.download(sid,start=start_date,period=duration)
+#             df.to_csv(fpath)
+#             if len(df)==0:
+#                 print("no data fetched, stopping")
+#                 return
+#             
+#     
+#         
+#         start_d=term[0]
+#         if start_d not in df.index:
+#             return None
+#         cprice=df.at[start_d,"Close"]
+#         df_s=df[term[0]:term[-1]]/cprice
+        
+        df_s= None
     
-    return result
+    return df_s
 
 
 def group_stock(df):
@@ -258,43 +308,196 @@ def avg_reach_10_days():
     print('avg 10% day',avg_number)
     plt.scatter(x,y)
     plt.show()
-
-def top_profit():
-    with open("2020_extreme_value.json","r") as f:
+    
+    
+def get_range(date_str,duration,sid,day_number):
+    
+    
+    
+    cache_fname=sid[:6]+"_sina.json"
+    
+    arr=fc.json_cache(cache_fname, price_query.get_history_price, price_query.convert_sid(sid), day_number)
+    for i in range(len(arr)):
+        if arr[i]["day"]>=date_str:
+            break;
+    
+    return arr[i:i+duration]
+    
+    
+    
+def get_price_from_sina(items,duration):
+    size=len(items)
+    print("stock number:",size)
+    day_number=size
+    days=fc.json_cache("trade_days.json", get_bussness_days_recent, 2013)
+    for date_str,v in items:
+        sids=list(map(lambda a:a[0],v.values()))
+        print(sids)
+        prices=list(map(lambda sid:get_range(date_str,duration,sid,day_number),sids))
+        print("key date",date_str)
+        print("prices for",sids)
+        print(prices)
+        day_number-=1
+            
+            
+def classification(mname):
+    year="2020"
+    duration=60
+#     model1=None
+    model_path="model1_{0}_{1}.json".format(60,year)
+    with open(model_path,"r",encoding="utf8") as f:
+        model1=json.load(f)
+        
+    with open(year+"_extreme_value.json","r") as f:
         top_sec=json.load(f)
     
-    bds=bd.get_business_day_cn("2020")
-    duration=20
-#     term=pd.date_range(end='2020-12-31',periods=duration,freq=bds)
-#     for i in term:
-#         if i in top_sec:
-#             del top_sec[i]
-    
-    prices=retrive_price_data(top_sec, duration)
-    print(prices.keys())
-    print(len(prices))
-    
-    
-    dfs=[ df.reset_index() for df in prices.values() if len(df)==duration]
+    col_name='quant_buttom'
+    dfs=map(lambda item:retrive_price_data(item[1][col_name][0],item[0],duration),top_sec.items())
+  
 
-    y=[]
-    y1=[]
-    y2=[]
-    for i in range(duration):
-        prices_list=list(map(lambda a: a.at[i,'High'], dfs))
-        y.append(sum(prices_list)/len(prices_list)-1)
-        prices_list=list(map(lambda a: a.at[i,'Low'], dfs))
-        y1.append(sum(prices_list)/len(prices_list)-1)
-        prices_list=list(map(lambda a: a.at[i,'Close'], dfs))
-        y2.append(sum(prices_list)/len(prices_list)-1)
+#     
+    dfs=[ df.reset_index() for df in dfs if df is not None and len(df)==duration]
+    cols=['quant_buttom','quant_top','ratio_top','ratio_buttom']
+    
+    for col_name in cols:
+        for pos in range(10):
         
-    print(y)
-    plt.plot(y)
-    plt.plot(y1)
-    plt.plot(y2)
-    plt.show()
+            high_map=map(lambda df:(df.at[pos,"High"],df.at[duration-1,"High"]),dfs)
+        #     above_high=list(filter(lambda h:h[0]-1>model1["model"][col_name]["high"][pos]["mean"],high_map))
+            a1=list(zip(*high_map))
+            print(list(a1))
+            ax=plt.subplot(211)
+            ax.scatter(a1[0],a1[1])
+            x=np.linspace(0.9,1.1,100)
+            ax.plot(x,x,color='red')
+            ax.set_title(col_name+"_high_"+str(pos)+".png")
+            
+            
+            
+            low_map=list(map(lambda df:(df.at[pos,"Low"],df.at[duration-1,"Low"]),dfs))
+            print("low map",low_map)
+            print("low pos",model1["model"][col_name]["low"][pos]["mean"])
+            print(model1)
+        
+        #     below_high=list(filter(lambda h:h[0]-1<=model1["model"][col_name]["low"][pos]["mean"],low_map))
+            
+        #     
+            
+            a2=list(zip(*low_map))
+            print(a2)
+            ax=plt.subplot(212)
+            ax.scatter(a2[0],a2[1])
+            x=np.linspace(0.9,1.1,100)
+            ax.plot(x,x,color='red')
+            ax.set_title(col_name+"_low_"+str(pos)+".png")
+            
+            plt.savefig("img//explore_"+col_name+"_"+str(pos)+".png")
+            plt.close()
+    
+    
+        
+        
+
+def top_profit_summary(year="2020",force=False):
+    duration=30
+    model1={}
+    model_path="model1_{0}_{1}.json".format(duration,year)
+    print(model_path)
+    if not force and os.path.exists(model_path):
+        with open(model_path,"r",encoding="utf8") as f:
+            model1=json.load(f)
+        model=model1["model"]
+    else:
+        model1={"properties":{"version":0.01,"name":"top profit","params":{"duration":duration,"year":year},"timestamp":str(datetime.date.today())}}
+        model={}
+        model1["model"]=model
+        with open(year+"_extreme_value.json","r") as f:
+            top_sec=json.load(f)
+            
+        
+        
+        
+    #             del top_sec[i]
+#         get_price_from_sina(top_sec.items(),duration)
+        cols=['quant_buttom','quant_top','ratio_top','ratio_buttom']
+        detail={}
+        for ind in range(len(cols)):
+            col_name=cols[ind]
+            
+            fname=col_name+".csv"
+            if os.path.exists(fname):
+                df_all=pd.read_csv(fname,index_col=[0])
+                dfs=[df_all.loc[k] for k in top_sec.keys() if k in df_all.index]
+            else:
+            
+                dfs=map(lambda item:retrive_price_data(item[1][col_name][0],item[0],duration),top_sec.items())
+                df_all=pd.concat(dfs,keys=top_sec.keys())
+                df_all.to_csv(fname)
+              
+  
+        #     
+            dfs=[ df.reset_index() for df in dfs if df is not None and len(df)==duration]
+          
+            highs=[]
+            lows=[]
+            closes=[]
+              
+            detail[col_name]={}
+              
+            for i in range(duration):
+                prices_list=list(map(lambda a: a.at[i,'High'], dfs))
+                detail[col_name]["high"]=prices_list
+        #         if
+                var_val={"mean":np.mean(prices_list)-1,"median": np.median(prices_list)-1,"std": np.std(prices_list)}
+                highs.append(var_val)
+                  
+                prices_list=list(map(lambda a: a.at[i,'Low'], dfs))
+                detail[col_name]["low"]=prices_list
+#                 detail["low"]=prices_list
+                lows_val={"mean":np.mean(prices_list)-1,"median": np.median(prices_list)-1,"std": np.std(prices_list)}
+                lows.append(lows_val)  
+                  
+                prices_list=list(map(lambda a: a.at[i,'Close'], dfs))
+                detail[col_name]["close"]=prices_list
+                close_val={"mean":np.mean(prices_list)-1,"median": np.median(prices_list)-1,"std": np.std(prices_list)}
+                closes.append(close_val)
+                  
+            model[col_name]={"high":highs,"low":lows,"close":closes}
+    #     print(y)
+        with open(model_path,"w",encoding="utf8") as f:
+            print(model1)
+            json.dump(model1, f)
+              
+        with open("detail_{0}.json".format(year),"w") as f:
+            json.dump(detail,f)
+             
+    keys=list(model.keys())
+     
+    for col in ["mean","median","std"]:
+     
+        for ind in range(len(model)):
+            ax=plt.subplot(2,2,ind+1)
+            key=keys[ind]
+            ax.set_title(key)
+            ax.plot(list(map(lambda a:a[col],model[key]["high"])))
+            ax.plot(list(map(lambda a:a[col],model[key]["low"])))
+            ax.plot(list(map(lambda a:a[col],model[key]["close"])))
+            title="model_{0}_{1}_{2}.png".format(duration,col,year)
+#         plt.figure(figsize=(13,7), dpi=100)
+        plt.savefig(title)
+        plt.show()
+        plt.close()
+    
+#     plt.show()
     
 
 # dump()
-top_profit()
-# process()
+# top_profit()
+if __name__=="__main__":
+#     pass
+#     process()
+#     pass
+#     dump("all")
+#     top_profit_summary(year="2019_now",force=True)
+    classification("")
+#     get_bussness_days()

@@ -14,4 +14,26 @@
 	<natures>
 		<nature>org.python.pydev.pythonNature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>src/rl/index_env_.py</name>
+			<type>1</type>
+			<location>C:/Users/Darren/AppData/Local/Programs/Python/Python37/Lib/site-packages/gym/envs/test_env/index_env.py</location>
+		</link>
+		<link>
+			<name>src/study/realtime/cache</name>
+			<type>2</type>
+			<location>C:/Users/Darren/eclipse-workspace/fin_study/src/study/leverage/cache</location>
+		</link>
+		<link>
+			<name>src/study/realtime/sse</name>
+			<type>2</type>
+			<location>C:/Users/Darren/eclipse-workspace/fin_study/src/study/leverage/sse</location>
+		</link>
+		<link>
+			<name>src/study/realtime/szse</name>
+			<type>2</type>
+			<location>C:/Users/Darren/eclipse-workspace/fin_study/src/study/leverage/szse</location>
+		</link>
+	</linkedResources>
 </projectDescription>
