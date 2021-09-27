@@ -12,7 +12,7 @@ def read(filename):
 
 
 # filenames=["全市场","沪深300","中证500","上证50"]
-filenames=["沪深300","中证500"."创业"]
+filenames=["沪深300","中证500","创业"]
 
 dfs=list(map(read,filenames))
 # csi500 = pd.read_excel("融资融券中证500.xls",header=1, encoding="gbk")

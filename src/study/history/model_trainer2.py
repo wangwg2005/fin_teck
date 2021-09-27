@@ -79,19 +79,19 @@ def model1_train(root,train_start="2019-01-01", train_end="2020-12-31", his_star
     return msg, features
 #     test_set["pred"]=lr.predict(np.array(test_set["lev"]).reshape(1, -1))
     
-    
+if __name__=="__main__":    
 #     test_set.plot(grid=True)
-names=["csi500","hs300","399006","000016"]
-# names=["000016"]
-data={}
-
-for name in names:
-    percentile,features= model1_train(name)
-    data[name+":"+percentile] = features["resid_norm"]
+    names=["csi500","hs300","399006","000016"]
+    # names=["000016"]
+    data={}
     
-df=pd.DataFrame(data)
-df.plot(grid=True,subplots=True)
-plt.show()
+    for name in names:
+        percentile,features= model1_train(name)
+        data[name+":"+percentile] = features["resid_norm"]
+        
+    df=pd.DataFrame(data)
+    df.plot(grid=True,subplots=True)
+    plt.show()
 # 
 # df=model1_train("csi500",his_start="2019-01-01")
 # plt.show()

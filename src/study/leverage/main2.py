@@ -14,6 +14,7 @@ import numpy as np
 from study.realtime import price_query
 import file_cache as fc
 import business_day as bd
+import seaborn as sns
 
 
 
@@ -367,9 +368,10 @@ def classification(mname):
             a1=list(zip(*high_map))
             print(list(a1))
             ax=plt.subplot(211)
-            ax.scatter(a1[0],a1[1])
-            x=np.linspace(0.9,1.1,100)
-            ax.plot(x,x,color='red')
+            sns.regplot(x=np.array(a1[0]), y=np.array(a1[1]),ax=ax)
+#             ax.scatter(a1[0],a1[1])
+#             x=np.linspace(0.9,1.1,100)
+#             ax.plot(x,x,color='red')
             ax.set_title(col_name+"_high_"+str(pos)+".png")
             
             
@@ -386,12 +388,10 @@ def classification(mname):
             a2=list(zip(*low_map))
             print(a2)
             ax=plt.subplot(212)
-            ax.scatter(a2[0],a2[1])
-            x=np.linspace(0.9,1.1,100)
-            ax.plot(x,x,color='red')
+            sns.regplot(x=np.array(a2[0]), y=np.array(a2[1]),robust=True,ax=ax)
             ax.set_title(col_name+"_low_"+str(pos)+".png")
             
-            plt.savefig("img//explore_"+col_name+"_"+str(pos)+".png")
+#             plt.savefig("img//explore_"+col_name+"_"+str(pos)+"_robust.png")
             plt.close()
     
     
@@ -442,23 +442,23 @@ def top_profit_summary(year="2020",force=False):
             lows=[]
             closes=[]
               
-            detail[col_name]={}
+            detail[col_name]={"high":[],"low":[],"close":[]}
               
             for i in range(duration):
                 prices_list=list(map(lambda a: a.at[i,'High'], dfs))
-                detail[col_name]["high"]=prices_list
+                detail[col_name]["high"].append(prices_list)
         #         if
                 var_val={"mean":np.mean(prices_list)-1,"median": np.median(prices_list)-1,"std": np.std(prices_list)}
                 highs.append(var_val)
                   
                 prices_list=list(map(lambda a: a.at[i,'Low'], dfs))
-                detail[col_name]["low"]=prices_list
+                detail[col_name]["low"].append(prices_list)
 #                 detail["low"]=prices_list
                 lows_val={"mean":np.mean(prices_list)-1,"median": np.median(prices_list)-1,"std": np.std(prices_list)}
                 lows.append(lows_val)  
                   
                 prices_list=list(map(lambda a: a.at[i,'Close'], dfs))
-                detail[col_name]["close"]=prices_list
+                detail[col_name]["close"].append(prices_list)
                 close_val={"mean":np.mean(prices_list)-1,"median": np.median(prices_list)-1,"std": np.std(prices_list)}
                 closes.append(close_val)
                   
@@ -498,6 +498,6 @@ if __name__=="__main__":
 #     process()
 #     pass
 #     dump("all")
-#     top_profit_summary(year="2019_now",force=True)
-    classification("")
+    top_profit_summary(year="2019_now",force=True)
+#     classification("")
 #     get_bussness_days()
