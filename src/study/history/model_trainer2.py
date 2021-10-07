@@ -75,6 +75,8 @@ def model1_train(root,train_start="2019-01-01", train_end="2020-12-31", his_star
     msg = "{:.2f}".format(100-stats.percentileofscore(features["resid_norm"], val))+"%"
 #     msg=" low than "+msg
     features.plot(grid=True,subplots=True,title=root+":"+msg)
+    plt.savefig(r"C:\Users\Darren\eclipse-workspace\fin_study\src\study\leverage\img\z_score\old_"+root+".png")
+    plt.close()
      
     return msg, features
 #     test_set["pred"]=lr.predict(np.array(test_set["lev"]).reshape(1, -1))
@@ -91,7 +93,9 @@ if __name__=="__main__":
         
     df=pd.DataFrame(data)
     df.plot(grid=True,subplots=True)
-    plt.show()
+    plt.savefig(r"C:\Users\Darren\eclipse-workspace\fin_study\src\study\leverage\img\z_score\summary.png")
+    
+    plt.close()
 # 
 # df=model1_train("csi500",his_start="2019-01-01")
 # plt.show()
