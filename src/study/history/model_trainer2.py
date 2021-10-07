@@ -47,7 +47,7 @@ def model1_train(root,train_start="2019-01-01", train_end="2020-12-31", his_star
     features.dropna(inplace=True)
     
 #     train_date=("2019-01-01","2020-12-31")
-    print(features["2019-01-01":"2020-12-31"])
+    
 #     train_set=get_sub_set(features, *train_date)
     train_set=features["2019-01-01":"2020-12-31"]
     print(train_set)
@@ -59,7 +59,7 @@ def model1_train(root,train_start="2019-01-01", train_end="2020-12-31", his_star
     
     features["pred"]=lr.predict(features[["lev"]])
     features["resid"]=features["收盘价"]-features["pred"]
-    features["resid_norm"]=features["resid"]/features["收盘价"]
+    features["resid_norm"]=features["resid"]/features["pred"]
 
 #     features[:"2020-01-01"].plot(grid=True)
 #     plt.show()
@@ -75,7 +75,7 @@ def model1_train(root,train_start="2019-01-01", train_end="2020-12-31", his_star
     msg = "{:.2f}".format(100-stats.percentileofscore(features["resid_norm"], val))+"%"
 #     msg=" low than "+msg
     features.plot(grid=True,subplots=True,title=root+":"+msg)
-    plt.savefig(r"C:\Users\Darren\eclipse-workspace\fin_study\src\study\leverage\img\z_score\old_"+root+".png")
+    plt.savefig(r"C:\Users\Darren\eclipse-workspace\fin_study\src\study\leverage\img\z_score\old1_"+root+".png")
     plt.close()
      
     return msg, features
@@ -93,7 +93,7 @@ if __name__=="__main__":
         
     df=pd.DataFrame(data)
     df.plot(grid=True,subplots=True)
-    plt.savefig(r"C:\Users\Darren\eclipse-workspace\fin_study\src\study\leverage\img\z_score\summary.png")
+    plt.savefig(r"C:\Users\Darren\eclipse-workspace\fin_study\src\study\leverage\img\z_score\summary1.png")
     
     plt.close()
 # 
