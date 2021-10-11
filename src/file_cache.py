@@ -6,7 +6,8 @@ from datetime import datetime, date, timedelta
 import calendar
 import json
 
-holiday=["2021-02-11","2021-02-12","2021-02-13","2021-02-14","2021-02-15","2021-02-16","2021-02-17","2021-04-05"]
+holiday=["2021-02-11","2021-02-12","2021-02-13","2021-02-14","2021-02-15","2021-02-16","2021-02-17","2021-04-05",
+         "2021-10-07","2021-10-06","2021-10-05","2021-10-04","2021-10-01","2021-10-03","2021-10-02"]
 
 # tmp_dir=os.path.join(os.getcwd(), "cache")
 tmp_dir=r"C:\Users\Darren\eclipse-workspace\fin_study\src\study\cache"
