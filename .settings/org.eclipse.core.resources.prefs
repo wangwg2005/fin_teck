@@ -25,6 +25,7 @@ encoding//src/study/discovery.py=utf-8
 encoding//src/study/dumpLeverage.py=utf-8
 encoding//src/study/dumpLeverageSeleEtf.py=utf-8
 encoding//src/study/fly.py=utf-8
+encoding//src/study/history/arima_model.py=utf-8
 encoding//src/study/history/csi300.py=utf-8
 encoding//src/study/history/graph.py=utf-8
 encoding//src/study/history/history_plot.py=utf-8
