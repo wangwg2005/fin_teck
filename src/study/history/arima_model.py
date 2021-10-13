@@ -10,6 +10,7 @@ import numpy as np
 from statsmodels.graphics.tsaplots import plot_acf
 from statsmodels.graphics.tsaplots import plot_pacf
 import statsmodels
+import business_day as bd
 
 
 def get_df(name):
@@ -25,11 +26,12 @@ def get_df(name):
     df["lev"]=lever["融资余额(亿元)"]
     df=df.rename(columns={"收盘价":"price"})
     df=df.dropna()
+    df=df.sort_index()
     return df
 
 def analyze(name):
     df=get_df(name)
-    tsv=df["lev"].diff(1)[1:].to_numpy()
+    tsv=df["price"].diff(1)[1:].to_numpy()
     dftest = adfuller(tsv,autolag='AIC')
     print(dftest)
     
@@ -43,7 +45,7 @@ def autocorrelation(timeseries, lags):
     
 def detect(name,lag):
     df=get_df(name)
-    autocorrelation(df["lev"].diff(1).dropna(), lag)
+    autocorrelation(df["price"].diff(1).dropna(), lag)
     
 def diff(timeseries):
     timeseries_diff1 = timeseries.diff(1)
@@ -68,9 +70,14 @@ def diff(timeseries):
     plt.show()
     
 def model(name):
-    df=get_df(name)
+    files=list(map(lambda a:os.path.join(name,a),mt.read_dir(name)))
+    df=mt.read_leverage(files[1])
+    df=df.sort_index()
+    df=df.rename(columns={"融资余额(亿元)":"lev"})
+    
     ser=df["lev"].diff(1).dropna()
-    m = ARIMA(ser, order=(3,4,1))
+    train_val=ser["2020-01-02":"2020-12-29"]
+    m = ARIMA(train_val, order=(1,1,1))
     model_fit=m.fit()
     print(model_fit.summary())
     
@@ -81,9 +88,38 @@ def model(name):
 #     plt.show()
     
 #     model_fit.plot_diagnostics(figsize=(15, 12))
+
+    pred=model_fit.get_prediction(start=0,dynamic=True)
+    pred_ci=pred.conf_int()
+    ax0=train_val.plot(label="observation")
+    pred.predicted_mean.plot(ax=ax0,label="predicted",alpha=0.7,color="red")
+    ax0.fill_between(pred_ci.index,
+            pred_ci.iloc[:, 0],
+            pred_ci.iloc[:, 1], color='k', alpha=.25)
     
     
-    model_fit.get_prediction(start=pd.datetime, end=None, dynamic=False)
+
+#     leng=30
+#     ind=pd.date_range("2021-01-01", periods=leng,freq=bd.get_business_day_cn("2021"))
+#      
+#     obs=ser[ind[0]:ind[-1]]
+#     ax=obs.plot(label="Observed")
+#      
+# #     ax=ser.plot(label='observed')
+#     pred_dynamic=model_fit.forecast(steps=leng,index=ind)
+#      
+# #     pred_ci = pred_dynamic.conf_int()
+#     pred_dynamic.plot(label='Dynamic Forecast',ax=ax)
+#      
+# #     ax.fill_between(pred_ci.index,
+# #                 pred_ci.iloc[:, 0],
+# #                 pred_ci.iloc[:, 1], color='k', alpha=.25)
+#     ax.set_xlabel('Date')
+#     ax.set_ylabel('CO2 Levels')
+    
+    plt.legend()
+    
+    
     plt.show()
     
     
@@ -92,7 +128,7 @@ if __name__=="__main__":
     
 #     detect("000905",20)
     model("000905")
-#     analyze("000300")
+#     analyze("000905")
 #     for name in names:
 #         print(name)
 #         analyze(name)
