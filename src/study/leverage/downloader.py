@@ -19,8 +19,10 @@ def download_leverage_sse(date_str):
     print(url)
     
     fpath=os.path.join('..//leverage//sse','rzrqjygk'+date_str+'.xls')
-    
-    download(url, fpath)
+    if os.path.exists(fpath):
+        print("file exists, skip")
+    else:
+        download(url, fpath)
     
     
 def download(url,target_path=None):

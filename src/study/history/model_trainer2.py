@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 from scipy import stats
+from datetime import datetime
 
 
 from sklearn.linear_model import LinearRegression
@@ -33,7 +34,7 @@ def read_dir(path):
         return (files[1],files[0])
     
 
-def stream_model(root,sample_start="2020-01-02", sample_end="2020-12-31",pred_start="2021-01-02"):
+def stream_model(root,sample_start="2015-01-02", sample_end="2020-12-31",pred_start="2021-01-02"):
     price_file, leverage_file=read_dir(root)
     
     price_df=read_history(os.path.join(root,price_file))
@@ -59,13 +60,14 @@ def stream_model(root,sample_start="2020-01-02", sample_end="2020-12-31",pred_st
 #     new_x=
     pred_df["pred"]=model.predict(sm.add_constant(pred_df[["lev"]]))
     pred_df["residual"]=pred_df["price"]-pred_df["pred"]
-    pred_df["residual_norm_a"]=pred_df["residual"]/pred_df["pred"]
+    pred_df["residual_norm_old"]=pred_df["residual"]/pred_df["pred"]
     
     window=20
     pred_df["residual_slide_std"]=pred_df["residual"].rolling(window).std()
     pred_df["residual_norm"]=pred_df["residual"]/pred_df["residual_slide_std"]
-    pred_df[["residual","residual_norm","residual_norm_a","price"]].plot(subplots=True,grid=True)
-    plt.show()
+    pred_df[["residual","residual_norm","residual_norm_old","price"]].plot(subplots=True,grid=True)
+    plt.savefig(r"C:\Users\Darren\eclipse-workspace\fin_study\src\study\leverage\img\model\\"+root+"_"+str(datetime.today())[:10]+".png")
+    plt.close()
     
     
     
@@ -80,7 +82,7 @@ def stream_model(root,sample_start="2020-01-02", sample_end="2020-12-31",pred_st
 
     
 
-def model1_train(root,train_start="2019-01-01", train_end="2020-12-31", his_start="2020-01-01", his_end=""):
+def model1_train(root,train_start="2019-01-01", train_end="2020-12-31", his_start="2021-01-01", his_end=""):
     
 #     features=csi500[["最高价","最低价","开盘价","收盘价"]]
 #     print(features)
@@ -145,12 +147,15 @@ def old_train():
     
     plt.close()
     
-if __name__=="__main__":    
-    stream_model("000905")
+if __name__=="__main__": 
+    names=["000905","000300","399006","000016"]
+    for name in names:
+        stream_model(name)
+    old_train()
 #     test_set.plot(grid=True)
 
 # 
 # df=model1_train("csi500",his_start="2019-01-01")
-# plt.show()
+    plt.show()
 # df.to_csv(r"C:\Users\Darren\Documents\features.csv",encoding="utf8")
 

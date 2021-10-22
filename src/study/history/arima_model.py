@@ -16,7 +16,7 @@ import business_day as bd
 def get_df(name):
     files=list(map(lambda a:os.path.join(name,a),mt.read_dir(name)))
     
-    sli=slice("2019-12-31","2020-12-31")
+    sli=slice("2020-07-31","2020-07-31")
     
     prices=mt.read_history(files[0])[sli]
     

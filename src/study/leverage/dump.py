@@ -15,7 +15,7 @@ ttoday=datetime.date.today()
 column_names=["融资买入额(元)","融资余额(元)","融券卖出量(股/份)","融券余量(股/份)","融券余额(元)","融资融券余额(元)"]
 
 def dump():
-    days=pd.date_range(start="2020-09-02",end="2020-12-31",freq=business_day.get_business_day_cn("2020"))
+    days=pd.date_range(start="2021-09-22",end="2021-10-21",freq=business_day.get_business_day_cn("2021"))
 #     print(days)
     days=map(lambda d:str(d)[:10],days)
 
@@ -132,11 +132,12 @@ def extract(security_codes,exchange,prefix="2020"):
             print("data length dosn't match index length:",code)
             continue
         df=pd.DataFrame(data,columns=column_names,index=index).applymap(lambda x: x if type(x)==int else int(x.replace(",","")))
-        fname=os.path.join("cache",code+"_2020.xls")
+        fname=os.path.join("cache",code+"_"+prefix+".xls")
         print("saving",fname)
         df.to_excel(fname)
         
-if __name__ == '__main__':
+        
+def extract4cache():
     sse_stock=[]
     szse_stock=[]
     for file in os.listdir("cache"):
@@ -148,6 +149,20 @@ if __name__ == '__main__':
             szse_stock.append(file[:6])
     extract(sse_stock, "sse")
     extract(szse_stock, "szse")
+    
+    
+def extract_csi500(date_str):
+    df=pd.read_excel("000905closeweight.xls",dtype={"成分券代码Constituent Code":str})
+    
+    print(df[df.columns[4]])
+    
+    
+if __name__ == '__main__':
+    
+#     dump()
+
+    extract_csi500("2021-10-21")
+
 #     summary()
 #     parent_dir=os.path.abspath(os.path.join(os.getcwd(), os.pardir))
 #     csi500=pd.read_csv(os.path.join(parent_dir,"history","csi500","000905.csv"),index_col="日期",encoding="gbk",parse_dates=True)
