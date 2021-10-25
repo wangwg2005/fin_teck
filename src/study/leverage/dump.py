@@ -152,16 +152,36 @@ def extract4cache():
     
     
 def extract_csi500(date_str):
-    df=pd.read_excel("000905closeweight.xls",dtype={"成分券代码Constituent Code":str})
+    prefix="rzrqjygk"
+    df=pd.read_excel("000300closeweight.xls",dtype={"成分券代码Constituent Code":str})
     
-    print(df[df.columns[4]])
+    szse=df[df['交易所Exchange']=="深圳证券交易所"]
+    sse=df[df['交易所Exchange']=="上海证券交易所"]
+    
+    fname=os.path.join("sse",prefix+date_str.replace("-","")+".xls")
+    sse_df=pd.read_excel(fname,sheet_name=-1,dtype={'标的证券代码':str})
+    ids=list(sse["成分券代码Constituent Code"])
+    sec_sse=sse_df[sse_df["标的证券代码"].isin(ids)]
+    sum_sse=sec_sse["本日融资余额(元)"].sum()
+    print("sum sse",sum_sse)
+    
+    fname=os.path.join("szse",prefix+date_str+".xls")
+    szse_df=pd.read_excel(fname,sheet_name=-1,dtype={'证券代码':str})
+    ids=list(szse["成分券代码Constituent Code"])
+    sec_szse=szse_df[szse_df["证券代码"].isin(ids)]
+    sum_szse=sec_szse["融资余额(元)"].map(lambda a:int(a.replace(",",""))).sum()
+    print("sum szse",sum_szse)
+    
+    print("total",(sum_sse+sum_szse)/100000000)
+    
     
     
 if __name__ == '__main__':
     
 #     dump()
 
-    extract_csi500("2021-10-21")
+
+    extract_csi500("2021-10-14")
 
 #     summary()
 #     parent_dir=os.path.abspath(os.path.join(os.getcwd(), os.pardir))

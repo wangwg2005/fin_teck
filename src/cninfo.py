@@ -50,15 +50,20 @@ def getByDate(sdate,plate="",stock=""):
             print(str(r.text))
             break
         r.close
+
         pageNum=pageNum+1
-        hasMore=t['hasMore']
+        hasMore=t['hasMore'] and pageNum<=100
         
-        esclate={"sh":["shmb","shkcp"],"sz":["szmb","szzx","szcy"]}
+        
+        esclate={"sh":["shmb","shkcp"],"sz":["szmb","szcy"]}
+#        "szzx" is out of date
         result["totalAnnouncement"]=t["totalAnnouncement"]
-        if t["totalRecordNum"]>=3000 :
+        if t["totalRecordNum"]>=3000 and pageNum==2:
             if plate=="":
                 print("query by market, total annoucements:"+str(t["totalRecordNum"]))
+                print("query plat:sh")
                 shAnn=getByDate(sdate, "sh")
+                print("query plat:sz")
                 szAnn=getByDate(sdate, "sz")
                 announces.extend(shAnn["announcements"])
                 announces.extend(szAnn["announcements"])
@@ -69,6 +74,7 @@ def getByDate(sdate,plate="",stock=""):
                 subs=esclate[plate]
                 print("total number "+str(t["totalRecordNum"])+" split into "+",".join(subs))
                 for board in subs:
+                    print("querying",board)
                     anns=getByDate(sdate, board)
                     announces.extend(anns["announcements"])
 #                     result["totalAnnouncement"]=result["totalAnnouncement"]+anns["totalAnnouncement"]
@@ -84,8 +90,9 @@ def getByDate(sdate,plate="",stock=""):
         if not hasMore:
             
             print("total announces:"+str(t["totalAnnouncement"]))
-    
-        announces.extend(t['announcements'])
+            
+        if t['announcements'] is not None:
+            announces.extend(t['announcements'])
     for ann in announces:
         ann["adjunctUrl"]=prefix+ann["adjunctUrl"]
     print("pageNums:"+str(pageNum-1))
@@ -219,11 +226,11 @@ def get_annual_report(start_date,end_date,plate=""):
             break
         r.close
         pageNum=pageNum+1
-        hasMore=t['hasMore']
-        
+        hasMore= (['hasMore'] and pageNum<=100)
+        print("pageNum:",pageNum)
         esclate={"sh":["shmb","shkcp"],"sz":["szmb","szzx","szcy"]}
         
-        if t["totalRecordNum"]>=3000 :
+        if t["totalRecordNum"]>=3000 and pageNum==1:
             if plate=="":
                 print("query by market, total annoucements:"+str(t["totalRecordNum"]))
                 shAnn=get_annual_report(start_date,end_date,plate= "sh")
