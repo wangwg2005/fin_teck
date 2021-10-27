@@ -150,13 +150,65 @@ def extract4cache():
     extract(sse_stock, "sse")
     extract(szse_stock, "szse")
     
+def extract_by_security(security_codes,exchange,start_date,end_date):
+    days=pd.date_range(start=start_date,end=end_date,freq=business_day.get_business_day_cn("all"))
+    
+    if exchange=="sse":
+        days=map(lambda d:d.strftime('%Y%m%d'),days)
+        cnames=['标的证券代码',"本日融资余额(元)"]
+        nnames={"标的证券代码":"sid","本日融资余额(元)":"lev"}
+    else:
+        days=map(lambda d:d.strftime('%Y-%m-%d'),days)        
+        cnames=["证券代码","融资余额(元)"]
+        names={"证券代码":"sid","融资余额(元)":"lev"}
+        
+        
+    pref="rzrqjygk"
+    for day in days:
+        fpath=os.path.join(exchange,pref+day+".xls")
+        
+    sid_cname=cnames[0]
+    kv={ code: {"index":[]} for code in security_codes}
+    
+
+    for file in os.listdir(exchange):
+        if pref not in file :
+            continue
+        index=file[8:-4]
+        df=pd.read_excel(os.path.join(exchange,file),sheet_name=-1,dtype={sid_cname:str})
+        for code in security_codes:
+            
+            row=df[df[sid_cname]==code][df.columns[2:]][:1].to_numpy()
+            kv[code]["index"].append(index)
+#             print(index,":",row)
+            if "data" not in kv[code]:
+                kv[code]["data"]=row
+            else:
+                kv[code]["data"]=np.append(kv[code]["data"],row,axis=0)
+    cnames=map(lambda a:a.replace("本日",""),df.columns[2:])
+    cnames=map(lambda a:a.replace("(股/份)",""),cnames)
+    for code in security_codes:
+        data=kv[code]["data"]
+        if len(data)==0 :
+            print("no data for",code)
+            continue
+#         elif len(data)!=len(index):
+#             print("data length dosn't match index length:",code)
+#             continue
+        ndf=pd.DataFrame(data,columns=cnames,index=kv[code]["index"]).applymap(lambda x: x if type(x)==int else int(x.replace(",","")))
+        fname=os.path.join("cache",code+"_"+start_date+"_"+end_date+".xls")
+        print("saving",fname)
+        ndf.to_excel(fname)
+    
+    
+    
     
 def extract_csi500(date_str):
     prefix="rzrqjygk"
-    df=pd.read_excel("000300closeweight.xls",dtype={"成分券代码Constituent Code":str})
-    
-    szse=df[df['交易所Exchange']=="深圳证券交易所"]
-    sse=df[df['交易所Exchange']=="上海证券交易所"]
+    df=pd.read_excel(os.path.join("index_composite","000905closeweight20210531.xls"),dtype={"成分券代码Constituent Code":str})
+    print(df["成分券代码Constituent Code"])
+    szse=df[df['交易所Exchange']=="SHZ"]
+    sse=df[df['交易所Exchange']=="SHH"]
     
     fname=os.path.join("sse",prefix+date_str.replace("-","")+".xls")
     sse_df=pd.read_excel(fname,sheet_name=-1,dtype={'标的证券代码':str})
@@ -180,8 +232,10 @@ if __name__ == '__main__':
     
 #     dump()
 
+    extract_by_security(["159919"], "szse", "2020-01-01", "2021-10-21")
 
-    extract_csi500("2021-10-14")
+
+#     extract_csi500("2021-06-17")
 
 #     summary()
 #     parent_dir=os.path.abspath(os.path.join(os.getcwd(), os.pardir))
