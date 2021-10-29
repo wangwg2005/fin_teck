@@ -12,7 +12,7 @@ urls["000016"]="http://quotes.money.163.com/service/chddata.html?code=0000016&st
 urls["399006"]="http://quotes.money.163.com/service/chddata.html?code=1399006&start=20100601&end={0}&fields=TCLOSE;HIGH;LOW;TOPEN;LCLOSE;CHG;PCHG;VOTURNOVER;VATURNOVER"
 urls["000300"]="http://quotes.money.163.com/service/chddata.html?code=0000300&start=20020104&end={0}&fields=TCLOSE;HIGH;LOW;TOPEN;LCLOSE;CHG;PCHG;VOTURNOVER;VATURNOVER"
 
-def update_prices():
+def update_prices_to_date():
     last_trade_day=pd.date_range(end=datetime.today(),periods=2,freq=bd.get_business_day_cn("all"))[0]
     last_day_str=str(last_trade_day)[:10].replace("-","")
     
@@ -27,5 +27,5 @@ def update_prices():
 
     
 if __name__=="__main__":
-    print(update_prices())
+    print(update_prices_to_date())
     

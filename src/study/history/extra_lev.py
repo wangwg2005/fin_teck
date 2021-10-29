@@ -9,9 +9,7 @@ import statsmodels.api as sm
 from functools import reduce
 
 
-
-
-def model(features,names):
+def model(features,names,prefix):
     split_date="2020-12-31"
     features=features.dropna()
     
@@ -51,17 +49,27 @@ def model(features,names):
     
     X=test_df[names]
     X=sm.add_constant(X)
-    pred_y=mod.predict(X)
+    preds=mod.get_prediction(X).summary_frame()
+    print(preds.head()[0:1].to_json())
+    pred_y=preds["mean"]
+    
+    
     plt.legend()
     
     ax4=plt.subplot(224)
     test_df["close"].plot(ax=ax4,label="observation")
     pred_y.plot(ax=ax4,label="prediction")
-    plt.title("Verify,mse:"+str(mse))
+    plt.fill_between(preds.index,preds["obs_ci_lower"],preds["obs_ci_upper"],alpha=0.2)
+    last_diff=test_df["close"][-1]-pred_y[-1]
+    plt.title("Verify,mse:{:.2f},last diff:{:.2f}".format(mse,last_diff))
     plt.legend()
-    
-    plt.suptitle(",".join(names))
-    plt.show()
+     
+    title=prefix+":"+",".join(names)
+    plt.suptitle(title)
+    fpath=os.path.join("img",prefix+"_"+"_".join(names)+".png")
+    print(fpath)
+    plt.savefig(fpath)
+    plt.close()
 
 
 
@@ -79,28 +87,31 @@ def get_features(name):
     etfs=filter(lambda f: len(f)==10 and f[-3:]=="xls", files)
 
     
-    extra_dfs=map(lambda etfile:pd.read_excel(os.path.join(base_dir,etfile),header=0,parse_dates=[0],index_col=0).sort_index()[start:"2021-10-14"]["融资余额(元)"],etfs)
+    extra_dfs=map(lambda etfile:pd.read_excel(os.path.join(base_dir,etfile),header=0,parse_dates=[0],index_col=0).sort_index()[start:][["融资余额(元)","融券余量"]],etfs)
     extra_dfs=list(extra_dfs)
         
-    extra=reduce(lambda a,b:a+b, extra_dfs)
+    extra=reduce(lambda a,b:a+b, extra_dfs)/100000000
     features=price_df[["收盘价"]]
-    print(len(features))
+
     features=features.rename(columns={"收盘价":"close"})
     features["lev"]=lev_df["融资余额(亿元)"]
     features["sell"]=lev_df["融券余额(亿元)"]
-    features["extra"]=extra/100000000
-    features["total"]=features["lev"]+features["extra"]
+    features["extra_lev"]=extra["融资余额(元)"]
+    features["extra_sell"]=extra["融券余量"]
+    features["total_lev"]=features["lev"]+features["extra_lev"]
+    features["total_sell"]=features["sell"]+features["extra_sell"]
     
     return features
 
 
     
 if __name__=="__main__":
-    name="000905"
-    features=get_features(name)
-    print(features)
-#     model(features,["lev"])
-    model(features,["total","sell"])
-#     model(features,["total"])
+    
+    for name in ["000905"]:
+        features=get_features(name)
+#         model(features,["lev"],name)
+        model(features,["lev","extra_lev","sell","extra_sell"],name+"t")
+#         model(features,["lev","sell"],name)
+#         model(features,["total_lev","total_sell"],name)
 
 

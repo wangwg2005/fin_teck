@@ -150,8 +150,10 @@ def extract4cache():
     extract(sse_stock, "sse")
     extract(szse_stock, "szse")
     
-def extract_by_security(security_codes,exchange,start_date,end_date):
+def extract_by_security(security_codes,exchange,start_date,end_date,paths):
     days=pd.date_range(start=start_date,end=end_date,freq=business_day.get_business_day_cn("all"))
+    
+    base_path=os.path.split(os.path.realpath(__file__))[0]
     
     if exchange=="sse":
         days=map(lambda d:d.strftime('%Y%m%d'),days)
@@ -171,14 +173,16 @@ def extract_by_security(security_codes,exchange,start_date,end_date):
     kv={ code: {"index":[]} for code in security_codes}
     
 
-    for file in os.listdir(exchange):
+    for file in os.listdir(os.path.join(base_path,exchange)):
         if pref not in file :
             continue
         index=file[8:-4]
-        df=pd.read_excel(os.path.join(exchange,file),sheet_name=-1,dtype={sid_cname:str})
+        df=pd.read_excel(os.path.join(base_path,exchange,file),sheet_name=-1,dtype={sid_cname:str})
         for code in security_codes:
             
             row=df[df[sid_cname]==code][df.columns[2:]][:1].to_numpy()
+            if len(row)==0:
+                continue
             kv[code]["index"].append(index)
 #             print(index,":",row)
             if "data" not in kv[code]:
@@ -186,8 +190,10 @@ def extract_by_security(security_codes,exchange,start_date,end_date):
             else:
                 kv[code]["data"]=np.append(kv[code]["data"],row,axis=0)
     cnames=map(lambda a:a.replace("本日",""),df.columns[2:])
-    cnames=map(lambda a:a.replace("(股/份)",""),cnames)
-    for code in security_codes:
+    cnames=list(map(lambda a:a.replace("(股/份)",""),cnames))
+#     dfs=[]
+    for i in range(len(security_codes)):
+        code=security_codes[i]
         data=kv[code]["data"]
         if len(data)==0 :
             print("no data for",code)
@@ -195,10 +201,19 @@ def extract_by_security(security_codes,exchange,start_date,end_date):
 #         elif len(data)!=len(index):
 #             print("data length dosn't match index length:",code)
 #             continue
+#         print(kv[code]["index"])
+#         print(data)
         ndf=pd.DataFrame(data,columns=cnames,index=kv[code]["index"]).applymap(lambda x: x if type(x)==int else int(x.replace(",","")))
-        fname=os.path.join("cache",code+"_"+start_date+"_"+end_date+".xls")
+        if paths is None:
+            fname=os.path.join("cache",code+"_"+start_date+"_"+end_date+".xls")
+        else:
+            fname=paths[i]
         print("saving",fname)
         ndf.to_excel(fname)
+        print(fname,"saved")
+#         dfs.append(ndf)
+        
+#     return dfs
     
     
     
@@ -232,10 +247,10 @@ if __name__ == '__main__':
     
 #     dump()
 
-    extract_by_security(["159919"], "szse", "2020-01-01", "2021-10-21")
+    extract_by_security(["510510"], "sse","2020-01-01","2020-12-31",None)
 
 
-#     extract_csi500("2021-06-17")
+    extract_csi500("2021-06-17")
 
 #     summary()
 #     parent_dir=os.path.abspath(os.path.join(os.getcwd(), os.pardir))
