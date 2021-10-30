@@ -156,9 +156,9 @@ def extract_by_security(security_codes,exchange,start_date,end_date,paths):
 
     
     if exchange=="sse":
-        days=map(lambda d:d.strftime('%Y%m%d'),days)
-        cnames=['标的证券代码',"本日融资余额(元)"]
-        nnames={"标的证券代码":"sid","本日融资余额(元)":"lev"}
+        days = map(lambda d:d.strftime('%Y%m%d'),days)
+        cnames = ['标的证券代码', "本日融资余额(元)"]
+        nnames = {"标的证券代码": "sid", "本日融资余额(元)": "lev"}
     else:
         days=map(lambda d:d.strftime('%Y-%m-%d'),days)        
         cnames=["证券代码","融资余额(元)"]
@@ -166,8 +166,6 @@ def extract_by_security(security_codes,exchange,start_date,end_date,paths):
         
         
     pref="rzrqjygk"
-    for day in days:
-        fpath=os.path.join(exchange,pref+day+".xls")
         
     sid_cname=cnames[0]
     kv={ code: {"index":[]} for code in security_codes}
@@ -191,8 +189,9 @@ def extract_by_security(security_codes,exchange,start_date,end_date,paths):
                 kv[code]["data"]=row
             else:
                 kv[code]["data"]=np.append(kv[code]["data"],row,axis=0)
-    cnames=map(lambda a:a.replace("本日",""),df.columns[2:])
-    cnames=list(map(lambda a:a.replace("(股/份)",""),cnames))
+    print("last file", file)
+    cnames = map(lambda a : a.replace("本日", ""), df.columns[2:])
+    cnames=list(map(lambda a:a.replace("(股/份)", ""), cnames))
 #     dfs=[]
     for i in range(len(security_codes)):
         code=security_codes[i]

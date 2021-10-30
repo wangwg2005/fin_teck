@@ -8,7 +8,6 @@ from scipy import stats
 import statsmodels.api as sm
 from functools import reduce
 
-
 def model(features,names,prefix):
     split_date="2020-12-31"
     features=features.dropna()
@@ -61,9 +60,9 @@ def model(features,names,prefix):
     pred_y.plot(ax=ax4,label="prediction")
     plt.fill_between(preds.index,preds["obs_ci_lower"],preds["obs_ci_upper"],alpha=0.2)
     last_diff=test_df["close"][-1]-pred_y[-1]
-    plt.title("Verify,mse:{:.2f},last diff:{:.2f}".format(mse,last_diff))
+    plt.title("{},mse:{:.2f},last diff:{:.2f}".format(test_df.index[-1],mse,last_diff))
     plt.legend()
-     
+
     title=prefix+":"+",".join(names)
     plt.suptitle(title)
     fpath=os.path.join("img",prefix+"_"+"_".join(names)+".png")
@@ -95,13 +94,11 @@ def get_features(name):
 
     features=features.rename(columns={"收盘价": "close"})
     features["lev"] =lev_df["融资余额(亿元)"]
-    features["sell"]=lev_df["融券余额(亿元)"]
+    features["sell"]=lev_df["融券余量(亿股)"]
     features["extra_lev"] = extra["融资余额(元)"]
     features["extra_sell"] = extra["融券余量"]
     features["total_lev"]=features["lev"]+features["extra_lev"]
     features["total_sell"]=features["sell"]+features["extra_sell"]
-
-    print(features[-1:])
     
     return features
 
@@ -110,8 +107,9 @@ def get_features(name):
 if __name__=="__main__":
     
     for name in ["000905"]:
-        features=get_features(name)
+        features=get_features(name)[:"2021-10-28"]
 #         model(features,["lev"],name)
+        print(features[-1:])
         model(features,["lev","extra_lev","sell","extra_sell"],name+"t")
 #         model(features,["lev","sell"],name)
 #         model(features,["total_lev","total_sell"],name)
