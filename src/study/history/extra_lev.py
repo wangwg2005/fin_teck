@@ -81,7 +81,7 @@ def get_features(name):
     base_dir=name
 
     price_df=pd.read_csv(os.path.join(base_dir,name+".csv"),encoding="utf8",parse_dates=[0],index_col=0).sort_index()[start:]
-    lev_df=pd.read_excel(os.path.join(base_dir,"融资融券_"+name+".xls"),header=1,parse_dates=[0],index_col=0).sort_index()[start:]
+    lev_df=pd.read_excel(os.path.join(base_dir,"融资融券_"+name+"n.xls"),parse_dates=[0],index_col=0).sort_index()[start:]
     
     files=os.listdir(name)
     etfs=filter(lambda f: len(f)==10 and f[-3:]=="xls", files)
@@ -93,13 +93,15 @@ def get_features(name):
     extra=reduce(lambda a,b:a+b, extra_dfs)/100000000
     features=price_df[["收盘价"]]
 
-    features=features.rename(columns={"收盘价":"close"})
-    features["lev"]=lev_df["融资余额(亿元)"]
+    features=features.rename(columns={"收盘价": "close"})
+    features["lev"] =lev_df["融资余额(亿元)"]
     features["sell"]=lev_df["融券余额(亿元)"]
-    features["extra_lev"]=extra["融资余额(元)"]
-    features["extra_sell"]=extra["融券余量"]
+    features["extra_lev"] = extra["融资余额(元)"]
+    features["extra_sell"] = extra["融券余量"]
     features["total_lev"]=features["lev"]+features["extra_lev"]
     features["total_sell"]=features["sell"]+features["extra_sell"]
+
+    print(features[-1:])
     
     return features
 

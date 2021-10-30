@@ -2,7 +2,7 @@
 
 import business_day as bd
 import pandas as pd
-from datetime import datetime
+from datetime import datetime,date,timedelta
 import os
 import time
 
@@ -13,7 +13,8 @@ urls["399006"]="http://quotes.money.163.com/service/chddata.html?code=1399006&st
 urls["000300"]="http://quotes.money.163.com/service/chddata.html?code=0000300&start=20020104&end={0}&fields=TCLOSE;HIGH;LOW;TOPEN;LCLOSE;CHG;PCHG;VOTURNOVER;VATURNOVER"
 
 def update_prices_to_date():
-    last_trade_day=pd.date_range(end=datetime.today(),periods=2,freq=bd.get_business_day_cn("all"))[0]
+    end_da=date.today()+timedelta(days=-1)
+    last_trade_day=pd.date_range(end=end_da, periods=1, freq=bd.get_business_day_cn("all"))[0]
     last_day_str=str(last_trade_day)[:10].replace("-","")
     
     for k,v in urls.items():

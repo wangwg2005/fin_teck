@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 
 ttoday=datetime.date.today()
-
+base_path=os.path.split(os.path.realpath(__file__))[0]
 
 column_names=["融资买入额(元)","融资余额(元)","融券卖出量(股/份)","融券余量(股/份)","融券余额(元)","融资融券余额(元)"]
 
@@ -153,7 +153,7 @@ def extract4cache():
 def extract_by_security(security_codes,exchange,start_date,end_date,paths):
     days=pd.date_range(start=start_date,end=end_date,freq=business_day.get_business_day_cn("all"))
     
-    base_path=os.path.split(os.path.realpath(__file__))[0]
+
     
     if exchange=="sse":
         days=map(lambda d:d.strftime('%Y%m%d'),days)
@@ -177,7 +177,9 @@ def extract_by_security(security_codes,exchange,start_date,end_date,paths):
         if pref not in file :
             continue
         index=file[8:-4]
-        df=pd.read_excel(os.path.join(base_path,exchange,file),sheet_name=-1,dtype={sid_cname:str})
+        fpath=os.path.join(base_path,exchange,file)
+        # print(fpath)
+        df=pd.read_excel(fpath,sheet_name=-1,dtype={sid_cname:str})
         for code in security_codes:
             
             row=df[df[sid_cname]==code][df.columns[2:]][:1].to_numpy()
@@ -218,28 +220,30 @@ def extract_by_security(security_codes,exchange,start_date,end_date,paths):
     
     
     
-def extract_csi500(date_str):
+def extract_index_lev(ind_code,date_val):
+    date_str=date_val.strftime("%Y-%m-%d")
     prefix="rzrqjygk"
-    df=pd.read_excel(os.path.join("index_composite","000905closeweight20210531.xls"),dtype={"成分券代码Constituent Code":str})
-    print(df["成分券代码Constituent Code"])
-    szse=df[df['交易所Exchange']=="SHZ"]
-    sse=df[df['交易所Exchange']=="SHH"]
+    df=pd.read_excel(os.path.join(base_path,"index_composite",ind_code+"closeweight.xls"),dtype={"成分券代码Constituent Code":str})
+    # print(df["成分券代码Constituent Code"])
+    szse = df[df['交易所Exchange'] == "深圳证券交易所"]
+    sse = df[df['交易所Exchange'] == "上海证券交易所"]
     
-    fname=os.path.join("sse",prefix+date_str.replace("-","")+".xls")
-    sse_df=pd.read_excel(fname,sheet_name=-1,dtype={'标的证券代码':str})
+    fname = os.path.join(base_path,"sse",prefix+date_str.replace("-", "")+".xls")
+    sse_df= pd.read_excel(fname,sheet_name=-1,dtype={'标的证券代码':str})
     ids=list(sse["成分券代码Constituent Code"])
     sec_sse=sse_df[sse_df["标的证券代码"].isin(ids)]
-    sum_sse=sec_sse["本日融资余额(元)"].sum()
-    print("sum sse",sum_sse)
+    sum_sse=sec_sse[["本日融资余额(元)","本日融券余量"]].sum().to_numpy()
+    # print("sum sse",sum_sse)
     
-    fname=os.path.join("szse",prefix+date_str+".xls")
-    szse_df=pd.read_excel(fname,sheet_name=-1,dtype={'证券代码':str})
-    ids=list(szse["成分券代码Constituent Code"])
-    sec_szse=szse_df[szse_df["证券代码"].isin(ids)]
-    sum_szse=sec_szse["融资余额(元)"].map(lambda a:int(a.replace(",",""))).sum()
-    print("sum szse",sum_szse)
+    fname = os.path.join(base_path, "szse", prefix+date_str+".xls")
+    szse_df = pd.read_excel(fname,sheet_name=-1, dtype={'证券代码': str})
+    ids = list(szse["成分券代码Constituent Code"])
+    sec_szse = szse_df[szse_df["证券代码"].isin(ids)]
+    sum_szse = sec_szse[["融资余额(元)", "融券余量(股/份)"]].applymap(lambda a: int(a.replace(",", ""))).sum().to_numpy()
+    # print("sum szse", sum_szse)
     
-    print("total",(sum_sse+sum_szse)/100000000)
+    sumup = (sum_sse+sum_szse)/100000000
+    return pd.Series({"融资余额(亿元)":sumup[0],"融券余量(亿股)": sumup[1]},name=date_val)
     
     
     
@@ -247,10 +251,10 @@ if __name__ == '__main__':
     
 #     dump()
 
-    extract_by_security(["510510"], "sse","2020-01-01","2020-12-31",None)
+    # extract_by_security(["510510"], "sse","2020-01-01","2020-12-31",None)
 
 
-    extract_csi500("2021-06-17")
+    print(extract_index_lev("000905","2021-10-27"))
 
 #     summary()
 #     parent_dir=os.path.abspath(os.path.join(os.getcwd(), os.pardir))
