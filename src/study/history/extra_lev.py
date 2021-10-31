@@ -48,26 +48,37 @@ def model(features,names,prefix):
     
     X=test_df[names]
     X=sm.add_constant(X)
-    preds=mod.get_prediction(X).summary_frame()
-    print(preds.head()[0:1].to_json())
+    preds=mod.get_prediction(X).summary_frame(alpha=0.5)
+    print(preds.head()[-1:].to_json())
     pred_y=preds["mean"]
     
     
     plt.legend()
-    
-    ax4=plt.subplot(224)
+
+    fpath = os.path.join("img", prefix + "_" + "_".join(names) + ".png")
+    plt.savefig(fpath)
+    plt.close()
+
+    plt.figure(figsize=(11, 8))
+    ax4=plt.subplot(211)
     test_df["close"].plot(ax=ax4,label="observation")
     pred_y.plot(ax=ax4,label="prediction")
-    plt.fill_between(preds.index,preds["obs_ci_lower"],preds["obs_ci_upper"],alpha=0.2)
+    plt.fill_between(preds.index,preds["mean_ci_lower"],preds["mean_ci_upper"],alpha=0.2)
     last_diff=test_df["close"][-1]-pred_y[-1]
-    plt.title("{},mse:{:.2f},last diff:{:.2f}".format(test_df.index[-1],mse,last_diff))
+    plt.title("{},mse:{:.2f},last diff:{:.2f}".format(test_df.index[-1].strftime("%Y%m%d"),mse,last_diff))
+    plt.legend()
+
+    ax5 = plt.subplot(212)
+    residual=pred_y-test_df["close"]
+    residual.plot(ax=ax5,label="residual")
     plt.legend()
 
     title=prefix+":"+",".join(names)
-    plt.suptitle(title)
-    fpath=os.path.join("img",prefix+"_"+"_".join(names)+".png")
-    print(fpath)
+    plt.suptitle("predtion")
+    fpath = os.path.join("img", prefix + "_" + "_".join(names) + "_pred.png")
     plt.savefig(fpath)
+    print(fpath)
+
     plt.close()
 
 
