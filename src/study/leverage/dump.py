@@ -189,7 +189,6 @@ def extract_by_security(security_codes,exchange,start_date,end_date,paths):
                 kv[code]["data"]=row
             else:
                 kv[code]["data"]=np.append(kv[code]["data"],row,axis=0)
-    print("last file", file)
     cnames = map(lambda a : a.replace("本日", ""), df.columns[2:])
     cnames=list(map(lambda a:a.replace("(股/份)", ""), cnames))
 #     dfs=[]

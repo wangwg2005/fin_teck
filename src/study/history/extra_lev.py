@@ -11,7 +11,7 @@ from functools import reduce
 def model(features,names,prefix):
     split_date="2020-12-31"
     features=features.dropna()
-    
+    print('last trade day',features.index[-1])
     df,test_df=features[:split_date],features[split_date:]
     
     plt.figure(figsize=(11,8))
@@ -48,8 +48,12 @@ def model(features,names,prefix):
     
     X=test_df[names]
     X=sm.add_constant(X)
-    preds=mod.get_prediction(X).summary_frame(alpha=0.5)
-    print(preds.head()[-1:].to_json())
+    preds=mod.get_prediction(X).summary_frame()
+    print(X.index[-1])
+    print(test_df["close"][-1])
+#     print(preds)
+    
+    print(preds[["mean","obs_ci_lower","obs_ci_upper"]][-5:])
     pred_y=preds["mean"]
     
     
@@ -63,7 +67,7 @@ def model(features,names,prefix):
     ax4=plt.subplot(211)
     test_df["close"].plot(ax=ax4,label="observation")
     pred_y.plot(ax=ax4,label="prediction")
-    plt.fill_between(preds.index,preds["mean_ci_lower"],preds["mean_ci_upper"],alpha=0.2)
+    plt.fill_between(preds.index,preds["obs_ci_lower"],preds["obs_ci_upper"],alpha=0.2)
     last_diff=test_df["close"][-1]-pred_y[-1]
     plt.title("{},mse:{:.2f},last diff:{:.2f}".format(test_df.index[-1].strftime("%Y%m%d"),mse,last_diff))
     plt.legend()
@@ -83,14 +87,14 @@ def model(features,names,prefix):
 
 
 
-start="2019-12-31"
+start="2014-12-31"
 
 
 def get_features(name):
     
     base_dir=name
 
-    price_df=pd.read_csv(os.path.join(base_dir,name+".csv"),encoding="utf8",parse_dates=[0],index_col=0).sort_index()[start:]
+    price_df=pd.read_csv(os.path.join(base_dir,name+".csv"),encoding="utf8",parse_dates=[0],index_col=0,nrows=4000).sort_index()[start:]
     lev_df=pd.read_excel(os.path.join(base_dir,"融资融券_"+name+"n.xls"),parse_dates=[0],index_col=0).sort_index()[start:]
     
     files=os.listdir(name)
@@ -102,7 +106,7 @@ def get_features(name):
         
     extra=reduce(lambda a,b:a+b, extra_dfs)/100000000
     features=price_df[["收盘价"]]
-
+    features["f1"]=price_df["成交量"]*price_df["涨跌幅"].map(lambda a: 1 if a>0 else -1)/10000000
     features=features.rename(columns={"收盘价": "close"})
     features["lev"] =lev_df["融资余额(亿元)"]
     features["sell"]=lev_df["融券余量(亿股)"]
@@ -118,11 +122,12 @@ def get_features(name):
 if __name__=="__main__":
     
     for name in ["000905"]:
-        features=get_features(name)[:"2021-10-28"]
-#         model(features,["lev"],name)
-        print(features[-1:])
-        model(features,["lev","extra_lev","sell","extra_sell"],name+"t")
-#         model(features,["lev","sell"],name)
-#         model(features,["total_lev","total_sell"],name)
+        features=get_features(name)
+#         model(features,["lev","f1"],name)
+#         print(features[-1:])
+        model(features,["lev","extra_lev","sell","extra_sell","f1"],name)
+        model(features,["lev","extra_lev","sell","extra_sell"],name)
+#         model(features,["lev","sell","f1"],name)
+#         model(features,["total_lev","total_sell","f1"],name)
 
 
