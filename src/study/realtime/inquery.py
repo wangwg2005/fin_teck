@@ -56,15 +56,15 @@ def get_time_window(stock_id, date):
 # rs=search(sse,["2020-02-27","2020-02-24"])
 # print(rs)
 
-def split_time_window(stock_id, date_str):
+def split_time_window(stock_id, datalen=1023):
     scale = 5  # time window, minutes
     ma = 20
     url = 'http://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData'
-    param = {'symbol': stock_id, 'scale': scale, 'ma': ma, 'datalen': 48}
+    param = {'symbol': stock_id, 'scale': scale, 'ma': ma, 'datalen': datalen}
     res = requests.get(url, params=param).json()
-    print(res)
+    return res
 
 
 # get_time_window('sh601006','2021-09-01')
 # print(datetime.now().timestamp())
-print(split_time_window('sh601006', '2021-09-03'))
+# print(len(split_time_window('sh601006', '2021-09-03')))
