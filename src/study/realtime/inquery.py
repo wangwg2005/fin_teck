@@ -59,6 +59,7 @@ def get_time_window(stock_id, date):
 def split_time_window(stock_id, datalen=1023):
     scale = 5  # time window, minutes
     ma = 20
+    ma = 'no'
     url = 'http://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData'
     param = {'symbol': stock_id, 'scale': scale, 'ma': ma, 'datalen': datalen}
     res = requests.get(url, params=param).json()

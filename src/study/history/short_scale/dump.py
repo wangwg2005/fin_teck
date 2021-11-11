@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from study.realtime import inquery 
+from study.realtime import inquery
 import pandas as pd
 import matplotlib.pyplot as plt
 import json
