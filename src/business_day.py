@@ -14,7 +14,7 @@ holidays_2019=["2019-01-01","2019-02-04","2019-02-05","2019-02-06","2019-02-07",
                ,"2019-10-01","2019-10-02","2019-10-03","2019-10-04","2019-10-07"]
 
 
-def get_business_day_cn(year):
+def get_business_day_cn(year="all"):
     if year=="2020":
         return CustomBusinessDay(holidays=holidays_2020)
     if year=="2021":

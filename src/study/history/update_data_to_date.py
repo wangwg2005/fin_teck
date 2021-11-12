@@ -36,8 +36,9 @@ def update_etf_lev():
     for code, item in etfs.items():
         for exchange, sids in item.items():
             print(sids)
-            paths=list(map(lambda sid:os.path.join(code,sid+".xls"),sids))
-            dump.extract_by_security(sids, exchange,"2020-01-01","2021-01-01",paths)
+            paths=list(map(lambda sid:os.path.join(code,"rzrq_"+sid+".csv"),sids))
+#             dump.extract_by_security(sids, exchange,"2020-01-01","2021-01-01",paths)
+            dump.extract_fast(sids, exchange, paths)
 
 
 def update_index_lev():
@@ -59,7 +60,7 @@ def update_index_lev():
 
     
 if __name__ =="__main__":
-    update_leverage_2_date()
+#     update_leverage_2_date()
     update_etf_lev()
-    update_prices_to_date()
-    update_index_lev()
+#     update_prices_to_date()
+#     update_index_lev()

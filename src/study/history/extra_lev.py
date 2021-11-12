@@ -98,11 +98,16 @@ def get_features(name):
     lev_df=pd.read_excel(os.path.join(base_dir,"融资融券_"+name+"n.xls"),parse_dates=[0],index_col=0).sort_index()[start:]
     
     files=os.listdir(name)
-    etfs=filter(lambda f: len(f)==10 and f[-3:]=="xls", files)
+    etfs=filter(lambda f: len(f)==15 and f[:4]=="rzrq", files)
 
     
-    extra_dfs=map(lambda etfile:pd.read_excel(os.path.join(base_dir,etfile),header=0,parse_dates=[0],index_col=0).sort_index()[start:][["融资余额(元)","融券余量"]],etfs)
+    extra_dfs=map(lambda etfile:pd.read_csv(os.path.join(base_dir,etfile),header=0,parse_dates=[0],index_col=0).sort_index()[start:][["融资余额(元)","融券余量"]],etfs)
     extra_dfs=list(extra_dfs)
+    for ext in extra_dfs:
+        print(ext.dtypes)
+#         print(ext)
+        print(ext.head())
+        print(ext.index[:10])
         
     extra=reduce(lambda a,b:a+b, extra_dfs)/100000000
     features=price_df[["收盘价"]]

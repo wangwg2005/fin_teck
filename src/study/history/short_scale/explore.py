@@ -6,6 +6,8 @@ from study.quant import datasource as ds
 import statsmodels.api as sm
 from datetime import datetime
 from study.realtime import inquery
+import business_day as bd
+import os
 
 def explor():
     df=pd.read_json("sh000905_1023_2021-11-10_15_00_00.json")
@@ -42,24 +44,45 @@ def explor():
 #     mpf.plot(df,type="candle",volume=True,style=ds.get_style(),addplot=add_plot)
     
     return model, df["vol1"][-1]
+
+def get_hot_data():
+    today_str=str(datetime.today())[:10]
+    days=pd.date_range(end=today_str,periods=5, freq=bd.get_business_day_cn("all"))[:-1]
+    print(days)
+    fnames=[ str(day)[:10]+".hd" for day in days[::-1]]
+    for fname in fnames:
+        if os.path.exists(fname):
+            print("get hot value from date:",fname[:10])
+            with open(fname,"r") as f:
+                return float(f.readline())
+            
+    return 0;
     
 def hot_startup():
     now_v=datetime.today()
     
     open_str=now_v.strftime("%Y-%m-%d 09:30:00")
     open_time=datetime.strptime(open_str,"%Y-%m-%d %H:%M:%S")
-    datelen=(now_v-open_time).seconds//300 + 1
+    datalen=(now_v-open_time).seconds//300 + 1
     
-    model,hotvalue=explor()
+    model,hd=explor()
     
-    if datelen>66:
-        datelen=48
-    elif datelen>42:
-        datelen=datelen-18
-    elif datelen>24:
-        datelen=24
+    hotvalue = get_hot_data()
+    
+    
+    if hotvalue==0:
+        hotvalue=hd
         
-    result=inquery.split_time_window("sh000905", datelen)
+    print("hot value:",hotvalue)
+    
+    if datalen>66:
+        datalen=48
+    elif datalen>42:
+        datalen=datalen-18
+    elif datalen>24:
+        datalen=24
+        
+    result=inquery.split_time_window("sh000905", datalen)
     print(result)
     df=pd.DataFrame(result,dtype=float)
     df.index=pd.to_datetime(df.pop("day"))
@@ -69,6 +92,10 @@ def hot_startup():
     delta=delta.map(lambda a: 1 if a>0 else -1)
     vol1=df["volume"]*delta
     df["vol1"]=vol1.cumsum()+hotvalue
+    if datalen==48:
+        with open(str(now_v)[:10]+".hd","w") as f:
+            f.write(str(df["vol1"][-1]))
+    
     
     X=df[["vol1"]]
     X=sm.add_constant(X)

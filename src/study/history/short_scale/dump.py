@@ -7,8 +7,7 @@ import json
 
 scale=1023
 sid="sh000905"
-data = inquery.split_time_window(sid, scale)
-
+data = inquery.split_time_window(sid, datalen=scale)
 df=pd.DataFrame(data,dtype=float)
 
 df.index=pd.to_datetime(df["day"])
