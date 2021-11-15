@@ -8,9 +8,17 @@ from datetime import datetime
 from study.realtime import inquery
 import business_day as bd
 import os
+import json
+from statsmodels.regression.linear_model import RegressionResults as rs
 
-def explor():
-    df=pd.read_json("sh000905_1023_2021-11-10_15_00_00.json")
+def explor(sid):
+    
+    model_path=sid+"_realtime.pickle"
+    if os.path.exists(model_path):
+        return rs.load(model_path),-1
+        
+    
+    df=pd.read_json(sid+"_baseline.json")
     df.index=pd.to_datetime(df.pop("day"))
     
     print(df.columns)
@@ -20,12 +28,8 @@ def explor():
     vol1=df["volume"]*delta
     df["vol1"]=vol1.cumsum()
     
-    print("last day:",df["vol1"][-1])
     leng=48*20
     
-    
-    
-    print(df)
     
     # add_plot=[mpf.make_addplot(df['vol1'],color='b')]
     
@@ -34,40 +38,40 @@ def explor():
     y=df["close"]
     model=sm.OLS(y,X).fit()
     print(model.summary())
+    model.save(model_path)
     
     fitted = model.fittedvalues[-leng:]
     
     
     df=df[-leng:]
     
-#     add_plot=[mpf.make_addplot(fitted,color="b"),mpf.make_addplot(model.resid[-leng:],panel=1)]
-#     mpf.plot(df,type="candle",volume=True,style=ds.get_style(),addplot=add_plot)
+    add_plot=[mpf.make_addplot(fitted,color="b"),mpf.make_addplot(model.resid[-leng:],panel=1)]
+    mpf.plot(df,type="candle",volume=True,style=ds.get_style(),addplot=add_plot)
     
     return model, df["vol1"][-1]
 
-def get_hot_data():
+def get_hot_data(sid):
     today_str=str(datetime.today())[:10]
     days=pd.date_range(end=today_str,periods=5, freq=bd.get_business_day_cn("all"))[:-1]
-    print(days)
-    fnames=[ str(day)[:10]+".hd" for day in days[::-1]]
+    fnames=[ sid+ '_' +str(day)[:10]+".hd" for day in days[::-1]]
     for fname in fnames:
         if os.path.exists(fname):
-            print("get hot value from date:",fname[:10])
+            print("get hot value from date:",fname[9:19])
             with open(fname,"r") as f:
                 return float(f.readline())
             
     return 0;
     
-def hot_startup():
+def hot_startup(sid):
     now_v=datetime.today()
     
     open_str=now_v.strftime("%Y-%m-%d 09:30:00")
     open_time=datetime.strptime(open_str,"%Y-%m-%d %H:%M:%S")
     datalen=(now_v-open_time).seconds//300 + 1
     
-    model,hd=explor()
+    model,hd=explor(sid)
     
-    hotvalue = get_hot_data()
+    hotvalue = get_hot_data(sid)
     
     
     if hotvalue==0:
@@ -82,8 +86,9 @@ def hot_startup():
     elif datalen>24:
         datalen=24
         
-    result=inquery.split_time_window("sh000905", datalen)
-    print(result)
+#     sid="sh000905"
+        
+    result=inquery.split_time_window(sid, datalen)
     df=pd.DataFrame(result,dtype=float)
     df.index=pd.to_datetime(df.pop("day"))
 
@@ -93,16 +98,19 @@ def hot_startup():
     vol1=df["volume"]*delta
     df["vol1"]=vol1.cumsum()+hotvalue
     if datalen==48:
-        with open(str(now_v)[:10]+".hd","w") as f:
+        with open(sid+'_'+str(now_v)[:10]+".hd","w") as f:
             f.write(str(df["vol1"][-1]))
+        fname=(sid+"_48_"+str(df.index[-1])+".json").replace(" ", "_").replace(":", "_")
+        with open(fname,"w",encoding="utf8") as f:
+            json.dump(result,f)
     
     
     X=df[["vol1"]]
     X=sm.add_constant(X)
-    y_pred=model.predict(X)
+    y_pred=model.get_prediction(X).summary_frame()
     
     
-    add_plot=[mpf.make_addplot(y_pred,color="b")]
+    add_plot=[mpf.make_addplot(y_pred[["mean","obs_ci_lower","obs_ci_upper"]],color="b")]
     mpf.plot(df,type="candle",volume=True,style=ds.get_style(),addplot=add_plot)    
         
         
@@ -110,5 +118,5 @@ def hot_startup():
     
     
 if __name__ =="__main__":
-#     explor()
-    hot_startup()
+#     explor("sh000300")
+    hot_startup('sh000905')

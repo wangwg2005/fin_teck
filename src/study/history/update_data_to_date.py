@@ -60,7 +60,7 @@ def update_index_lev():
 
     
 if __name__ =="__main__":
-#     update_leverage_2_date()
+    update_leverage_2_date()
     update_etf_lev()
-#     update_prices_to_date()
-#     update_index_lev()
+    update_prices_to_date()
+    update_index_lev()
