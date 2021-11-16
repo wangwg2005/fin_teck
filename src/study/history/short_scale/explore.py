@@ -10,15 +10,23 @@ import business_day as bd
 import os
 import json
 from statsmodels.regression.linear_model import RegressionResults as rs
+from study.history.short_scale import dump
+import matplotlib.pyplot as plt
 
 def explor(sid):
+    print(sid)
+    model_path=os.path.join("model",sid+"_realtime.pickle")
     
-    model_path=sid+"_realtime.pickle"
-    if os.path.exists(model_path):
-        return rs.load(model_path),-1
+#     if os.path.exists(model_path):
+#         return rs.load(model_path),-1
+        
+    bl=os.path.join("data",sid+"_baseline.json")
+    
+    if not os.path.exists(bl):
+        dump.dump_data(sid) 
         
     
-    df=pd.read_json(sid+"_baseline.json")
+    df=pd.read_json(bl)
     df.index=pd.to_datetime(df.pop("day"))
     
     print(df.columns)
@@ -46,7 +54,7 @@ def explor(sid):
     df=df[-leng:]
     
     add_plot=[mpf.make_addplot(fitted,color="b"),mpf.make_addplot(model.resid[-leng:],panel=1)]
-    mpf.plot(df,type="candle",volume=True,style=ds.get_style(),addplot=add_plot)
+    mpf.plot(df,type="candle",volume=True,style=ds.get_style(),addplot=add_plot,title=sid,savefig=os.path.join("explore",sid+".png"))
     
     return model, df["vol1"][-1]
 
@@ -111,12 +119,37 @@ def hot_startup(sid):
     
     
     add_plot=[mpf.make_addplot(y_pred[["mean","obs_ci_lower","obs_ci_upper"]],color="b")]
-    mpf.plot(df,type="candle",volume=True,style=ds.get_style(),addplot=add_plot)    
+    mpf.plot(df,type="candle",volume=True,style=ds.get_style(),addplot=add_plot,title=sid)    
+#     plt.close()
         
-        
-    
-    
+def explorer():    
+    base_dir="../../cache/2021-11-16"
+     
+    file1=base_dir+"_incr.csv"
+    file2=base_dir+"_ratio.csv"
+     
+    for f in [file1,file2]:
+     
+        df=pd.read_csv(f,index_col=[0])
+        sids = list(map(inquery.convert_sid,df.index))
+        print(sids)
+        list(map(explor,sids))
     
 if __name__ =="__main__":
+#     explorer()
+    
+#     from study.leverage import leverage_reader as lr
+#     explor("sz002118")
+#     hot_startup("sh600333")
+
+#         
+#     
+#     print(df1)
 #     explor("sh000300")
-    hot_startup('sh000905')
+#     hot_startup('sh000905')
+#     explor("sz300998")
+    explor("sh600115")
+    
+#     explor("sz002371")
+#     explor("sz002118")
+    

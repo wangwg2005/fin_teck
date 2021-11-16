@@ -3,10 +3,18 @@
 import pandas as pd
 import os
 from study.leverage import downloader
+import sys
+
+abs_dir=None
+
+# def get_current_path():
+abs_file=__file__
+abs_dir=abs_file[:abs_file.rfind(os.sep)] 
+    
 
 def read_detail_sse(date_str):
-    fpath=os.path.join("..\\leverage\\sse","rzrqjygk"+date_str+".xls")
-    
+    fpath=os.path.join(abs_dir,"sse","rzrqjygk"+date_str+".xls")
+    print(fpath)
     if not os.path.exists(fpath):
 #         print("downloading file for",date_str)
         downloader.download_leverage_sse(date_str)

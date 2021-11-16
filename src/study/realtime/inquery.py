@@ -50,7 +50,8 @@ def get_time_window(stock_id, date):
     res2 = requests.get(url2, params=param2).text
     print(res2)
 
-
+def convert_sid(sid):
+    return (sid[-2:]+sid[:6]).replace("SS",'sh')
 #         return
 
 # rs=search(sse,["2020-02-27","2020-02-24"])
