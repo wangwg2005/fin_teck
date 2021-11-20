@@ -3,7 +3,6 @@
 import pandas as pd
 import os
 import matplotlib.pyplot as plt
-import numpy as np
 from scipy import stats
 import statsmodels.api as sm
 from functools import reduce
@@ -29,8 +28,7 @@ def model(features,names,prefix):
     y.plot(ax=ax)
     plt.title("Fit")
     plt.legend()
-    mse=np.mean(mod.resid**2)
-    print("MSE",mse)
+    print("MSE",mod.mse_total)
     
     
     z, p = stats.normaltest(mod.resid.values)
@@ -69,7 +67,7 @@ def model(features,names,prefix):
     pred_y.plot(ax=ax4,label="prediction")
     plt.fill_between(preds.index,preds["obs_ci_lower"],preds["obs_ci_upper"],alpha=0.2)
     last_diff=test_df["close"][-1]-pred_y[-1]
-    plt.title("{},mse:{:.2f},last diff:{:.2f}".format(test_df.index[-1].strftime("%Y%m%d"),mse,last_diff))
+    plt.title("{},mse:{:.2f},last diff:{:.2f}".format(test_df.index[-1].strftime("%Y%m%d"),mod.mse_total,last_diff))
     plt.legend()
 
     ax5 = plt.subplot(212)

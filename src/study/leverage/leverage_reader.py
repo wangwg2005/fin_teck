@@ -13,11 +13,12 @@ abs_dir=abs_file[:abs_file.rfind(os.sep)]
     
 
 def read_detail_sse(date_str):
-    fpath=os.path.join(abs_dir,"sse","rzrqjygk"+date_str+".xls")
+    dstr=date_str.replace("-","")
+    fpath=os.path.join(abs_dir,"sse","rzrqjygk"+dstr+".xls")
     print(fpath)
     if not os.path.exists(fpath):
 #         print("downloading file for",date_str)
-        downloader.download_leverage_sse(date_str)
+        downloader.download_leverage_sse(dstr)
     
     df=pd.read_excel(fpath,sheet_name="明细信息")
     df["标的证券代码"]=df["标的证券代码"].map(lambda x:str(x) +".SS")
@@ -29,7 +30,7 @@ def read_detail_sse(date_str):
 def read_detail_szse(date_str):
     if len(date_str)>10:
         date_str=date_str[:10]
-    fpath=os.path.join("..//leverage//szse","rzrqjygk"+date_str+".xls")
+    fpath=os.path.join(abs_dir,"szse","rzrqjygk"+date_str+".xls")
     
     if not os.path.exists(fpath):
         print("downloading file for",date_str)

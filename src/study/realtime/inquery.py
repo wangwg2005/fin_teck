@@ -66,7 +66,7 @@ def split_time_window(stock_id, datalen=1023):
     res = requests.get(url, params=param).json()
     return res
 
-
+print(get_price("sh600001"))
 # get_time_window('sh601006','2021-09-01')
 # print(datetime.now().timestamp())
 # print(len(split_time_window('sh601006', '2021-09-03')))

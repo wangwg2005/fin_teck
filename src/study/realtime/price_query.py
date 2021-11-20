@@ -64,7 +64,8 @@ def get_history_price(stock_id,day_number=1023,scale=240):
 # rs=search(sse,["2020-02-27","2020-02-24"])
 # print(rs)
 if __name__=="__main__":
-    print(get_price('sh600618'))
+#     print(get_price('sh600618'))
+    print(get_history_price('sh600618'))
 
 # get_time_window('sh601006','2021-09-01')
 # print(datetime.now().timestamp())

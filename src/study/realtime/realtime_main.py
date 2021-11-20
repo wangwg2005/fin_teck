@@ -90,9 +90,7 @@ def prepare_prices(sids):
     print(prices)
     return np.array(prices)
     
-    
-if __name__ == '__main__':
-    
+def analysis():
     model=load_model()['quant_buttom']
     duration=len(model["high"])
     datas=prepare_leverage_data(duration)
@@ -105,6 +103,12 @@ if __name__ == '__main__':
 
     monitor_val=zip((np.array(model["high"])+1)*base_prices,(1+np.array(model["low"]))*base_prices)
     monitor(sids,list(monitor_val))
+    
+if __name__ == '__main__':
+    datas=prepare_leverage_data(1)
+    
+    sids=list(map(lambda a:price_query.convert_sid(a["quant_buttom"][0]),datas))
+
         
         
     

@@ -17,8 +17,8 @@ def explor(sid):
     print(sid)
     model_path=os.path.join("model",sid+"_realtime.pickle")
     
-#     if os.path.exists(model_path):
-#         return rs.load(model_path),-1
+    if os.path.exists(model_path):
+        return rs.load(model_path),-1
         
     bl=os.path.join("data",sid+"_baseline.json")
     
@@ -117,38 +117,52 @@ def hot_startup(sid):
     X=sm.add_constant(X)
     y_pred=model.get_prediction(X).summary_frame()
     
-    
-    add_plot=[mpf.make_addplot(y_pred[["mean","obs_ci_lower","obs_ci_upper"]],color="b")]
-    mpf.plot(df,type="candle",volume=True,style=ds.get_style(),addplot=add_plot,title=sid)    
+    filled={"y1":y_pred["obs_ci_lower"].values,"y2":y_pred["obs_ci_upper"].values,"alpha":0.2}
+    add_plot=[mpf.make_addplot(y_pred["mean"],color="b")]
+    mpf.plot(df,type="candle",volume=True,style=ds.get_style(),addplot=add_plot,fill_between=filled,title=sid)    
 #     plt.close()
         
 def explorer():    
-    base_dir="../../cache/2021-11-16"
+    date_str="2021-11-17"
+    base_dir="../../cache/"+date_str
      
     file1=base_dir+"_incr.csv"
     file2=base_dir+"_ratio.csv"
-     
+    columns=["R_Squared","F_Value","F_P_value","Last Resid"]
+    result=pd.DataFrame()
+    
+    index=[]
     for f in [file1,file2]:
      
         df=pd.read_csv(f,index_col=[0])
         sids = list(map(inquery.convert_sid,df.index))
-        print(sids)
-        list(map(explor,sids))
+        index.extend(sids)
+        models=map(explor,sids)
+        rows=map(lambda m:[m[0].rsquared,m[0].fvalue,m[0].f_pvalue,m[0].resid[-1]] ,models)
+        result=result.append(list(rows),ignore_index=True)
+    
+    print(index)
+    result.index=index
+    result.index.name="sid"
+    result.columns=columns
+    print(result)
+    result=result.sort_values(by=['R_Squared'], ascending=False)
+    result.to_csv("result{0}.csv".format(date_str))
     
 if __name__ =="__main__":
 #     explorer()
     
 #     from study.leverage import leverage_reader as lr
-#     explor("sz002118")
+#     explor("sz002176")
 #     hot_startup("sh600333")
 
 #         
 #     
 #     print(df1)
-#     explor("sh000300")
-#     hot_startup('sh000905')
+#     explor("sz002176")
+    hot_startup('sh000905')
 #     explor("sz300998")
-    explor("sh600115")
+#     explor("sh600115")
     
 #     explor("sz002371")
 #     explor("sz002118")

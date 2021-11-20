@@ -164,15 +164,16 @@ def extract_fast(security_codes,exchange,paths):
         names={"证券代码":"sid","融资余额(元)":"lev"}
     
     has_empty=len(list(filter(lambda path:not os.path.exists(path),paths)))>0
-    
+
     last_days={}
     
     if has_empty:
-    
+        mode="w"
         files=os.listdir(os.path.join(base_path,exchange))
         print("scan all leverage files")
     
     else:
+        mode="a"
         dfs=map(lambda path: pd.read_csv(path), paths)
         last_days=list(map(lambda df: str(df.iat[-1,0]), dfs))
         last_day=min(last_days)
@@ -182,16 +183,19 @@ def extract_fast(security_codes,exchange,paths):
 #         files=filter(lambda day: day>last_day, files)
         
     
-        days=pd.date_range(start=last_day,end=datetime.date.today(),freq=business_day.get_business_day_cn())[1:-1]
-
+        days=pd.date_range(start=last_day,end=datetime.date.today(),freq=business_day.get_business_day_cn())[1:]
+        if datetime.date.today() in days:
+            days=days[:-1]
+        if len(days)==0:
+            return 
         files=map(lambda day:day.strftime(date_format),days)
         
     
         
     sid_cname=cnames[0]
     kv={ code: {"index":[]} for code in security_codes}
-     
- 
+    files=list(files) 
+    print(files)
     for file in files:
         index=file[8:-4]
         if len(index)==8:
@@ -219,6 +223,9 @@ def extract_fast(security_codes,exchange,paths):
 #     dfs=[]
     for i in range(len(security_codes)):
         code=security_codes[i]
+        if "data" not in kv[code]:
+            continue
+        
         data=kv[code]["data"]
         if len(data)==0 :
             print("no data for",code)
@@ -232,7 +239,7 @@ def extract_fast(security_codes,exchange,paths):
         ndf.index.name="日期"
 #         ndf=ndf[:-1]
         s = ndf.to_csv(None,header=has_empty)
-        with open(paths[i],"a",encoding="utf8", newline='') as f:
+        with open(paths[i],mode,encoding="utf8", newline='') as f:
             f.write(s)
         print(code,"is updated to",ndf.index[-1])
 
@@ -340,8 +347,8 @@ if __name__ == '__main__':
 
     # extract_by_security(["510510"], "sse","2020-01-01","2020-12-31",None)
 
-    path=r'C:\Users\Darren\eclipse-workspace\fin_study\src\study\history\000905\510500.csv'
-    extract_fast(["510500"], "sse", [path])
+    path=r'C:\Users\Darren\eclipse-workspace\fin_study\src\study\history\stock\002456\leverage.csv'
+    extract_fast(["002456"], "szse", [path])
 #     print(extract_index_lev("000905","2021-10-27"))
 
 #     summary()
