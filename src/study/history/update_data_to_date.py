@@ -14,11 +14,13 @@ def update_leverage(date_str):
     return lr.downloader.download_leverage_szse(date_str)
     
 def update_leverage_2_date():
-    day=date.today()
+    day=str(date.today())[:10]
     up2date=True
     while up2date:
         days=pd.date_range(end=day,periods=2,freq=business_day.get_business_day_cn("all"))
         day = days[0] if day in days else days[1]
+        print(days)
+        print(day)
         day_str=day.strftime('%Y-%m-%d')
         up2date=update_leverage(day_str)
         print("update leverage date to",day_str)
@@ -59,9 +61,9 @@ def update_index_lev():
 
 def update_index():
     update_leverage_2_date()
-#     update_etf_lev()
-#     update_prices_to_date()
-#     update_index_lev()
+    update_etf_lev()
+    update_prices_to_date()
+    update_index_lev()
 
 
 

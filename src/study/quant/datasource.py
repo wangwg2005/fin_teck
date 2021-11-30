@@ -10,6 +10,7 @@ import matplotlib as mpl# 用于设置曲线参数
 
 def get_style():
     mc = mpf.make_marketcolors(
+
         up='red', 
         down='green', 
         edge='i', 
@@ -17,7 +18,7 @@ def get_style():
         volume='in', 
         inherit=True)
     
-    style = mpf.make_mpf_style(base_mpl_style="ggplot", marketcolors=mc)
+    style = mpf.make_mpf_style(base_mpl_style="ggplot", gridaxis = 'both', gridstyle ='-.', marketcolors=mc)
     return style
 # print(df.head())
 # mpf.plot(df, type="candle",mav=(20) , style=get_style(), figscale=5,volume=True)

@@ -73,7 +73,7 @@ def build_model(args):
     if len(feature)<10:
         print(sid,"has small data,",len(feature))
         return None
-    X=feature[['volume',"lev_buy",'lev_sell']]
+    X=feature[["lev_buy",'lev_sell']]
     X=sm.add_constant(X)
     y=feature["close"]
     
@@ -88,7 +88,8 @@ def build_model(args):
 def train():
     base_dir=r"../../leverage/cache"
     df=pd.read_csv("stock_id.csv",index_col=[0])
-    sid_all=[ sid[:6] for sid in df.index]
+#     sid_all=[ sid[:6] for sid in df.index]
+    sid_all=["002118"]
     print(sid_all)
 #     files=os.listdir(base_dir)
 #     
@@ -158,7 +159,7 @@ def get_price():
     print("total size:",a)
     base_dir=r"../../leverage/cache"
     
-    files=map(lambda sid:(sid,os.path.join(base_dir,sid[:6]+".csv")), df.index)
+    files=map(lambda sid:(sid,os.path.join(base_dir,sid[:6]+".csv")), ["002118.sz"])
 #     files=filter(lambda f: not os.path.exists(f[1]),files)
 #     files=["000066"]
     for sid, file in files:
@@ -166,8 +167,8 @@ def get_price():
         
         print("left files,",a)
         a=a-1
-        if mtime>1635724800:
-            continue
+#         if mtime>1635724800:
+#             continue
         print("downloading ",sid)
         nid=pq.convert_sid(sid)
         print("retriving data for",sid)
@@ -183,7 +184,8 @@ def get_price():
     
 def get_leverage():
     df=pd.read_csv("stock_id.csv",index_col=[0])
-
+    df=df[-1:]
+    print(df)
     
     base_dir="data/leverage"
     sse=df[df.index.str.endswith("SS")]
@@ -207,10 +209,41 @@ def process_dirty():
             df=df.set_index('day')
             df.to_csv(os.path.join(base,sid))
 
+def get_short_scale_price():
+    df=pd.read_csv("stock_id.csv",index_col=[0])
+#     df=df['000554.SZ':]
+    a=len(df)
+    print("total size:",a)
+    base_dir=os.path.join("data","price")
+    
+    files=map(lambda sid:(sid,os.path.join(base_dir,sid[:6]+".csv")), df.index)
+#     files=filter(lambda f: not os.path.exists(f[1]),files)
+#     files=["000066"]
+    for sid, file in files:
+        mtime = 0 if not os.path.exists(file) else os.path.getmtime(file)
+        
+        print("left files,",a)
+        a=a-1
+        if mtime>1635724800:
+            continue
+        print("downloading ",sid)
+        nid=pq.convert_sid(sid)
+        print("retriving data for",sid)
+#         time.sleep(30)
+        result=pq.get_history_price(nid,scale=5)
+#         print(result)
+        ndf=pd.DataFrame(result)
+        ndf=ndf.set_index("day") 
+        ndf.to_csv(file)
+        
+    
+    print("data download finished")
+
 if __name__=="__main__":
+    get_short_scale_price()
 #     get_price()
 #     get_leverage()
 #     get_id_list()
 #     process_dirty()
-    train()
+#     train()
 #     batch_extract_data()

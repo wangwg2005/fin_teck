@@ -184,7 +184,7 @@ def extract_fast(security_codes,exchange,paths):
         
     
         days=pd.date_range(start=last_day,end=datetime.date.today(),freq=business_day.get_business_day_cn())[1:]
-        if datetime.date.today() in days:
+        if str(datetime.date.today())[:10] in days:
             days=days[:-1]
         if len(days)==0:
             return 
