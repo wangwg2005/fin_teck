@@ -15,7 +15,6 @@ def model(features,names,prefix):
     
     plt.figure(figsize=(11,8))
     
-    
     X=df[names]
     X=sm.add_constant(X)
     y=df["close"]
@@ -62,6 +61,7 @@ def model(features,names,prefix):
     plt.close()
 
     plt.figure(figsize=(11, 8))
+    plt.grid()
     ax4=plt.subplot(211)
     test_df["close"].plot(ax=ax4,label="observation")
     pred_y.plot(ax=ax4,label="prediction")
@@ -101,11 +101,11 @@ def get_features(name):
     
     extra_dfs=map(lambda etfile:pd.read_csv(os.path.join(base_dir,etfile),header=0,parse_dates=[0],index_col=0).sort_index()[start:][["融资余额(元)","融券余量"]],etfs)
     extra_dfs=list(extra_dfs)
-    for ext in extra_dfs:
-        print(ext.dtypes)
-#         print(ext)
-        print(ext.head())
-        print(ext.index[:10])
+#     for ext in extra_dfs:
+#         print(ext.dtypes)
+# #         print(ext)
+#         print(ext.head())
+#         print(ext.index[:10])
         
     extra=reduce(lambda a,b:a+b, extra_dfs)/100000000
     features=price_df[["收盘价"]]
