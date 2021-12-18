@@ -138,13 +138,13 @@ def get_bussness_days_recent(day_num):
     
 
 def dump(year="2020"):
-    fname=year+"_extreme_value.json"
+    fname=year+"_extreme_value_check.json"
     if os.path.exists(fname):
         return
     else:
         print("dummping price data")
     bds=bd.get_business_day_cn(year)
-    days=pd.date_range(start=year+"-01-01",end=year+"-09-18",freq=bds)
+    days=pd.date_range(start=year+"-01-01",end=year+"-01-10",freq=bds)
 #     days=get_bussness_days_recent(1023)
     print("trade days back from today",len(days))
     kv={}
@@ -226,10 +226,11 @@ def retrive_price_data(sid,start_date,duration):
 #             return
     if term[0].year==term[-1].year:
         
-        fpath=os.path.join("cache",sid[:6]+"_"+year+".csv")
+        fpath=os.path.join("cache",sid[:6]+".csv")
         
         if os.path.exists(fpath):
-            df=pd.read_csv(fpath,index_col="Date",parse_dates=True)
+            print(fpath)
+            df=pd.read_csv(fpath,index_col="day",parse_dates=True)
         else:
             print("downloading",sid,"for date",start_date)
             df=yf.download(sid,start=year+"-01-01",end=next_year+"-01-01")
@@ -243,7 +244,7 @@ def retrive_price_data(sid,start_date,duration):
         start_d=term[0]
         if start_d not in df.index:
             return None
-        cprice=df.at[start_d,"Close"]
+        cprice=df.at[start_d,"close"]
         df_s=df[term[0]:term[-1]]/cprice
     else:
         
@@ -341,6 +342,59 @@ def get_price_from_sina(items,duration):
         day_number-=1
             
             
+def classification_v2(mname):
+    year="2020"
+    duration=60
+#     model1=None
+    model_path="model1_{0}_{1}.json".format(60,year)
+    with open(model_path,"r",encoding="utf8") as f:
+        model1=json.load(f)
+        
+    with open(year+"_extreme_value.json","r") as f:
+        top_sec=json.load(f)
+    
+    col_name='quant_buttom'
+    dfs=map(lambda item:retrive_price_data(item[1][col_name][0],item[0],duration),top_sec.items())
+  
+
+#     
+    dfs=[ df.reset_index() for df in dfs if df is not None and len(df)==duration]
+    cols=['quant_buttom','quant_top','ratio_top','ratio_buttom']
+    
+    for col_name in cols:
+        for pos in range(10):
+        
+            high_map=map(lambda df:(df.at[pos,"High"],df.at[duration-1,"High"]),dfs)
+        #     above_high=list(filter(lambda h:h[0]-1>model1["model"][col_name]["high"][pos]["mean"],high_map))
+            a1=list(zip(*high_map))
+            print(list(a1))
+            ax=plt.subplot(211)
+            sns.regplot(x=np.array(a1[0]), y=np.array(a1[1]),ax=ax)
+#             ax.scatter(a1[0],a1[1])
+#             x=np.linspace(0.9,1.1,100)
+#             ax.plot(x,x,color='red')
+            ax.set_title(col_name+"_high_"+str(pos)+".png")
+            
+            
+            
+            low_map=list(map(lambda df:(df.at[pos,"Low"],df.at[duration-1,"Low"]),dfs))
+            print("low map",low_map)
+            print("low pos",model1["model"][col_name]["low"][pos]["mean"])
+            print(model1)
+        
+        #     below_high=list(filter(lambda h:h[0]-1<=model1["model"][col_name]["low"][pos]["mean"],low_map))
+            
+        #     
+            
+            a2=list(zip(*low_map))
+            print(a2)
+            ax=plt.subplot(212)
+            sns.regplot(x=np.array(a2[0]), y=np.array(a2[1]),robust=True,ax=ax)
+            ax.set_title(col_name+"_low_"+str(pos)+".png")
+            
+#             plt.savefig("img//explore_"+col_name+"_"+str(pos)+"_robust.png")
+            plt.close()
+            
 def classification(mname):
     year="2020"
     duration=60
@@ -401,7 +455,7 @@ def classification(mname):
 def top_profit_summary(year="2020",force=False):
     duration=30
     model1={}
-    model_path="model1_{0}_{1}.json".format(duration,year)
+    model_path="model1_{0}_{1}_up.json".format(duration,year)
     print(model_path)
     if not force and os.path.exists(model_path):
         with open(model_path,"r",encoding="utf8") as f:
@@ -425,18 +479,27 @@ def top_profit_summary(year="2020",force=False):
             col_name=cols[ind]
             
             fname=col_name+".csv"
-            if os.path.exists(fname):
-                df_all=pd.read_csv(fname,index_col=[0])
-                dfs=[df_all.loc[k] for k in top_sec.keys() if k in df_all.index]
-            else:
-            
-                dfs=map(lambda item:retrive_price_data(item[1][col_name][0],item[0],duration),top_sec.items())
-                df_all=pd.concat(dfs,keys=top_sec.keys())
-                df_all.to_csv(fname)
+#             if os.path.exists(fname):
+#                 df_all=pd.read_csv(fname,index_col=[0])
+#                 dfs=[df_all.loc[k] for k in top_sec.keys() if k in df_all.index]
+#             else:
+            ind=1
+            print("size before filter:",len(top_sec.items()))
+            a_list=list(filter(lambda item:item[1][col_name][1]!="600519.SS",top_sec.items()))
+            print("size after filter:",len(a_list))
+            dfs=map(lambda item:retrive_price_data(item[1][col_name][1],item[0],duration),a_list)
+            df_all=pd.concat(dfs,keys=top_sec.keys())
+            df_all.to_csv(fname)
               
   
         #     
             dfs=[ df.reset_index() for df in dfs if df is not None and len(df)==duration]
+            
+            
+            #up filter
+            print(dfs[0])
+            dfs=list(filter(lambda df:df.at[1,"Close"]>=df.at[0,"Close"], dfs))
+            print(len(dfs),"sec go up")
           
             highs=[]
             lows=[]
@@ -496,9 +559,9 @@ def top_profit_summary(year="2020",force=False):
 if __name__=="__main__":
 #     pass
 #     today_str="2021-11-12"
-    process()
+#     process()
 #     pass
-#     dump("all")
-#     top_profit_summary(year="2019_now",force=True)
+    dump("2020")
+#     top_profit_summary(year="2020",force=True)
 #     classification("")
 #     get_bussness_days()

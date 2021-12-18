@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 import datetime
-from study.leverage import leverage_reader as lreader, downloader
+from study.leverage import  downloader
 import pandas as pd
 import business_day
 import time
 import os
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 ttoday=datetime.date.today()

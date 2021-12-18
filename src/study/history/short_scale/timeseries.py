@@ -6,7 +6,6 @@ from study.history.short_scale import dump
 import mplfinance as mpf
 from study.quant import datasource as ds
 import os
-from matplotlib.pyplot import fill_between
 
 
 
@@ -35,8 +34,11 @@ def ts_model(df,train_num=5*48,pred_num=1):
     return result
 
 if __name__ == "__main__":
+#     dataset=dump.dump_data("sh601669")
     
-    dataset=dump.dump_data("sh000905")
+#     dataset=dump.dump_data("sh000905")
+    dataset=pd.read_json("data\\sh000905_baseline.json")
+    dataset.index=pd.to_datetime(dataset.pop("day"))
     print(dataset[-10:])
     
     

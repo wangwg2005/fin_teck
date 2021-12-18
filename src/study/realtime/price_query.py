@@ -50,7 +50,7 @@ def get_time_window(stock_id,date):
 def convert_sid(sid):
     return (sid[-2:]+sid[:6]).replace("SS",'sh')
     
-def get_history_price(stock_id,day_number=1023,scale=240):
+def get_history_price(stock_id,day_number=1024,scale=240):
     template="https://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData?symbol={0}&scale={2}&ma=no&datalen={1}"
     url=template.format(stock_id,day_number,scale)
     print(url)
@@ -65,7 +65,7 @@ def get_history_price(stock_id,day_number=1023,scale=240):
 # print(rs)
 if __name__=="__main__":
 #     print(get_price('sh600618'))
-    print(get_history_price('sh600618'))
+    print(get_history_price('sh000905'))
 
 # get_time_window('sh601006','2021-09-01')
 # print(datetime.now().timestamp())

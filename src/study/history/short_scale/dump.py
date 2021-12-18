@@ -15,6 +15,7 @@ def dump_data(sid,scale=1023):
     
     fname=os.path.join("data",(sid+"_"+str(scale)+"_"+str(df.index[-1])+".json").replace(" ", "_").replace(":", "_"))
     
+    
     with open(fname, "w") as f:
         json.dump(data, f)
         

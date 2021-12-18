@@ -9,6 +9,7 @@ from functools import reduce
 
 def model(features,names,prefix):
     split_date="2020-12-31"
+    print(features[-10:])
     features=features.dropna()
     print('last trade day',features.index[-1])
     df,test_df=features[:split_date],features[split_date:]

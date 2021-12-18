@@ -67,20 +67,10 @@ def ip_shift(ip):
 if __name__ == "__name__":
     
     for i in range(10):
-        for ip in list(ip_db.values())[2:3]:
-            time.sleep(random.randint(3,10))
-           
-            print("old ip",ip)
-            
-            nip = ip_shift(ip)
-            while nip == ip:
-                nip = ip_shift(ip)
-            
-            ip = nip
+        for ip in ips:
+
             url=url1.format(ip)
             a=requests.get(url,headers=browser_headers1).json()
-            
-            print("nip:",nip)
             
             if a["status"] != 0:
                 print("bad result for ip:",ip)
@@ -91,9 +81,7 @@ if __name__ == "__name__":
             
                 data={"code":a["code"],"data":[{"ele_id":"31","poll_ip":ip,"poll_case":"","poll_desc":""}]}
                 data["data"].append({"ele_id":str(random_cases[random.randint(0,len(random_cases)-1)]),"poll_ip":ip,"poll_case":"","poll_desc":""})
-                r=""
-    #             print("data:",data)
-    #             r = requests.post(url2,data=json.dumps(data).replace(" ",""),headers=browser_headers2)
+                r = requests.post(url2,data=json.dumps(data).replace(" ",""),headers=browser_headers2)
                 print("r",r.text)
                 
 print(ip_shift("220.196.60.35"))

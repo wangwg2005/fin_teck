@@ -60,10 +60,10 @@ def update_index_lev():
 
 
 def update_index():
-    update_leverage_2_date()
+#     update_leverage_2_date()
     update_etf_lev()
-    update_prices_to_date()
-    update_index_lev()
+#     update_prices_to_date()
+#     update_index_lev()
 
 
 
