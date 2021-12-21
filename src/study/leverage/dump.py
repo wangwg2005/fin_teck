@@ -318,8 +318,8 @@ def extract_index_lev(ind_code,date_val):
     prefix="rzrqjygk"
     df=pd.read_excel(os.path.join(base_path,"index_composite",ind_code+"closeweight.xls"),dtype={"成分券代码Constituent Code":str})
     # print(df["成分券代码Constituent Code"])
-    szse = df[df['交易所Exchange'] == "深圳证券交易所"]
-    sse = df[df['交易所Exchange'] == "上海证券交易所"]
+    szse = df[df['交易所Exchange'] == "深圳证券交易所_股票"]
+    sse = df[df['交易所Exchange'] == "上海证券交易所_股票"]
     
     fname = os.path.join(base_path,"sse",prefix+date_str.replace("-", "")+".xls")
     sse_df= pd.read_excel(fname,sheet_name=-1,dtype={'标的证券代码':str})
