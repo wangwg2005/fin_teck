@@ -5,10 +5,53 @@
    </head>
    <body style="height: 100%; margin: 0">
        <div id="container" style="height: 100%"></div>
-       <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts@4/dist/echarts.min.js"></script>
-       <script src="http://ifzq.gtimg.cn/appstock/app/kline/mkline?param=sh000905,m5,,800&_var=m5_000905"></script>
+       <script type="text/javascript" src="echarts.min.js"></script>
+  <!--     <script src="http://ifzq.gtimg.cn/appstock/app/kline/mkline?param=sh000905,m5,,800&_var=m5_000905"></script> -->
        <script src="ml.js"></script>
        <script type="text/javascript">
+       
+stock={"id":"sh000905","scale":"m5"};       
+function loadJS( callback ){
+	url='http://ifzq.gtimg.cn/appstock/app/kline/mkline?param=sh000905,m5,,800&_var=sdata';
+	if (stock['id']!='sh000905' || stock['scale'] !='m5'){
+		url=url.replace('sh000905',stock['id']);
+		url=url.replace('m5',stock['scale']);
+	}
+	
+	
+			
+			
+    var script = document.createElement('script');
+	fn = callback || function(){};
+    script.type = 'text/javascript';
+    script.onload = fn;
+    
+    console.log("loading js from "+url);
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+
+}
+
+
+       
+function get_data(){
+	
+       let query = window.location.search.substring(1);
+       let vars = query.split("&");
+       console.log(vars);
+       for (let i=0;i<vars.length;i++) {
+               let pair = vars[i].split("=");
+               
+               stock[pair[0]]=pair[1];
+       }
+       console.log(stock);
+}
+
+get_data();
+loadJS(draw);
+
+
 var dom = document.getElementById("container");
 var myChart = echarts.init(dom);
 var app = {};
@@ -17,22 +60,225 @@ var upColor = '#ec0000';
 var upBorderColor = '#8A0000';
 var downColor = '#00da3c';
 var downBorderColor = '#008F28';
+var m5;
+var data0;
 
-
+function draw(){
+	m5 = sdata["data"][stock["id"]][stock["scale"]]
+	var mdata = Array.from(m5 ,a => [a[0],a[1],a[2],a[4],a[3]])
+	data0 = splitData(mdata);
+	
+	
+	
+	calculateValue(5);
+	calculateValue(10);
 // 数据意义：开盘(open)，收盘(close)，最低(lowest)，最高(highest)
-var m5 = m5_000905["data"]["sh000905"]["m5"]
+	
+	
 
-var mdata = Array.from(m5 ,a => [a[0],a[1],a[2],a[4],a[3]])
-var data0 = splitData(mdata);
+	
+
+	option = {
+	    title: {
+	        text: stock['id'],
+	        left: 0
+	    },
+	    tooltip: {
+	        trigger: 'axis',
+	        axisPointer: {
+	            type: 'cross'
+	        }
+	    },
+	    legend: {
+	        data: ['日K', 'MA5_upper', 'MA5_lower', 'MA10_upper', 'MA10_lower']
+	    },
+	    grid: {
+	        left: '10%',
+	        right: '10%',
+	        bottom: '15%'
+	    },
+	    xAxis: {
+	        type: 'category',
+	        data: data0.categoryData,
+	        scale: true,
+	        boundaryGap: false,
+	        axisLine: {onZero: false},
+	        splitLine: {show: false},
+	        splitNumber: 20,
+	        min: 'dataMin',
+	        max: 'dataMax'
+	    },
+	    yAxis: {
+	        scale: true,
+	        splitArea: {
+	            show: true
+	        }
+	    },
+	    dataZoom: [
+	        {
+	            type: 'inside',
+	            start: 50,
+	            end: 100
+	        },
+	        {
+	            show: true,
+	            type: 'slider',
+	            top: '90%',
+	            start: 50,
+	            end: 100
+	        }
+	    ],
+	    series: [
+	        {
+	            name: '日K',
+	            type: 'candlestick',
+	            data: data0.values,
+	            itemStyle: {
+	                color: upColor,
+	                color0: downColor,
+	                borderColor: upBorderColor,
+	                borderColor0: downBorderColor
+	            },
+	            markPoint: {
+	                label: {
+	                    normal: {
+	                        formatter: function (param) {
+	                            return param != null ? Math.round(param.value) : '';
+	                        }
+	                    }
+	                },
+	                data: [
+	                   
+	                    {
+	                        name: 'highest value',
+	                        type: 'max',
+	                        valueDim: 'highest'
+	                    },
+	                    {
+	                        name: 'lowest value',
+	                        type: 'min',
+	                        valueDim: 'lowest'
+	                    },
+	                    {
+	                        name: 'average value on close',
+	                        type: 'average',
+	                        valueDim: 'close'
+	                    }
+	                ],
+	                tooltip: {
+	                    formatter: function (param) {
+	                        return param.name + '<br>' + (param.data.coord || '');
+	                    }
+	                }
+	            },
+	            markLine: {
+	                symbol: ['none', 'none'],
+	                data: [
+	                    [
+	                        {
+	                            name: 'from lowest to highest',
+	                            type: 'min',
+	                            valueDim: 'lowest',
+	                            symbol: 'circle',
+	                            symbolSize: 10,
+	                            label: {
+	                                show: false
+	                            },
+	                            emphasis: {
+	                                label: {
+	                                    show: false
+	                                }
+	                            }
+	                        },
+	                        {
+	                            type: 'max',
+	                            valueDim: 'highest',
+	                            symbol: 'circle',
+	                            symbolSize: 10,
+	                            label: {
+	                                show: false
+	                            },
+	                            emphasis: {
+	                                label: {
+	                                    show: false
+	                                }
+	                            }
+	                        }
+	                    ],
+	                    {
+	                        name: 'min line on close',
+	                        type: 'min',
+	                        valueDim: 'close'
+	                    },
+	                    {
+	                        name: 'max line on close',
+	                        type: 'max',
+	                        valueDim: 'close'
+	                    }
+	                ]
+	            }
+	        },
+	        {
+	            name: 'MA5_upper',
+	            type: 'line',
+	            data: pred[5]['upper'],
+	            smooth: true,
+	            lineStyle: {
+	                opacity: 1
+	            }
+	        },
+	        {
+	            name: 'MA5_lower',
+	            type: 'line',
+	            data: pred[5]["lower"],
+	            smooth: true,
+	            lineStyle: {
+	                opacity: 1
+	            }
+	        },
+	        {
+	            name: 'MA10_upper',
+	            type: 'line',
+	            data: pred[10]["upper"],
+	            smooth: true,
+	            lineStyle: {
+	                opacity: 1
+	            }
+	        },
+	        {
+	            name: 'MA10_lower',
+	            type: 'line',
+	            data: pred[10]["lower"],
+	            smooth: true,
+	            lineStyle: {
+	                opacity: 1
+	            }
+	        }
+
+	    ]
+	};
+	
+	
+	
+	
+	
+	if (option && typeof option === "object") {
+	    myChart.setOption(option, true);
+	}
+}
 
 
 function compute_x(a){
 	if (a[2]-a[1]>0){
-		return +a[5]
+		return +a[5];
+//	}else if(a[2] == a[1]){
+//		return 0;
 	}else{
 		return -a[5]
 	}
 }
+
+let pred={}
 
 function splitData(rawData) {
     var categoryData = [];
@@ -58,20 +304,47 @@ function calculateValue(day){
 		
 	let slid_window=day*48;
 	
-	result=new Array(day*48);
+	let result=new Array(day*48);
 	result.fill("-");
+	
+	let upper=new Array(day*48);
+	upper.fill("-");
+	
+	let lower=new Array(day*48);
+	lower.fill("-");
+	
 	
 	time1 = new Date().getTime();
 	for(let i =slid_window; i< 800 ;i++){
 		let lr = linearRegression(y.slice(i-slid_window,i), x.slice(i-slid_window,i));
-		v = lr['slope'] * x[i] + lr["intercept"]
-		result.push(v)
+		let v = lr['slope'] * x[i] + lr["intercept"];
+		//adjust for 000905  7256.0598
+
+		
+		if (stock["id"]=='sh000905'){
+			v=v-1.9
+			result.push(v);
+			upper.push(v + 2*lr["se"] -1);
+			
+			//7170.4385
+			lower.push(v - 2*lr["se"] - 1);
+		}else{
+			result.push(v);
+			upper.push(v + 2*lr["se"]);
+			
+			//7170.4385
+			lower.push(v - 2*lr["se"] );
+		}
 	}
 	time2 = new Date().getTime();
 	time_diff= time2-time1;
 	console.log("caculating "+day+" day value costs "+time_diff+"ms");
+	
+	pred[day] = {"mean":result,"upper":upper,"lower":lower};
 	return result;
 }
+
+
 
 function calculateMA(dayCount) {
     var result = [];
@@ -91,179 +364,6 @@ function calculateMA(dayCount) {
 
 
 
-option = {
-    title: {
-        text: '上证指数',
-        left: 0
-    },
-    tooltip: {
-        trigger: 'axis',
-        axisPointer: {
-            type: 'cross'
-        }
-    },
-    legend: {
-        data: ['日K', 'MA5','MA10']
-    },
-    grid: {
-        left: '10%',
-        right: '10%',
-        bottom: '15%'
-    },
-    xAxis: {
-        type: 'category',
-        data: data0.categoryData,
-        scale: true,
-        boundaryGap: false,
-        axisLine: {onZero: false},
-        splitLine: {show: false},
-        splitNumber: 20,
-        min: 'dataMin',
-        max: 'dataMax'
-    },
-    yAxis: {
-        scale: true,
-        splitArea: {
-            show: true
-        }
-    },
-    dataZoom: [
-        {
-            type: 'inside',
-            start: 50,
-            end: 100
-        },
-        {
-            show: true,
-            type: 'slider',
-            top: '90%',
-            start: 50,
-            end: 100
-        }
-    ],
-    series: [
-        {
-            name: '日K',
-            type: 'candlestick',
-            data: data0.values,
-            itemStyle: {
-                color: upColor,
-                color0: downColor,
-                borderColor: upBorderColor,
-                borderColor0: downBorderColor
-            },
-            markPoint: {
-                label: {
-                    normal: {
-                        formatter: function (param) {
-                            return param != null ? Math.round(param.value) : '';
-                        }
-                    }
-                },
-                data: [
-                    {
-                        name: 'XX标点',
-                        coord: ['2013/5/31', 2300],
-                        value: 2300,
-                        itemStyle: {
-                            color: 'rgb(41,60,85)'
-                        }
-                    },
-                    {
-                        name: 'highest value',
-                        type: 'max',
-                        valueDim: 'highest'
-                    },
-                    {
-                        name: 'lowest value',
-                        type: 'min',
-                        valueDim: 'lowest'
-                    },
-                    {
-                        name: 'average value on close',
-                        type: 'average',
-                        valueDim: 'close'
-                    }
-                ],
-                tooltip: {
-                    formatter: function (param) {
-                        return param.name + '<br>' + (param.data.coord || '');
-                    }
-                }
-            },
-            markLine: {
-                symbol: ['none', 'none'],
-                data: [
-                    [
-                        {
-                            name: 'from lowest to highest',
-                            type: 'min',
-                            valueDim: 'lowest',
-                            symbol: 'circle',
-                            symbolSize: 10,
-                            label: {
-                                show: false
-                            },
-                            emphasis: {
-                                label: {
-                                    show: false
-                                }
-                            }
-                        },
-                        {
-                            type: 'max',
-                            valueDim: 'highest',
-                            symbol: 'circle',
-                            symbolSize: 10,
-                            label: {
-                                show: false
-                            },
-                            emphasis: {
-                                label: {
-                                    show: false
-                                }
-                            }
-                        }
-                    ],
-                    {
-                        name: 'min line on close',
-                        type: 'min',
-                        valueDim: 'close'
-                    },
-                    {
-                        name: 'max line on close',
-                        type: 'max',
-                        valueDim: 'close'
-                    }
-                ]
-            }
-        },
-        {
-            name: 'MA5',
-            type: 'line',
-            data: calculateValue(5),
-            smooth: true,
-            lineStyle: {
-                opacity: 1
-            }
-        },
-        {
-            name: 'MA10',
-            type: 'line',
-            data: calculateValue(10),
-            smooth: true,
-            lineStyle: {
-                opacity: 1
-            }
-        }
-
-    ]
-};
-
-;
-if (option && typeof option === "object") {
-    myChart.setOption(option, true);
-}
        </script>
    </body>
 </html>

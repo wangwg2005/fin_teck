@@ -1,11 +1,11 @@
 function linearRegression(y,x){ 
-     var lr = {}; 
-     var n = y.length; 
-     var sum_x = 0; 
-     var sum_y = 0; 
-     var sum_xy = 0; 
-     var sum_xx = 0; 
-     var sum_yy = 0; 
+     let lr = {}; 
+     let n = y.length; 
+     let sum_x = 0; 
+     let sum_y = 0; 
+     let sum_xy = 0; 
+     let sum_xx = 0; 
+     let sum_yy = 0; 
 
      for (var i = 0; i < n; i++) { 
 
@@ -18,6 +18,18 @@ function linearRegression(y,x){
 
      lr['slope'] = (n * sum_xy - sum_x * sum_y)/(n*sum_xx - sum_x * sum_x); 
      lr['intercept'] = (sum_y - lr.slope * sum_x)/n; 
+     
+     let y_pred=Array.from(x, x=> x*lr['slope']+lr['intercept'])
+     
+     let mse=0
+     for( let i =0 ;i< n ;i++ ){
+    	 mse += Math.pow(y[i]-y_pred[i],2)
+    	 
+     }
+     
+     lr['se']= Math.pow(mse/n , 0.5)
+     
+     
      lr['r2'] = Math.pow((n*sum_xy - sum_x*sum_y)/Math.sqrt((n*sum_xx-sum_x*sum_x)*(n*sum_yy-sum_y*sum_y)),2); 
 
      return lr; 

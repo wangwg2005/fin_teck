@@ -37,29 +37,35 @@ def ts_model(df,train_num=5*48,pred_num=1):
     return result
 
 if __name__ == "__main__":
-#     dataset=dump.dump_data("sh601669")
+#     dataset=dump.dump_data("sz002118")
     
     dataset=dump.dump_data("sh000905")
 #     dataset=dump
 #     dataset=pd.read_json("data\\sh000905_baseline.json")
+#     dataset=pd.read_json("data\\sz002118_baseline.json")
 #     dataset.index=pd.to_datetime(dataset.pop("day"))
 #     print('dataset')
-#     print(dataset)
+    print(dataset[-5:])
     
     
     show_num=5*48
     for train_len in [5,10,15]:
-        y_pred = ts_model(dataset,train_num=train_len*48)[-show_num:]
+        y_pred = ts_model(dataset,train_num=train_len*48)
         
         filled={"y1":y_pred["obs_ci_lower"].values,"y2":y_pred["obs_ci_upper"].values,"alpha":0.2}
 #         add_plot.append(mpf.make_addplot(y_pred["mean"]))
         dataset[str(train_len)]=y_pred["mean"]
         print("loop for train day = ", train_len)
         add_plot=[mpf.make_addplot(y_pred["mean"])]
-        print(y_pred["mean"])
-        mpf.plot(dataset[-show_num:],type="candle",volume=True,style=ds.get_style(),addplot=add_plot,title="sh000905",fill_between=filled,savefig=os.path.join("explore","sh000905_{0}_timeseries.png".format(train_len)))
+        pd.set_option("display.max_columns",20)
+#         y_pred["b1"]=(y_pred["mean_ci_lower"]-y_pred["mean"])/y_pred["mean_se"]
+#         y_pred["b2"]=(y_pred["mean_ci_upper"]-y_pred["mean"])/y_pred["mean_se"]
+#         y_pred["b3"]=(y_pred["obs_ci_lower"]-y_pred["mean"])/y_pred["mean_se"]
+#         y_pred["b4"]=(y_pred["obs_ci_lower"]-y_pred["mean"])/y_pred["mean_se"]
+        print(y_pred[-5:])
+        mpf.plot(dataset[train_len*48:],type="candle",volume=True,style=ds.get_style(),addplot=add_plot,title="sh000905",fill_between=filled,savefig=os.path.join("explore","sh000905_{0}_timeseries.png".format(train_len)))
         
-    dataset = dataset[-show_num:]
+#     dataset = dataset[-show_num:]
 
     add_plot=[mpf.make_addplot(dataset["5"]),mpf.make_addplot(dataset["10"]),mpf.make_addplot(dataset["15"])]
 #     add_plot=[mpf.make_addplot(fitted,color="b"),mpf.make_addplot(model.resid,panel=1)]
