@@ -559,9 +559,9 @@ def top_profit_summary(year="2020",force=False):
 if __name__=="__main__":
 #     pass
 #     today_str="2021-11-12"
-#     process()
+    process()
 #     pass
-    dump("2020")
+#     dump("2020")
 #     top_profit_summary(year="2020",force=True)
 #     classification("")
 #     get_bussness_days()

@@ -22,10 +22,12 @@ pre2_day=tutil.get_prevous_trade_date(pre_day)
 
 
 
-def get_price(sid):
+def get_price(sid,fname=None):
     print(sid)
-
-    fname=os.path.join("cache",sid[:6]+".csv")
+    
+    if fname is None:
+        fname=os.path.join("cache",sid[:6]+".csv")
+        
     sid = price_query.convert_sid(sid)
     
     
@@ -40,18 +42,19 @@ def get_price(sid):
         df = pd.read_csv(fname,index_col="day")
         last_day = df.index[-1]
         days = pd.date_range(start=last_day, end=ttoday,freq=bd.get_business_day_cn("all"))
+        
+        print(days)
  
         day_num = len(days)
         print("day number",day_num)
         if day_num>2:
             result = price_query.get_history_price(sid)
+            print(result[-2:])
             df = pd.DataFrame(data=result)
             df = df.set_index("day")
             diff = df[str(days[1])[:10]:]
             
             new_prices = diff.to_csv(header=False)
-#             print( new_prices)
-
             with open(fname,'a', newline='',encoding="utf8") as fo:
                 fo.writelines(new_prices)
         
@@ -192,7 +195,7 @@ def update_bottom_secs():
     plt.show()
 
         
-update_bottom_secs()
-# get_price("000905.sh")
+# update_bottom_secs()
+# get_price("000723.sz")
 # print(bottom_sec_szse())
 # get_price("000002.sz")

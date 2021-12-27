@@ -5,7 +5,8 @@
    </head>
    <body style="height: 100%; margin: 0">
        <div id="container" style="height: 100%"></div>
-       <script type="text/javascript" src="echarts.min.js"></script>
+ <!--      <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts@4/dist/echarts.min.js"></script>  -->
+        <script type="text/javascript" src="echarts.min.js"></script> 
   <!--     <script src="http://ifzq.gtimg.cn/appstock/app/kline/mkline?param=sh000905,m5,,800&_var=m5_000905"></script> -->
        <script src="ml.js"></script>
        <script type="text/javascript">
@@ -39,10 +40,8 @@ function get_data(){
 	
        let query = window.location.search.substring(1);
        let vars = query.split("&");
-       console.log(vars);
        for (let i=0;i<vars.length;i++) {
                let pair = vars[i].split("=");
-               
                stock[pair[0]]=pair[1];
        }
        console.log(stock);
@@ -64,8 +63,10 @@ var m5;
 var data0;
 
 function draw(){
-	m5 = sdata["data"][stock["id"]][stock["scale"]]
-	var mdata = Array.from(m5 ,a => [a[0],a[1],a[2],a[4],a[3]])
+	m5 = sdata["data"][stock["id"]][stock["scale"]];
+	let sname = sdata["data"][stock["id"]]["qt"][stock["id"]][1];
+
+	var mdata = Array.from(m5 ,a => [a[0],a[1],a[2],a[4],a[3]]);
 	data0 = splitData(mdata);
 	
 	
@@ -80,7 +81,7 @@ function draw(){
 
 	option = {
 	    title: {
-	        text: stock['id'],
+	        text: sname,
 	        left: 0
 	    },
 	    tooltip: {

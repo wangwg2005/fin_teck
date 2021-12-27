@@ -35,4 +35,4 @@ def dump_data(sid,scale=1023):
     
 if __name__=="__main__":
 #     dump_data("sh000905")
-    print(dump_data("sz000967"))
+    print(dump_data("sz000723"))

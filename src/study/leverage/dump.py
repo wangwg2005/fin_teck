@@ -346,8 +346,8 @@ if __name__ == '__main__':
 
     # extract_by_security(["510510"], "sse","2020-01-01","2020-12-31",None)
 
-    path=r'C:\Users\Darren\eclipse-workspace\fin_study\src\study\history\stock\002456\leverage.csv'
-    extract_fast(["002456"], "szse", [path])
+    path=r'C:\Users\Darren\eclipse-workspace\fin_study\src\study\history\stock\000723\leverage.csv'
+    extract_fast(["000723"], "szse", [path])
 #     print(extract_index_lev("000905","2021-10-27"))
 
 #     summary()
