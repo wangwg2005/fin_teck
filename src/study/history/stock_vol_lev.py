@@ -45,6 +45,7 @@ def get_f(files):
     sli=slice("2019-12-31","2021-12-31")
     print("stock id:",files[0][6:12])
     price=pd.read_csv(files[0],index_col=[0],parse_dates=True)
+    print(price[-3:])
     lev_df=pd.read_csv(files[1],index_col=[0],parse_dates=True)
     features=price
     features["lev_buy"]=lev_df["融资余额(元)"]
@@ -69,10 +70,11 @@ def build_model(args):
     
     show_day=0
     
-    print(model.fittedvalues[-5:])
+#     print(model.fittedvalues[-5:])
     
     add_plot=[mpf.make_addplot(model.fittedvalues[-show_day:],color="b"),mpf.make_addplot(model.resid[-show_day:],panel=1)]
-    mpf.plot(feature[-show_day:],type="candle",volume=True,style=ds.get_style(),addplot=add_plot,title=sid,savefig=)
+    mpf.plot(feature[-show_day:],type="candle",volume=True,style=ds.get_style(),addplot=add_plot,title=sid,savefig=os.path.join("stock_img",sid+"n.png"))
+    print("printing "+sid+" picture")
     return model
     
 
@@ -83,14 +85,14 @@ def train(sids):
 #     files=list(files)
 #     print(files)
     features=map(get_f,files)
-    features=filter(lambda f:len(f)>200,features)
+#     features=filter(lambda f:len(f)>200,features)
     models=map(build_model,list(zip(sids,features)))
     
     columns=["R_Squared","F_Value","F_P_value","Last Resid","Last Fitted Value","percent"]
     rows=map(lambda m:[m.rsquared,m.fvalue,m.f_pvalue,m.resid[-1],m.fittedvalues[-1],m.resid[-1]/m.fittedvalues[-1]] ,models)
     result=pd.DataFrame(list(rows),index=sids,columns=columns)
     result.index.name="sid"
-    result.to_csv(os.path.join("stock_img","result.csv"))
+    result.to_csv(os.path.join("stock_img","result_sz1.csv"))
     
 
     
@@ -102,22 +104,24 @@ def train(sids):
 
 if __name__=="__main__":
     
-    df=pd.read_excel("../leverage/sse/rzrqjygk20211224.xls",sheet_name=-1,index_col=[0]);
-
-    sids=df.index
-    sids= filter(lambda id:id >600000 and id<600775, sids)
-    sids = list(map(lambda id:str(id),sids))
-#     print(sids)
-     
+#     df=pd.read_excel("../leverage/sse/rzrqjygk20211224.xls",sheet_name=-1,index_col=[0]);
+#   
+#     sids=df.index
+#     sids= filter(lambda id:id >600000  , sids)
+#     sids = list(map(lambda id:str(id)+'.sh',sids))
+# #     print(sids)
+#      
 #     batch_extract_data(sids,exchange="sse")
     
     
-#     df=pd.read_excel("../leverage/szse/rzrqjygk2021-12-24.xls",sheet_name=-1);
-#     sids=df['证券代码']
-#     sids= filter(lambda id:id >100000, sids)
-#     sids = list(map(lambda id:'{0:0>6}.sz'.format(id),sids))
-#     print(sids)
+    df=pd.read_excel("../leverage/szse/rzrqjygk2021-12-24.xls",sheet_name=-1);
+    sids=df['证券代码']
+    sids= filter(lambda id:id <100000 and id<2008, sids)
+    sids = list(map(lambda id:'{0:0>6}'.format(id),sids))
+    print(sids)
 #     batch_extract_data(sids,exchange="szse")
     
 #     sids=list(map(lambda sid:sid[:6],sids))
+
+#     sids=["600096"]
     train(sids)

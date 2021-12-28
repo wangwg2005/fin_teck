@@ -34,7 +34,7 @@ def get_price(sid,fname=None):
     if not os.path.exists(fname):
     
         result = price_query.get_history_price(sid)
-        print("not exists",result)
+        print("not exists")
         df=pd.DataFrame(data=result)
         df=df.set_index("day")
         df.to_csv(fname)
@@ -47,7 +47,7 @@ def get_price(sid,fname=None):
  
         day_num = len(days)
         print("day number",day_num)
-        if day_num>2:
+        if day_num>3:
             result = price_query.get_history_price(sid)
             print(result[-2:])
             df = pd.DataFrame(data=result)
