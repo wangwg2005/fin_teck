@@ -129,9 +129,9 @@ if __name__=="__main__":
         features=get_features(name)
 #         model(features,["lev","f1"],name)
 #         print(features[-1:])
-        model(features,["lev","extra_lev","sell","extra_sell","f1"],name)
-        model(features,["lev","extra_lev","sell","extra_sell"],name)
-#         model(features,["lev","sell","f1"],name)
+#         model(features,["lev","extra_lev","sell","extra_sell","f1"],name)
+#         model(features,["lev","extra_lev","sell","extra_sell"],name)
+        model(features,["lev","sell"],name)
 #         model(features,["total_lev","total_sell","f1"],name)
 
 

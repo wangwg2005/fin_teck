@@ -2,6 +2,8 @@
 
 import requests
 from datetime import datetime
+import json
+
 
 # session = HTMLSession()
 # url = "http://www.sse.com.cn/disclosure/credibility/supervision/inquiries/"
@@ -18,38 +20,42 @@ keys = ['stock_name', 'open', 'close_pre', 'current', 'high', 'low', 'bid_price'
 
 
 
-def get_price(*stockid):
-    url = 'http://ifzq.gtimg.cn/appstock/app/kline/mkline?param=sh000905,m5,,800&_var=m5_today'
-
+def get_price_min(stockid,scale=5,datalen=800):
+    url = f'http://ifzq.gtimg.cn/appstock/app/kline/mkline?param={stockid},m{scale},,{datalen}&_var=sdata'
+    print(url)
     response = requests.get(url)
     res_body = response.text.strip()
 
-    lines = res_body.split('\n')
-    result = []
-    for line in lines:
-        start_ind = line.find('=')
-        body = line[start_ind + 2:-4]
-        infos = body.split(',')
-
-        kv = {}
-        for i in range(len(keys)):
-            kv[keys[i]] = infos[i]
-        result.append(kv)
-
-    return result
+    s =res_body[6:]
+    
+    res = json.loads(s)
+    
+    if res['code'] !=0 :
+        print(res['msg'])
+        return None
+    
+    sdata = res["data"][stockid][f'm{scale}']
+    
+    return sdata
 
 
-def get_time_window(stock_id, date):
-    url1 = 'https://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_Transactions.getAllPageTime'
-    url2 = 'https://vip.stock.finance.sina.com.cn/quotes_service/view/CN_TransListV2.php'
-    param1 = {'date': date, 'symbol': stock_id}
+def get_kline_day(sid,days=20):
+    url=f'https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?_var=kline&param={sid},day,,,{days},qfq&r=0.20250418055060626'
+    print(url)
+    txt = requests.get(url).text[6:]
+    res = json.loads(txt)
+    
+    if res['code'] !=0 :
+        print(res['msg'])
+        return None
+    
+    sdata = res["data"][sid]['qfqday']
+    import pandas as pd
+    df = pd.DataFrame(sdata,columns=['day','open','close','high','low','volume'])
+#     print(df)
+    return df
+    
 
-    res = requests.get(url1, params=param1).json()
-    #     for page in res['detailPages']:
-    ts = int(datetime.now().timestamp() * 1000)
-    param2 = {'num': res['detailPages'][10]['page'], 'symbol': stock_id, 'rn': ts}
-    res2 = requests.get(url2, params=param2).text
-    print(res2)
 
 def convert_sid(sid):
     return (sid[-2:]+sid[:6]).replace("SS",'sh')
@@ -58,7 +64,7 @@ def convert_sid(sid):
 # rs=search(sse,["2020-02-27","2020-02-24"])
 # print(rs)
 
-def split_time_window(stock_id, datalen=1023):
+def split_time_window(stock_id, datalen=800):
     scale = 5  # time window, minutes
     ma = 20
     ma = 'no'
@@ -67,7 +73,8 @@ def split_time_window(stock_id, datalen=1023):
     res = requests.get(url, params=param).json()
     return res
 
-# print(get_price("sh600001"))
+# a =get_kline_day("sh600010")
+
 # get_time_window('sh601006','2021-09-01')
 # print(datetime.now().timestamp())
 # print(len(split_time_window('sh601006', '2021-09-03')))

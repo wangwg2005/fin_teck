@@ -168,6 +168,7 @@ function draw(){
 	                ],
 	                tooltip: {
 	                    formatter: function (param) {
+	                    	console.log(param.data.coord);
 	                        return param.name + '<br>' + (param.data.coord || '');
 	                    }
 	                }

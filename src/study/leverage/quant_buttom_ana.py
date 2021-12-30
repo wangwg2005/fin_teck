@@ -8,6 +8,7 @@ import business_day as bd
 import os
 import numpy as np
 from study.realtime import price_query
+import time
 
 import warnings
 warnings.simplefilter("ignore")
@@ -47,12 +48,23 @@ def get_price(sid,fname=None):
  
         day_num = len(days)
         print("day number",day_num)
-        if day_num>3:
+        if day_num>2:
+            
+            
+            
             result = price_query.get_history_price(sid)
+            
+            hour = time.localtime().tm_hour
+            
+#           
+            
             print(result[-2:])
             df = pd.DataFrame(data=result)
             df = df.set_index("day")
             diff = df[str(days[1])[:10]:]
+            
+            if str(days[-1])[:10] in df.index and hour<15:
+                result=result[:-1]
             
             new_prices = diff.to_csv(header=False)
             with open(fname,'a', newline='',encoding="utf8") as fo:

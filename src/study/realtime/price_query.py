@@ -55,6 +55,7 @@ def get_history_price(stock_id,day_number=1024,scale=240):
     url=template.format(stock_id,day_number,scale)
     print(url)
     try:
+#         res=requests.get(url,proxies = {'http':'http://103.242.236.202:8080'})
         res=requests.get(url)
         res_j=res.json()
         return res_j
