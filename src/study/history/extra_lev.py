@@ -6,6 +6,10 @@ import matplotlib.pyplot as plt
 from scipy import stats
 import statsmodels.api as sm
 from functools import reduce
+from sklearn.linear_model import RidgeCV,Ridge
+import numpy as np
+
+
 
 def model(features,names,prefix):
     split_date="2020-12-31"
@@ -17,10 +21,32 @@ def model(features,names,prefix):
     plt.figure(figsize=(11,8))
     
     X=df[names]
+    rx=X.to_numpy()
     X=sm.add_constant(X)
     y=df["close"]
     mod=sm.OLS(y,X).fit()
     print(mod.summary())
+    
+    
+
+#     
+#      
+    alphas=[i/10 for i in range(1,400)]
+      
+    coefs = []
+    for a in alphas:
+        ridge = Ridge(alpha=a)
+        ridge.fit(X, y)
+        coefs.append(ridge.coef_)
+          
+    print('coefs',coefs)
+      
+    plt.plot(alphas, coefs)
+    plt.show()
+    
+    
+    rm = RidgeCV(alphas=[i/10 for i in range(1,400)])
+    rm.fit(rx, y.to_numpy())
         
     plt.subplot(221) 
     ax=mod.resid.plot(label="resid")
@@ -45,13 +71,18 @@ def model(features,names,prefix):
     plt.legend()
     
     X=test_df[names]
+    rX= X.to_numpy()
     X=sm.add_constant(X)
     preds=mod.get_prediction(X).summary_frame()
     print(X.index[-1])
     print(test_df["close"][-1])
-#     print(preds)
     
-    print(preds[["mean","obs_ci_lower","obs_ci_upper"]][-5:])
+    
+    
+    y_rpred = rm.predict(rX)
+    print(preds)
+    
+    
     pred_y=preds["mean"]
     
     
@@ -64,7 +95,13 @@ def model(features,names,prefix):
     plt.figure(figsize=(11, 8))
     plt.grid()
     ax4=plt.subplot(211)
+#     print("ridge",y_rpred)
+#     preds["Ridge"]=y_rpred   57618539
     test_df["close"].plot(ax=ax4,label="observation")
+#     preds["Ridge"].plot(ax=ax4, label='Ridge')
+    
+    print(preds[["mean",'Ridge',"obs_ci_lower","obs_ci_upper"]][-5:])
+    
     pred_y.plot(ax=ax4,label="prediction")
     plt.fill_between(preds.index,preds["obs_ci_lower"],preds["obs_ci_upper"],alpha=0.2)
     last_diff=test_df["close"][-1]-pred_y[-1]
@@ -130,8 +167,8 @@ if __name__=="__main__":
 #         model(features,["lev","f1"],name)
 #         print(features[-1:])
 #         model(features,["lev","extra_lev","sell","extra_sell","f1"],name)
-#         model(features,["lev","extra_lev","sell","extra_sell"],name)
-        model(features,["lev","sell"],name)
+        model(features,["lev","extra_lev","sell","extra_sell"],name)
+#         model(features,["lev","sell"],name)
 #         model(features,["total_lev","total_sell","f1"],name)
 
 

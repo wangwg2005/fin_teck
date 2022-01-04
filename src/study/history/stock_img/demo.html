@@ -1,0 +1,75 @@
+<html>
+
+<head>
+<script src="http://ifzq.gtimg.cn/appstock/app/kline/mkline?param=sh000905,m5,,800&_var=m5_000905"></script>
+
+<script src="ml.js"></script>
+<script>
+
+function test(){
+	let n =  800;
+	let x1 = [...Array(800).keys()]
+	let y1 = Array.from(x1, x => 2*x +1)
+	
+	let slid_window=5;
+	time1 = new Date().getTime();
+	for(let i =slid_window; i< n ;i++){
+		var lr = linearRegression(y1.slice(i-slid_window,i), x1.slice(i-slid_window,i)); 
+	}
+	time2 = new Date().getTime();
+	time_diff= time2-time1;
+	console.log("old training time"+time_diff)
+	
+	time1 = new Date().getTime();
+	rolling_lm(y1,x1,slid_window);
+	time2 = new Date().getTime();
+	time_diff= time2-time1;
+	console.log("new training time"+time_diff)
+}
+
+function compute_x(a){
+	if (a[2]-a[1]>0){
+		return +a[5]
+	}else{
+		return -a[5]
+	}
+}
+
+function analyze(){
+	his_data=m5_000905["data"]["sh000905"]["m5"];
+	x = Array.from(his_data, compute_x);
+		
+	for(let i =1;i<x.length;i++){
+		x[i]=x[i-1]+x[i];
+	}
+	
+	y = Array.from(his_data, a=> parseFloat(a[2]))
+	
+	
+	let slid_window=5*48;
+	time1 = new Date().getTime();
+	for(let i =slid_window; i< 800 ;i++){
+		let lr = linearRegression(y.slice(i-slid_window,i), x.slice(i-slid_window,i));
+		v = lr['slope'] * x[i] + lr["intercept"]
+		
+	}
+	time2 = new Date().getTime();
+	time_diff= time2-time1;
+	console.log("training time:"+time_diff+"ms")
+	
+}
+
+analyze();
+
+
+
+
+
+
+</script>
+</head>
+
+<body>
+</body>
+
+</html>

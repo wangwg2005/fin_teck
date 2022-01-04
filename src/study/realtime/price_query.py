@@ -47,6 +47,14 @@ def get_time_window(stock_id,date):
     print(res2)
 #         return
 
+proxies=['http://103.242.236.202:8080',
+         'http://111.160.169.54:41820',
+         'http://114.99.233.47:30001',
+         'http://110.83.12.18:57114',
+         'http://61.178.149.237:59042'
+         ]
+
+
 def convert_sid(sid):
     return (sid[-2:]+sid[:6]).replace("SS",'sh')
     
@@ -55,8 +63,8 @@ def get_history_price(stock_id,day_number=1024,scale=240):
     url=template.format(stock_id,day_number,scale)
     print(url)
     try:
-#         res=requests.get(url,proxies = {'http':'http://103.242.236.202:8080'})
         res=requests.get(url)
+#         res=requests.get(url)
         res_j=res.json()
         return res_j
     except JSONDecodeError as e:

@@ -175,6 +175,7 @@ def extract_fast(security_codes,exchange,paths):
     else:
         mode="a"
         dfs=map(lambda path: pd.read_csv(path), paths)
+
         last_days=list(map(lambda df: str(df.iat[-1,0]), dfs))
         last_day=min(last_days)
         print("scan leverage file from",last_day)
