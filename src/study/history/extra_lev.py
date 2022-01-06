@@ -100,7 +100,7 @@ def model(features,names,prefix):
     test_df["close"].plot(ax=ax4,label="observation")
 #     preds["Ridge"].plot(ax=ax4, label='Ridge')
     
-    print(preds[["mean",'Ridge',"obs_ci_lower","obs_ci_upper"]][-5:])
+    print(preds[["mean","obs_ci_lower","obs_ci_upper"]][-5:])
     
     pred_y.plot(ax=ax4,label="prediction")
     plt.fill_between(preds.index,preds["obs_ci_lower"],preds["obs_ci_upper"],alpha=0.2)

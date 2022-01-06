@@ -66,7 +66,9 @@ function draw(){
 	m5 = sdata["data"][stock["id"]][stock["scale"]];
 	let sname = sdata["data"][stock["id"]]["qt"][stock["id"]][1];
 	
-	document.title = sname+'-'+stock['id']
+	current_price = m5[m5.length-1][2];
+	
+	document.title = sname+'-'+stock['id']+":"+current_price;
 
 	var mdata = Array.from(m5 ,a => [a[0],a[1],a[2],a[4],a[3]]);
 	data0 = splitData(mdata);
@@ -83,7 +85,7 @@ function draw(){
 
 	option = {
 	    title: {
-	        text: sname,
+	        text: sname+':'+current_price,
 	        left: 0
 	    },
 	    tooltip: {

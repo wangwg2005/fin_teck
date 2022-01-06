@@ -73,17 +73,85 @@ def build_ridge_model(args):
     rm = RidgeCV(alphas=[i/10 for i in range(1,400)])
     rm.fit(X, y)
     
-   
-def build_model(args):
+    
+    
+def lev_model(args):
     
     sid,feature=args[0],args[1]
         
-    model_path=os.path.join("model",sid+"_rolling100.pickle")
+    model_path=os.path.join("model",sid+"_lev.pickle")
     
     if os.path.exists(model_path) and False:
         model = OLSResults.load(model_path)
     else:    
-        print("training for",sid)
+        print("training lev model for",sid)
+        if len(feature)<10:
+            print(sid,"has small data,",len(feature))
+            return None
+    #     X=feature[['volume',"lev_buy",'lev_sell']]
+        X=feature[["lev_buy",'lev_sell']]
+        X=sm.add_constant(X)
+        y=feature["close"]
+        
+        model=sm.OLS(y,X).fit()
+#         model.save(model_path)
+    
+    show_day=0
+    
+#     print(model.fittedvalues[-5:])
+#     print(model.conf_int(alpha=0.05, cols=None))
+    if model.rsquared>0.8:
+        print("printing "+sid+" picture")
+        add_plot=[mpf.make_addplot(model.fittedvalues[-show_day:],color="b"),mpf.make_addplot(model.resid[-show_day:],panel=1)]
+        mpf.plot(feature[-show_day:],type="candle",volume=True,style=ds.get_style(),addplot=add_plot,title=sid,savefig=os.path.join("stock_img",sid+"_lev.png"))
+        
+    return model
+
+    
+    
+def mv_model(args):
+    
+    sid,feature=args[0],args[1]
+        
+    model_path=os.path.join("model",sid+"_mv.pickle")
+    
+    if os.path.exists(model_path) and False:
+        model = OLSResults.load(model_path)
+    else:    
+        print("training mv model for",sid)
+        if len(feature)<10:
+            print(sid,"has small data,",len(feature))
+            return None
+    #     X=feature[['volume',"lev_buy",'lev_sell']]
+        X=feature[['vol_sum']]
+        X=sm.add_constant(X)
+        y=feature["close"]
+        
+        model=sm.OLS(y,X).fit()
+#         model.save(model_path)
+    
+    show_day=0
+    
+#     print(model.fittedvalues[-5:])
+#     print(model.conf_int(alpha=0.05, cols=None))
+    if model.rsquared>0.8:
+        print("printing "+sid+" picture")
+        add_plot=[mpf.make_addplot(model.fittedvalues[-show_day:],color="b"),mpf.make_addplot(model.resid[-show_day:],panel=1)]
+        mpf.plot(feature[-show_day:],type="candle",volume=True,style=ds.get_style(),addplot=add_plot,title=sid,savefig=os.path.join("stock_img",sid+"_mv.png"))
+        
+    return model
+    
+   
+def comp_model(args):
+    
+    sid,feature=args[0],args[1]
+        
+    model_path=os.path.join("model",sid+"_comp.pickle")
+    
+    if os.path.exists(model_path) and False:
+        model = OLSResults.load(model_path)
+    else:    
+        print("training comp model for",sid)
         if len(feature)<10:
             print(sid,"has small data,",len(feature))
             return None
@@ -93,7 +161,7 @@ def build_model(args):
         y=feature["close"]
         
         model=sm.OLS(y,X).fit()
-        model.save(model_path)
+#         model.save(model_path)
     
     show_day=0
     
@@ -102,7 +170,7 @@ def build_model(args):
     if model.rsquared>0.8:
         print("printing "+sid+" picture")
         add_plot=[mpf.make_addplot(model.fittedvalues[-show_day:],color="b"),mpf.make_addplot(model.resid[-show_day:],panel=1)]
-        mpf.plot(feature[-show_day:],type="candle",volume=True,style=ds.get_style(),addplot=add_plot,title=sid,savefig=os.path.join("stock_img",sid+"sum.png"))
+        mpf.plot(feature[-show_day:],type="candle",volume=True,style=ds.get_style(),addplot=add_plot,title=sid,savefig=os.path.join("stock_img",sid+"_comp.png"))
         
     return model
     
@@ -115,44 +183,64 @@ def train(sids):
 #     print(files)
     features=map(get_f,files)
 #     features=filter(lambda f:len(f)>200,features)
-    models=list(map(build_model,zip(sids,features)))
+
+    sf = list(zip(sids,features))
     
-    columns=["R_Squared","F_Value","F_P_value","Last Resid","Last Fitted Value","percent","deviation"]
     
-#     for i in range(-1,-30,-1):
-    i=-1
-    rows=map(lambda m:[m.rsquared,m.fvalue,m.f_pvalue,m.resid[i],m.fittedvalues[i],m.resid[i]/m.fittedvalues[i],m.resid[i]/(m.mse_total/(len(m.fittedvalues)**0.5))] ,models)
-    result=pd.DataFrame(list(rows),index=sids,columns=columns)
-    result.index.name="sid"
-    today_str = str(datetime.datetime.today())[:10]
-    result.to_csv(os.path.join("stock_img",f"result_rolling_{today_str}.csv"))
+    
+    for model_fun in [comp_model,mv_model,lev_model]:
+        
+        models=map(model_fun,sf)
+        
+        columns=["R_Squared","F_Value","F_P_value","Last Resid","Last Fitted Value","percent","deviation"]
+        
+    #     for i in range(-1,-30,-1):
+        i=-1
+        rows=map(lambda m:[m.rsquared,m.fvalue,m.f_pvalue,m.resid[i],m.fittedvalues[i],m.resid[i]/m.fittedvalues[i],m.resid[i]/(m.mse_total/(len(m.fittedvalues)**0.5))] ,models)
+        result=pd.DataFrame(list(rows),index=sids,columns=columns)
+        result.index.name="sid"
+        today_str = str(datetime.datetime.today())[:10]
+        result.to_csv(os.path.join("stock_img",f"model_param_{today_str}_{model_fun.__name__[:-6]}.csv"))
     
 
 def filter_stk():
 #     page_addr='C:/Users/Darren/eclipse-workspace/fin_study/src/javascript/candlestick.html?id={0:0>6}&scale=m5&value={1:0.2f}'
-    page_addr='candlestick.html?id={0:0>6}&scale=m5&value={1:0.2f}'
+#     page_addr='candlestick.html?id={0:0>6}&scale=m5&value={1:0.2f}'
+    
+    link='<a href="candlestick.html?id={0}&scale=m5&value={1:0.2f}" target="_blank">link</a>'
     
     today_str = str(datetime.datetime.today())[:10]
 #     today_str='2021-12-31'
 #     fname = f"result_{today_str}.csv"
 
-    days=pd.date_range(start='2021-11-01', end='2022-01-01', freq=business_day.get_business_day_cn())
+#     days=pd.date_range(start='2021-11-01', end='2022-01-01', freq=business_day.get_business_day_cn())
 #     for i in range(-1,-30,-1):
         
+    types=['comp','mv','lev']
+    
+    for t in types:
+        
+        print(f"generating report for {today_str} {t}")
+    
+        df = pd.read_csv(os.path.join("stock_img",f"model_param_{today_str}_{t}.csv"))
         
     
-    df = pd.read_csv(os.path.join("stock_img",f"result_rolling_{today_str}.csv"))
-    
-    df = df[ (df.R_Squared>0.8) & (df.deviation<-2)]
-    df['image'] = df['sid'].map(lambda t:'<a href="{0:0>6}sum.png">image</a>'.format(t))
-    df['code'] = df['sid'].map(lambda c: "sh{0:0>6}".format(c) if c>600000 else "sz{0:0>6}".format(c))
-    df['realtime'] = df.apply(lambda r:f'<a href="{page_addr}" target="_blank">link</a>'.format(r['code'],r['Last Fitted Value']),axis=1)
-    sid=df.pop('sid')
-    df.pop('code')
-    
-    df.index = sid.map(lambda a:'{0:0>6}'.format(a))
-    df = df.sort_values(by='deviation')
-    df.to_html(os.path.join("stock_img",f'result_rolling_{today_str}_target.html'),escape=False)
+        df = df[ (df.R_Squared>0.8) & (df.percent <-0.05) & (df.deviation<-2)]
+        if len(df)==0:
+            print(f"no qualified data for {t}!")
+            continue
+        df['image'] = df['sid'].map(lambda sid:'<a href="{0:0>6}_{1}.png" target="_blank">image</a>'.format(sid,t))
+        df['code'] = df['sid'].map(lambda c: "sh{0:0>6}".format(c) if c>600000 else "sz{0:0>6}".format(c))
+        ss = df.apply(lambda r: link.format(r['code'],r['Last Fitted Value']),axis=1)
+        df['realtime']  = ss
+        sid=df.pop('sid')
+        df.pop('code')
+        
+        df.index = sid.map(lambda a:'{0:0>6}'.format(a))
+        df = df.sort_values(by='deviation')
+        report_path = os.path.join("stock_img",f'report_{today_str}_{t}.html')
+        df.to_html(report_path, escape=False)
+        print(f"report for {today_str} {t} generated, please find it at {report_path}")
         
     
     
@@ -181,18 +269,18 @@ def load_all_data():
     
     
     df=pd.read_excel("../leverage/sse/rzrqjygk20211229.xls",sheet_name=-1,index_col=[0]);
-       
+        
     sids=df.index
     sids= filter(lambda id:id >600000 and id<679999, sids)
     sids_sse = list(map(lambda id:str(id)+'.sh',sids))
 #     sids_sse=[]
     
     
-    df=pd.read_excel("../leverage/szse/rzrqjygk2021-12-31.xls",sheet_name=-1);
-    sids=df['证券代码']
-    sids= filter(lambda id:id <100000 , sids)
-    sids_sz = list(map(lambda id:'{0:0>6}.sz'.format(id),sids))
-#     sids=["002008.sz"]
+#     df=pd.read_excel("../leverage/szse/rzrqjygk2021-12-31.xls",sheet_name=-1);
+#     sids=df['证券代码']
+#     sids= filter(lambda id:id <100000 , sids)
+#     sids_sz = list(map(lambda id:'{0:0>6}.sz'.format(id),sids))
+    sids_sz=[]
     
     skip_lever = False
     
@@ -262,7 +350,7 @@ def train_all():
 if __name__=="__main__":
 #     load_proxies()
 #     load_all_data()
-    train_all()
+#     train_all()
     filter_stk()
 #     process()
 

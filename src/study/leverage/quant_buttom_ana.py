@@ -48,13 +48,16 @@ def get_price(sid,fname=None):
  
         day_num = len(days)
         print("day number",day_num)
-        if day_num>2:
+        
+        trading = time.localtime().tm_hour<15
+        
+        if day_num>2 or (not trading and day_num>1):
             
             
             
             result = price_query.get_history_price(sid)
             
-            hour = time.localtime().tm_hour
+            
             
 #           
             
@@ -63,7 +66,7 @@ def get_price(sid,fname=None):
             df = df.set_index("day")
             diff = df[str(days[1])[:10]:]
             
-            if str(days[-1])[:10] in df.index and hour<15:
+            if str(days[-1])[:10] in df.index and trading:
                 result=result[:-1]
             
             new_prices = diff.to_csv(header=False)
