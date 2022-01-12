@@ -51,7 +51,8 @@ def get_f(files):
     features["lev_sell"]=lev_df["融券余量"]
     features['incre']=features['close'].diff()
     features=features.dropna()
-    features['vol_sum']=features.apply(lambda r: -r['volume'] if r['incre']<0 else r['volume'], axis=1)
+    features['vol_']=features.apply(lambda r: -r['volume'] if r['incre']<0 else r['volume'], axis=1)
+    features['vol_sum']=features['vol_'].cumsum()
     
     
 
@@ -103,7 +104,7 @@ def lev_model(args):
     if model.rsquared>0.8:
         print("printing "+sid+" picture")
         add_plot=[mpf.make_addplot(model.fittedvalues[-show_day:],color="b"),mpf.make_addplot(model.resid[-show_day:],panel=1)]
-        mpf.plot(feature[-show_day:],type="candle",volume=True,style=ds.get_style(),addplot=add_plot,title=sid,savefig=os.path.join("stock_img",sid+"_lev.png"))
+        mpf.plot(feature[-show_day:],type="candle",volume=True,style=ds.get_style(),addplot=add_plot,title=sid,savefig=os.path.join("stock_img",'img',sid+"_lev.png"))
         
     return model
 
@@ -117,7 +118,7 @@ def mv_model(args):
     
     if os.path.exists(model_path) and False:
         model = OLSResults.load(model_path)
-    else:    
+    else:
         print("training mv model for",sid)
         if len(feature)<10:
             print(sid,"has small data,",len(feature))
@@ -137,7 +138,7 @@ def mv_model(args):
     if model.rsquared>0.8:
         print("printing "+sid+" picture")
         add_plot=[mpf.make_addplot(model.fittedvalues[-show_day:],color="b"),mpf.make_addplot(model.resid[-show_day:],panel=1)]
-        mpf.plot(feature[-show_day:],type="candle",volume=True,style=ds.get_style(),addplot=add_plot,title=sid,savefig=os.path.join("stock_img",sid+"_mv.png"))
+        mpf.plot(feature[-show_day:],type="candle",volume=True,style=ds.get_style(),addplot=add_plot,title=sid,savefig=os.path.join("stock_img",'img',sid+"_mv.png"))
         
     return model
     
@@ -150,7 +151,7 @@ def comp_model(args):
     
     if os.path.exists(model_path) and False:
         model = OLSResults.load(model_path)
-    else:    
+    else:
         print("training comp model for",sid)
         if len(feature)<10:
             print(sid,"has small data,",len(feature))
@@ -161,6 +162,7 @@ def comp_model(args):
         y=feature["close"]
         
         model=sm.OLS(y,X).fit()
+#         print(model.summary())
 #         model.save(model_path)
     
     show_day=0
@@ -170,7 +172,7 @@ def comp_model(args):
     if model.rsquared>0.8:
         print("printing "+sid+" picture")
         add_plot=[mpf.make_addplot(model.fittedvalues[-show_day:],color="b"),mpf.make_addplot(model.resid[-show_day:],panel=1)]
-        mpf.plot(feature[-show_day:],type="candle",volume=True,style=ds.get_style(),addplot=add_plot,title=sid,savefig=os.path.join("stock_img",sid+"_comp.png"))
+        mpf.plot(feature[-show_day:],type="candle",volume=True,style=ds.get_style(),addplot=add_plot,title=sid,savefig=os.path.join("stock_img",'img',sid+"_comp.png"))
         
     return model
     
@@ -189,6 +191,7 @@ def train(sids):
     
     
     for model_fun in [comp_model,mv_model,lev_model]:
+#     for model_fun in [mv_model]:
         
         models=map(model_fun,sf)
         
@@ -229,17 +232,25 @@ def filter_stk():
         if len(df)==0:
             print(f"no qualified data for {t}!")
             continue
-        df['image'] = df['sid'].map(lambda sid:'<a href="{0:0>6}_{1}.png" target="_blank">image</a>'.format(sid,t))
+        df['image'] = df['sid'].map(lambda sid:'<a href="img/{0:0>6}_{1}.png" target="_blank">image</a>'.format(sid,t))
         df['code'] = df['sid'].map(lambda c: "sh{0:0>6}".format(c) if c>600000 else "sz{0:0>6}".format(c))
         ss = df.apply(lambda r: link.format(r['code'],r['Last Fitted Value']),axis=1)
         df['realtime']  = ss
         sid=df.pop('sid')
-        df.pop('code')
+        
         
         df.index = sid.map(lambda a:'{0:0>6}'.format(a))
         df = df.sort_values(by='deviation')
         report_path = os.path.join("stock_img",f'report_{today_str}_{t}.html')
-        df.to_html(report_path, escape=False)
+        
+        
+        buffer = df.to_json(orient="records")
+        with open( os.path.join("stock_img",f'report_{today_str}_{t}.js'),'w') as fo:
+            fo.write('records = ')
+            fo.write(buffer)
+        df.pop('code')
+        df.to_html(report_path,escape=False)
+        
         print(f"report for {today_str} {t} generated, please find it at {report_path}")
         
     
@@ -265,42 +276,50 @@ def process():
     
     train(sids)
 
-def load_all_data():
+def load_all_data(skip_lever = True      ,skip_price = False):    
+    sids_all=[]
     
     
-    df=pd.read_excel("../leverage/sse/rzrqjygk20211229.xls",sheet_name=-1,index_col=[0]);
-        
+    df=pd.read_excel("../leverage/sse/rzrqjygk20220110.xls",sheet_name=-1,index_col=[0]);
+      
     sids=df.index
-    sids= filter(lambda id:id >600000 and id<679999, sids)
+    sids= filter(lambda id:id >600000 and id<679999 and id!=600072, sids)
     sids_sse = list(map(lambda id:str(id)+'.sh',sids))
+    sids_all.extend(sids_sse)
 #     sids_sse=[]
     
     
-#     df=pd.read_excel("../leverage/szse/rzrqjygk2021-12-31.xls",sheet_name=-1);
-#     sids=df['证券代码']
-#     sids= filter(lambda id:id <100000 , sids)
-#     sids_sz = list(map(lambda id:'{0:0>6}.sz'.format(id),sids))
-    sids_sz=[]
+    df=pd.read_excel("../leverage/szse/rzrqjygk2022-01-10.xls",sheet_name=-1);
+    sids=df['证券代码']
+    sids= filter(lambda id:id <100000 , sids)
+    sids_sz = list(map(lambda id:'{0:0>6}.sz'.format(id),sids))
+    sids_all.extend(sids_sz)
+#     sids_sz=[]
     
-    skip_lever = False
+
     
     if not skip_lever:
         batch_extract_data(sids_sse,exchange="sse")
         batch_extract_data(sids_sz,exchange="szse")
     
-    skip_price = True
+    
+    
+    cnt=0
     
     if not skip_price:
         
         import time
-        
-        sids=sids_sse + sids_sz
     
-        for sid in sids:
+        for sid in sids_all:
             s_code=sid[:6]
             apath=os.path.join("stock",s_code)
             if not os.path.exists(apath):
                 os.mkdir(apath)
+                
+            cnt += 1
+            
+            if cnt  %100 == 0:
+                time.sleep(3*60)
             
             try:    
                 quant.get_price(sid,os.path.join("stock",s_code,"price.csv"))
@@ -337,21 +356,21 @@ def load_proxies():
     
     today_str = str(datetime.datetime.today())[:10]
     with open('proxy'+today_str+'.txt','w') as f:
-        f.writelines('\n'.join(ips))     
+        f.writelines('\n'.join(ips))
 #         print(urls)
             
 def train_all():
     sids= os.listdir("stock")
     sids=list(filter(lambda id: id[0] in ['0','6'] and id<'679999',sids))
-    
+#     sids=['000008']
     train(sids)
     
 
 if __name__=="__main__":
 #     load_proxies()
-#     load_all_data()
+    load_all_data(skip_lever = True ,skip_price = False)
 #     train_all()
-    filter_stk()
+#     filter_stk()
 #     process()
 
     

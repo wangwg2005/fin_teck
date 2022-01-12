@@ -38,11 +38,7 @@ def model(features,names,prefix):
         ridge = Ridge(alpha=a)
         ridge.fit(X, y)
         coefs.append(ridge.coef_)
-          
-    print('coefs',coefs)
       
-    plt.plot(alphas, coefs)
-    plt.show()
     
     
     rm = RidgeCV(alphas=[i/10 for i in range(1,400)])

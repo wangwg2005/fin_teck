@@ -152,6 +152,8 @@ def extract4cache():
     
     
 def extract_fast(security_codes,exchange,paths):
+    
+#     print(security_codes)
     prefix='rzrqjygk'
     
     if exchange=="sse":

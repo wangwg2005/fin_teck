@@ -1,0 +1,142 @@
+<html>
+
+<head>
+    <link rel="stylesheet" type="text/css" href="jquery-easyui/themes/default/easyui.css">
+    <link rel="stylesheet" type="text/css" href="jquery-easyui/themes/icon.css">
+    <script type="text/javascript" src="jquery-easyui/jquery.min.js"></script>
+    <script type="text/javascript" src="jquery-easyui/jquery.easyui.min.js"></script>
+	
+	
+	<script type="text/javascript">
+		let today_str=new Date().toJSON().substr(0,10);
+		var url_temp='report_date_type.js';
+		
+		function search_data(){
+		
+			let url = url_temp.replace('date',$('#date').val()).replace('type',$('#model').val());
+		
+			let script = document.createElement('script');
+			script.type = 'text/javascript';
+			script.onload = function(){
+				$('#detail_tab').datagrid({data: records});
+			}
+			
+			console.log("loading js from "+url);
+
+			script.src = url;
+			document.getElementsByTagName('head')[0].appendChild(script);
+		}
+		
+		function compute_value(){
+			let url = 'http://qt.gtimg.cn/q=';
+			let sids = Array.from(records, rec => rec['code']);
+			url = url + sids.join();
+			
+			let script = document.createElement('script');
+			script.type = 'text/javascript';
+			var prices=new Array();
+			script.onload = function(){
+				sids.forEach(function(item,index){
+					eval('prices['+index+'] = v_'+item)
+				});
+				prices = Array.from(prices, x => x.split('~'))
+				
+				let last_close = prices.reduce((pre,current) =>pre + parseFloat(current[4]),0);
+				let current_price = prices.reduce((pre,current) =>pre + parseFloat(current[3]),0);
+				
+				console.log('last close:' + last_close);
+				console.log('current price:' + current_price);
+			}
+			
+			console.log("loading js from "+url);
+
+			script.src = url;
+			document.getElementsByTagName('head')[0].appendChild(script);
+		
+		
+		}
+	
+		function init(){
+			
+			$('#date').val(today_str);
+			search_data();
+		}
+	
+
+	
+		function num_format(val,rowData,rowIndex){
+			if(val!=null)
+				return val.toFixed(4);
+		}
+		
+		 function myformatter(date){
+            var y = date.getFullYear();
+            var m = date.getMonth()+1;
+            var d = date.getDate();
+            return y+'-'+(m<10?('0'+m):m)+'-'+(d<10?('0'+d):d);
+        }
+		
+	
+	</script>
+	
+	
+	
+	
+</head>
+	<body onload='init();'>
+  <table id='detail_tab' class="easyui-datagrid" title="Profolio Detail" style="width:90%;height:100%,margin-left:5%"
+            data-options="singleSelect:true,collapsible:true,method:'get',fitColumns:true,toolbar:'#tb'">
+        <thead>
+            <tr>
+                <th data-options="field:'code',width:120">code</th>
+                <th data-options="field:'R_Squared',width:120,formatter:num_format">R_Squared</th>
+                <th data-options="field:'F_Value',width:120,align:'right',formatter:num_format">F_Value</th>
+                <th data-options="field:'F_P_value',width:120,align:'right',formatter:num_format">F_P_value</th>
+                <th data-options="field:'Last Resid',width:250,formatter:num_format">Last Resid</th>
+                <th data-options="field:'Last Fitted Value',width:120,align:'center',formatter:num_format">Last Fitted Value</th>
+				<th data-options="field:'percent',width:120,formatter:num_format">percent</th>
+				<th data-options="field:'deviation',width:120,formatter:num_format">deviation</th>
+				<th data-options="field:'image',width:80">image</th>
+				<th data-options="field:'realtime',width:80">realtime</th>
+            </tr>
+        </thead>
+    </table>
+	
+	
+	  <table id='profit_tab' class="easyui-datagrid" title="P&L Detail" style="width:90%;height:100%,margin-left:5%"
+            data-options="singleSelect:true,collapsible:true,method:'get',fitColumns:true,toolbar:'#tb'">
+        <thead>
+            <tr>
+                <th data-options="field:'code',width:120">code</th>
+                <th data-options="field:'R_Squared',width:120,formatter:num_format">R_Squared</th>
+                <th data-options="field:'F_Value',width:120,align:'right',formatter:num_format">F_Value</th>
+                <th data-options="field:'F_P_value',width:120,align:'right',formatter:num_format">F_P_value</th>
+                <th data-options="field:'Last Resid',width:250,formatter:num_format">Last Resid</th>
+                <th data-options="field:'Last Fitted Value',width:120,align:'center',formatter:num_format">Last Fitted Value</th>
+				<th data-options="field:'percent',width:120,formatter:num_format">percent</th>
+				<th data-options="field:'deviation',width:120,formatter:num_format">deviation</th>
+				<th data-options="field:'image',width:80">image</th>
+				<th data-options="field:'realtime',width:80">realtime</th>
+            </tr>
+        </thead>
+    </table>
+	
+	
+	<div id='tb'>
+		Date
+		<input class="easyui-datebox" id='date' style="width:110px" data-options="formatter:myformatter">
+		Model: 
+        <select id='model' class="easyui-combobox" panelHeight="auto" style="width:100px">
+            <option value="comp">comp</option>
+            <option value="lev">lev</option>
+            <option value="mv">mv</option>
+        </select>
+		
+		<a href="#" class="easyui-linkbutton" iconCls="icon-search" onclick='search_data();'>Search</a>
+
+	
+	</div>
+
+	</body>
+
+</html>

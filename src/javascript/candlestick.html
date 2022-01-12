@@ -84,8 +84,8 @@ function draw(){
 	
 
 	option = {
-	    title: {
-
+	    title: {	    	
+	    	text: sname+'-'+current_price,
 	        left: 0
 	    },
 	    tooltip: {
@@ -328,20 +328,20 @@ function calculateValue(day){
 		//adjust for 000905  7256.0598
 
 		
-		if (stock["id"]=='sh000905'){
-			v=v-1.9
-			result.push(v);
-			upper.push(v + 2*lr["se"] -1);
+		//if (stock["id"]=='sh000905'){
+	//		v=v-1.9
+	//		result.push(v);
+	//		upper.push(v + 2*lr["se"] -1);
 			
 			//7170.4385
-			lower.push(v - 2*lr["se"] - 1);
-		}else{
+	//		lower.push(v - 2*lr["se"] - 1);
+	//	}else{
 			result.push(v);
 			upper.push(v + 2*lr["se"]);
 			
 			//7170.4385
 			lower.push(v - 2*lr["se"] );
-		}
+		//}
 	}
 	time2 = new Date().getTime();
 	time_diff= time2-time1;
