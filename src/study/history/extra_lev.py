@@ -9,21 +9,34 @@ from functools import reduce
 from sklearn.linear_model import RidgeCV,Ridge
 import numpy as np
 
+# data_size=[20,1]
 
+start="2017-12-31"
 
 def model(features,names,prefix):
     split_date="2020-12-31"
-    print(features[-10:])
-    features=features.dropna()
+#     print(features[-10:])
+    features=features[[*names,"close"]].dropna()
     print('last trade day',features.index[-1])
     df,test_df=features[:split_date],features[split_date:]
+#     df=df[-data_size[0]:]
+
+    print('df',df.tail())
+    
+    print('test',test_df.tail())
     
     plt.figure(figsize=(11,8))
     
+#     for name in names:
+#         df[name+'_square']=df[name]**2
+    
     X=df[names]
-    rx=X.to_numpy()
+#     rx=X.to_numpy()
     X=sm.add_constant(X)
     y=df["close"]
+    
+    print('x',X)
+    print('y',y)
     mod=sm.OLS(y,X).fit()
     print(mod.summary())
     
@@ -31,22 +44,22 @@ def model(features,names,prefix):
 
 #     
 #      
-    alphas=[i/10 for i in range(1,400)]
-      
-    coefs = []
-    for a in alphas:
-        ridge = Ridge(alpha=a)
-        ridge.fit(X, y)
-        coefs.append(ridge.coef_)
-      
-    
-    
-    rm = RidgeCV(alphas=[i/10 for i in range(1,400)])
-    rm.fit(rx, y.to_numpy())
+#     alphas=[i/10 for i in range(1,400)]
+#       
+#     coefs = []
+#     for a in alphas:
+#         ridge = Ridge(alpha=a)
+#         ridge.fit(X, y)
+#         coefs.append(ridge.coef_)
+#       
+#     
+#     
+#     rm = RidgeCV(alphas=[i/10 for i in range(1,400)])
+#     rm.fit(rx, y.to_numpy())
         
     plt.subplot(221) 
-    ax=mod.resid.plot(label="resid")
-    mod.fittedvalues.plot(ax=ax,label="fitted")
+#     ax=mod.resid.plot(label="resid")
+    ax = mod.fittedvalues.plot(label="fitted")
     y.plot(ax=ax)
     plt.title("Fit")
     plt.legend()
@@ -54,6 +67,7 @@ def model(features,names,prefix):
     
     
     z, p = stats.normaltest(mod.resid.values)
+#     p =  mod.f_pvalue
     print("p-value",p)
     
     plt.subplot(222)
@@ -67,7 +81,7 @@ def model(features,names,prefix):
     plt.legend()
     
     X=test_df[names]
-    rX= X.to_numpy()
+#     rX= X.to_numpy()
     X=sm.add_constant(X)
     preds=mod.get_prediction(X).summary_frame()
     print(X.index[-1])
@@ -75,7 +89,7 @@ def model(features,names,prefix):
     
     
     
-    y_rpred = rm.predict(rX)
+#     y_rpred = rm.predict(rX)
     print(preds)
     
     
@@ -119,7 +133,7 @@ def model(features,names,prefix):
 
 
 
-start="2014-12-31"
+
 
 
 def get_features(name):
@@ -154,7 +168,12 @@ def get_features(name):
     
     return features
 
-
+def square_process(df,names):
+    for name in names:
+        df[name+"_square"]=df[name]**2
+         
+    
+    return df
     
 if __name__=="__main__":
     
@@ -163,8 +182,12 @@ if __name__=="__main__":
 #         model(features,["lev","f1"],name)
 #         print(features[-1:])
 #         model(features,["lev","extra_lev","sell","extra_sell","f1"],name)
-        model(features,["lev","extra_lev","sell","extra_sell"],name)
-#         model(features,["lev","sell"],name)
+#         model(features,["lev","extra_lev","sell","extra_sell"],name)
+
+        features['lev_square']=features['lev']**2
+        features['sell_square']=features['sell']**2
+        model(features,["lev","sell","lev_square","sell_square"],name)
+        model(features,["total_lev","total_sell"],name)
 #         model(features,["total_lev","total_sell","f1"],name)
 
 

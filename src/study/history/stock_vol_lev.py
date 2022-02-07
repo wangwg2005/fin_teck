@@ -368,9 +368,9 @@ def train_all():
 
 if __name__=="__main__":
 #     load_proxies()
-    load_all_data(skip_lever = True ,skip_price = False)
-#     train_all()
-#     filter_stk()
+    load_all_data(skip_lever = False ,skip_price = True)
+    train_all()
+    filter_stk()
 #     process()
 
     
