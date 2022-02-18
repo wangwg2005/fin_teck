@@ -16,7 +16,8 @@ start="2017-12-31"
 def model(features,names,prefix):
     split_date="2020-12-31"
 #     print(features[-10:])
-    features=features[[*names,"close"]].dropna()
+    features=features[[*names,"close"]]
+    features = features.dropna()
     print('last trade day',features.index[-1])
     df,test_df=features[:split_date],features[split_date:]
 #     df=df[-data_size[0]:]
@@ -184,10 +185,12 @@ if __name__=="__main__":
 #         model(features,["lev","extra_lev","sell","extra_sell","f1"],name)
 #         model(features,["lev","extra_lev","sell","extra_sell"],name)
 
-        features['lev_square']=features['lev']**2
-        features['sell_square']=features['sell']**2
-        model(features,["lev","sell","lev_square","sell_square"],name)
-        model(features,["total_lev","total_sell"],name)
+        model(features,["lev","sell"],name)
+
+#         features['lev_square']=features['lev']**2
+#         features['sell_square']=features['sell']**2
+#         model(features,["lev","sell","lev_square","sell_square"],name)
+#         model(features,["total_lev","total_sell"],name)
 #         model(features,["total_lev","total_sell","f1"],name)
 
 

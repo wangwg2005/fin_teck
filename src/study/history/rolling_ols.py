@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 from scipy import stats
 import statsmodels.api as sm
 from functools import reduce
-from sklearn.linear_model import RidgeCV,Ridge
 from statsmodels.regression.rolling import RollingOLS
 import numpy as np
 
@@ -197,44 +196,61 @@ def roll_model(features,names, title):
     X = sm.add_constant(X)
     y =  features["close"]
     
-    win =  60
+    mval=[]
     
-    rols = RollingOLS(y,X, window=win)
-    rres = rols.fit()
-    params = rres.params.copy()
-#     fig = rres.plot_recursive_coefficient(variables=names)
-    plt.grid(True)
-#     plt.show()
+    for i in range(3,300):
+        win =  i
+    
+        rols = RollingOLS(y,X, window=win)
+        rres = rols.fit()
+        params = rres.params.copy()
+    #     fig = rres.plot_recursive_coefficient(variables=names)
+        plt.grid(True)
+    #     plt.show()
+        
+        
+        df1=X[win-1:]
+        df2=params.dropna()
+        c = df1.dot(df2.T)
+#         print("c",c)
+        y1 = y[win-1:]
+#         print("y",y)
+#         y1 = y1.shift(-1)
+#         print("y shift",y1)
+        
+        err = c - y1
+        err = err.dropna(axis=1)
+#         print("err", err)
+        err = err.apply(np.abs)
+#         err.to_html("err.html")
+        
+        mean_val = np.mean(np.diag(err.to_numpy()))
+        
+        print(i, mean_val)
+        
+        mval.append(mean_val)
     
     
-    df1=X[win-1:]
-    df2=params.dropna()
-    c = df1.dot(df2.T)
-    print("c",c)
-    y = y[win-1:]
-    print("y",y)
-    
-    err = c - y
-    err.to_html("err.html")
-    print("err", err)
-    err = err.apply(np.square)
-    
+    plt.plot(range(3,300),mval)
+    plt.show()
 
     
-    n = len(y)
-    
-    msr = []
-    for i in range(-n+1,n-1):
-        mean_val = np.mean(np.diag(err.to_numpy(),k=i))
-        print(i,mean_val)
-        msr.append(mean_val)
+#     n = len(y)
+#     
+#     
+#     
+#     msr = []
+#     for i in range(-n+1,n-1):
+#         mean_val = np.mean(np.diag(err.to_numpy(),k=i))
+#         print(i,mean_val)
+#         msr.append(mean_val)
         
-    plt.plot(range(-n+1,n-1),msr)
+#     plt.plot(range(-n+1,n-1),msr)
 #     plt.show()
 
         
     
-    print("err2",err)
+#     print("err2",err)
         
     
     

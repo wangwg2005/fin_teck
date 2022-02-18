@@ -10,6 +10,7 @@ from study.leverage import quant_buttom_ana as quant
 import datetime
 from statsmodels.regression.linear_model import OLSResults
 import business_day
+from numpy.ma.core import ids
 
 def batch_extract_data(sids, exchange):
     
@@ -276,24 +277,29 @@ def process():
     
     train(sids)
 
-def load_all_data(skip_lever = True      ,skip_price = False):    
+def load_all_data(skip_lever = True ,skip_price = False,ids=[]):    
     sids_all=[]
     
+    if ids != None and len(ids) > 0 :
+        sids_all = ids
+        sids_sse = list(filter(lambda id:id[-2:]=='sh',ids))
+        sids_sz = list(filter(lambda id:id[-2:]=='sz',ids))
     
-    df=pd.read_excel("../leverage/sse/rzrqjygk20220110.xls",sheet_name=-1,index_col=[0]);
-      
-    sids=df.index
-    sids= filter(lambda id:id >600000 and id<679999 and id!=600072, sids)
-    sids_sse = list(map(lambda id:str(id)+'.sh',sids))
-    sids_all.extend(sids_sse)
-#     sids_sse=[]
-    
-    
-    df=pd.read_excel("../leverage/szse/rzrqjygk2022-01-10.xls",sheet_name=-1);
-    sids=df['证券代码']
-    sids= filter(lambda id:id <100000 , sids)
-    sids_sz = list(map(lambda id:'{0:0>6}.sz'.format(id),sids))
-    sids_all.extend(sids_sz)
+    else:
+        df=pd.read_excel("../leverage/sse/rzrqjygk20220110.xls",sheet_name=-1,index_col=[0]);
+          
+        sids=df.index
+        sids= filter(lambda id:id >600000 and id<679999 and id!=600072, sids)
+        sids_sse = list(map(lambda id:str(id)+'.sh',sids))
+        sids_all.extend(sids_sse)
+    #     sids_sse=[]
+        
+        
+        df=pd.read_excel("../leverage/szse/rzrqjygk2022-01-10.xls",sheet_name=-1);
+        sids=df['证券代码']
+        sids= filter(lambda id:id <100000 , sids)
+        sids_sz = list(map(lambda id:'{0:0>6}.sz'.format(id),sids))
+        sids_all.extend(sids_sz)
 #     sids_sz=[]
     
 
@@ -359,15 +365,21 @@ def load_proxies():
         f.writelines('\n'.join(ips))
 #         print(urls)
             
-def train_all():
-    sids= os.listdir("stock")
-    sids=list(filter(lambda id: id[0] in ['0','6'] and id<'679999',sids))
+def train_all(ids=[]):
+    if ids!=None and len(ids)>0:
+        sids=[id[:6] for id in ids]        
+    else:
+        sids= os.listdir("stock")
+        sids=list(filter(lambda id: id[0] in ['0','6'] and id<'679999',sids))
 #     sids=['000008']
     train(sids)
     
 
 if __name__=="__main__":
 #     load_proxies()
+#     load_all_data(skip_lever = False ,skip_price = False)
+#     ids=["603259.sh","000661.sz"]
+    
     load_all_data(skip_lever = False ,skip_price = True)
     train_all()
     filter_stk()

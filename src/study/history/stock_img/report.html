@@ -13,7 +13,7 @@
 		
 		function search_data(){
 		
-			let url = url_temp.replace('date',$('#date').val()).replace('type',$('#model').val());
+			let url = url_temp.replace('date',date_transform($('#date').val())).replace('type',$('#model').val());
 		
 			let script = document.createElement('script');
 			script.type = 'text/javascript';
@@ -58,8 +58,17 @@
 	
 		function init(){
 			
-			$('#date').val(today_str);
+			$('#date').val(new Date());
 			search_data();
+		}
+		
+		 function myparser(s){
+			var t = Date.parse(s);
+			if (!isNaN(t)){
+				return new Date(t);
+			} else {
+				return new Date();
+			}
 		}
 	
 
@@ -73,8 +82,15 @@
             var y = date.getFullYear();
             var m = date.getMonth()+1;
             var d = date.getDate();
-            return y+'-'+(m<10?('0'+m):m)+'-'+(d<10?('0'+d):d);
+            str = y+'-'+(m<10?('0'+m):m)+'-'+(d<10?('0'+d):d);
+			alert(str);
+			return str;
         }
+		
+		function date_transform(date_str1){
+			let arr = date_str1.split("/")
+			return arr[2]+"-"+arr[0]+"-"+arr[1];
+		}
 		
 	
 	</script>
@@ -124,7 +140,7 @@
 	
 	<div id='tb'>
 		Date
-		<input class="easyui-datebox" id='date' style="width:110px" data-options="formatter:myformatter">
+		<input class="easyui-datebox" id='date' style="width:110px">
 		Model: 
         <select id='model' class="easyui-combobox" panelHeight="auto" style="width:100px">
             <option value="comp">comp</option>
