@@ -249,8 +249,8 @@ def filter_stk():
         with open( os.path.join("stock_img",f'report_{today_str}_{t}.js'),'w') as fo:
             fo.write('records = ')
             fo.write(buffer)
-        df.pop('code')
-        df.to_html(report_path,escape=False)
+#         df.pop('code')
+#         df.to_html(report_path,escape=False)
         
         print(f"report for {today_str} {t} generated, please find it at {report_path}")
         
@@ -367,7 +367,7 @@ def load_proxies():
             
 def train_all(ids=[]):
     if ids!=None and len(ids)>0:
-        sids=[id[:6] for id in ids]        
+        sids=[id[:6] for id in ids]
     else:
         sids= os.listdir("stock")
         sids=list(filter(lambda id: id[0] in ['0','6'] and id<'679999',sids))
