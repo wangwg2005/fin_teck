@@ -70,6 +70,7 @@ def get_history_price(stock_id,day_number=1024,scale=240):
     except JSONDecodeError as e:
         print(res.status_code)
         print(res.text)
+        raise Exception("json parse exception")
 # rs=search(sse,["2020-02-27","2020-02-24"])
 # print(rs)
 if __name__=="__main__":

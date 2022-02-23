@@ -42,9 +42,9 @@ def batch_extract_data(sids, exchange):
 
     
 def get_f(files):
-    sli=slice("2019-12-31","2021-12-31")
     print("stock id:",files[0][6:12])
     price=pd.read_csv(files[0],index_col=[0],parse_dates=True)
+
 #     print(price[-3:])
     lev_df=pd.read_csv(files[1],index_col=[0],parse_dates=True)
     features=price
@@ -55,10 +55,11 @@ def get_f(files):
     features['vol_']=features.apply(lambda r: -r['volume'] if r['incre']<0 else r['volume'], axis=1)
     features['vol_sum']=features['vol_'].cumsum()
     
+    return features
+    
     
 
     
-    return features[-100:]
 
 
 def build_ridge_model(args):
@@ -102,10 +103,10 @@ def lev_model(args):
     
 #     print(model.fittedvalues[-5:])
 #     print(model.conf_int(alpha=0.05, cols=None))
-    if model.rsquared>0.8:
-        print("printing "+sid+" picture")
-        add_plot=[mpf.make_addplot(model.fittedvalues[-show_day:],color="b"),mpf.make_addplot(model.resid[-show_day:],panel=1)]
-        mpf.plot(feature[-show_day:],type="candle",volume=True,style=ds.get_style(),addplot=add_plot,title=sid,savefig=os.path.join("stock_img",'img',sid+"_lev.png"))
+#     if model.rsquared>0.8:
+#         print("printing "+sid+" picture")
+#         add_plot=[mpf.make_addplot(model.fittedvalues[-show_day:],color="b"),mpf.make_addplot(model.resid[-show_day:],panel=1)]
+#         mpf.plot(feature[-show_day:],type="candle",volume=True,style=ds.get_style(),addplot=add_plot,title=sid,savefig=os.path.join("stock_img",'img',sid+"_lev.png"))
         
     return model
 
@@ -136,10 +137,10 @@ def mv_model(args):
     
 #     print(model.fittedvalues[-5:])
 #     print(model.conf_int(alpha=0.05, cols=None))
-    if model.rsquared>0.8:
-        print("printing "+sid+" picture")
-        add_plot=[mpf.make_addplot(model.fittedvalues[-show_day:],color="b"),mpf.make_addplot(model.resid[-show_day:],panel=1)]
-        mpf.plot(feature[-show_day:],type="candle",volume=True,style=ds.get_style(),addplot=add_plot,title=sid,savefig=os.path.join("stock_img",'img',sid+"_mv.png"))
+#     if model.rsquared>0.8:
+#         print("printing "+sid+" picture")
+#         add_plot=[mpf.make_addplot(model.fittedvalues[-show_day:],color="b"),mpf.make_addplot(model.resid[-show_day:],panel=1)]
+#         mpf.plot(feature[-show_day:],type="candle",volume=True,style=ds.get_style(),addplot=add_plot,title=sid,savefig=os.path.join("stock_img",'img',sid+"_mv.png"))
         
     return model
     
@@ -147,7 +148,7 @@ def mv_model(args):
 def comp_model(args):
     
     sid,feature=args[0],args[1]
-        
+    
     model_path=os.path.join("model",sid+"_comp.pickle")
     
     if os.path.exists(model_path) and False:
@@ -170,13 +171,14 @@ def comp_model(args):
     
 #     print(model.fittedvalues[-5:])
 #     print(model.conf_int(alpha=0.05, cols=None))
-    if model.rsquared>0.8:
-        print("printing "+sid+" picture")
-        add_plot=[mpf.make_addplot(model.fittedvalues[-show_day:],color="b"),mpf.make_addplot(model.resid[-show_day:],panel=1)]
-        mpf.plot(feature[-show_day:],type="candle",volume=True,style=ds.get_style(),addplot=add_plot,title=sid,savefig=os.path.join("stock_img",'img',sid+"_comp.png"))
+#     if model.rsquared>0.8:
+#         print("printing "+sid+" picture")
+#         add_plot=[mpf.make_addplot(model.fittedvalues[-show_day:],color="b"),mpf.make_addplot(model.resid[-show_day:],panel=1)]
+#         mpf.plot(feature[-show_day:],type="candle",volume=True,style=ds.get_style(),addplot=add_plot,title=sid,savefig=os.path.join("stock_img",'img',sid+"_comp.png"))
         
     return model
     
+import io 
 
 def train(sids):
     base_dir="stock"
@@ -185,11 +187,10 @@ def train(sids):
 #     files=list(files)
 #     print(files)
     features=map(get_f,files)
+    
 #     features=filter(lambda f:len(f)>200,features)
 
     sf = list(zip(sids,features))
-    
-    
     
     for model_fun in [comp_model,mv_model,lev_model]:
 #     for model_fun in [mv_model]:
@@ -205,6 +206,16 @@ def train(sids):
         result.index.name="sid"
         today_str = str(datetime.datetime.today())[:10]
         result.to_csv(os.path.join("stock_img",f"model_param_{today_str}_{model_fun.__name__[:-6]}.csv"))
+        
+        
+        
+        rows = map(lambda m :[m.rsquared,m.fittedvalues, m.resid+m.fittedvalues],models)
+        result = pd.DataFrame(list(rows),index = sids, columns=["R_Squared","Resid","Observation"])
+        result.index.name="sid"
+        buffer = result.to_json()
+        with open(os.path.join("stock_img",f"model_fit_{today_str}_{model_fun.__name__[:-6]}.js"),"w") as fo:
+            fo.write("fitted = ")
+            fo.write(buffer)
     
 
 def filter_stk():
@@ -276,9 +287,36 @@ def process():
     batch_extract_data(szse,exchange="szse")
     
     train(sids)
+    
+def get_stocks():
+    
+    files = os.listdir("stock_img")
+    
+    files = list(filter(lambda f: 'model_param'==f[:11],files))
+    files.sort()
+    
+    f = files[-1][:23];
+    
+    ids= []
+    
+    for  tp in ["comp","mv","lev"]:
+        
+    
+
+        df = pd.read_csv(os.path.join("stock_img",f+tp+".csv"))
+        df = df[ (df.R_Squared>0.6)]
+        ids.extend( list(df['sid'].map(lambda c: "{0:0>6}".format(c))))
+        
+    ids = set(ids) 
+    ids = list(map(lambda id: id+".sh" if id[0]=='6' else id+".sz",ids))
+    ids.sort()
+    return list(ids)
+    
+    
 
 def load_all_data(skip_lever = True ,skip_price = False,ids=[]):    
     sids_all=[]
+    
     
     if ids != None and len(ids) > 0 :
         sids_all = ids
@@ -303,7 +341,7 @@ def load_all_data(skip_lever = True ,skip_price = False,ids=[]):
 #     sids_sz=[]
     
 
-    
+    print("ids",sids_all)
     if not skip_lever:
         batch_extract_data(sids_sse,exchange="sse")
         batch_extract_data(sids_sz,exchange="szse")
@@ -324,8 +362,8 @@ def load_all_data(skip_lever = True ,skip_price = False,ids=[]):
                 
             cnt += 1
             
-            if cnt  %100 == 0:
-                time.sleep(3*60)
+#             if cnt  %100 == 0:
+#                 time.sleep(3*60)
             
             try:    
                 quant.get_price(sid,os.path.join("stock",s_code,"price.csv"))
@@ -372,16 +410,40 @@ def train_all(ids=[]):
         sids= os.listdir("stock")
         sids=list(filter(lambda id: id[0] in ['0','6'] and id<'679999',sids))
 #     sids=['000008']
+#     clean(sids)
     train(sids)
     
+def clean(ids):
+#     aid = list(filter(lambda id: id[-2:]=="sh",ids))
+#     print(aid)
+    
+    for id in ids:
+#         id = id[:6]
+        apath=os.path.join("stock",id,"leverage.csv")
+        lev = pd.read_csv(apath,index_col=[0])
+#         if len(lev.columns)==7:
+#             print(id)
+#             df = lev.drop(lev.columns[0],axis=1)
+#             df.to_csv(apath)
+            
+        lev2 =lev.drop_duplicates()
+        if len(lev) == len(lev2) :
+            print(id,"is good")
+        else:
+            print(id,"is bad")
+            lev2.to_csv(apath)
+        
 
 if __name__=="__main__":
 #     load_proxies()
 #     load_all_data(skip_lever = False ,skip_price = False)
 #     ids=["603259.sh","000661.sz"]
-    
-    load_all_data(skip_lever = False ,skip_price = True)
-    train_all()
+#     ids = get_stocks()
+
+#     clean(ids)
+    ids = None
+    load_all_data(skip_lever = False ,skip_price = False,ids=ids)
+    train_all(ids=ids)
     filter_stk()
 #     process()
 

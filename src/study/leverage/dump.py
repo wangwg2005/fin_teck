@@ -170,12 +170,12 @@ def extract_fast(security_codes,exchange,paths):
     last_days={}
     
     if has_empty:
-        mode="w"
+
         files=os.listdir(os.path.join(base_path,exchange))
         print("scan all leverage files")
     
     else:
-        mode="a"
+
         dfs=map(lambda path: pd.read_csv(path), paths)
 
         last_days=list(map(lambda df: str(df.iat[-1,0]), dfs))
@@ -242,6 +242,7 @@ def extract_fast(security_codes,exchange,paths):
         ndf.index.name="日期"
 #         ndf=ndf[:-1]
         s = ndf.to_csv(None,header=has_empty)
+        mode = "a" if os.path.exists(paths[i]) else "w"
         with open(paths[i],mode,encoding="utf8", newline='') as f:
             f.write(s)
         print(code,"is updated to",ndf.index[-1])
