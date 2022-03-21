@@ -1,0 +1,36 @@
+<html>
+
+<head>
+<script type="text/javascript" src="js/ml.js"></script>
+<script type="text/javascript" src="js/common.js"></script>
+<script type="text/javascript" src="js/echarts.min.js"></script>
+<script type="text/javascript" src="js/draw.js"></script>
+<script type="text/javascript">
+
+function analyze(sid){
+	
+	var d = sdata.data[sid].hfqday;
+	var dates = Array.from(d,a=>a[0]);
+	var values = Array.from(d, a=> parseFloat( a[5]));
+	var win = 5;
+	var stds= rolling_std(values,win);
+	console.log(stds);
+	draw_gradient_line("container",dates.slice(5),stds,sid);
+}
+
+function load(sid){
+
+	var url =`https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?_var=sdata&param=${sid},day,,,640,hfq&r=0.9860043111257255`;
+	load_js(url,function(){analyze(sid)});
+}
+
+load('sz002118');
+
+</script>
+</head>
+
+<body>
+<div id="kline" style="width:100%;height:400px"></div>
+<div id="container" style="width:100%;height:600px"></div>
+</body>
+</html>

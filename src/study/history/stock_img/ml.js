@@ -83,3 +83,56 @@ function rolling_lm(y,x, slid_window){
 
      return lr_list; 
 } 
+
+
+function compute_x(a){
+	if (a[2]-a[1]>0){
+		return +a[5];
+//	}else if(a[2] == a[1]){
+//		return 0;
+	}else{
+		return -a[5]
+	}
+}
+
+
+
+function calculateValue(m5, day){
+	
+	x = Array.from(m5, compute_x);
+	for(let i =1;i<x.length;i++){
+		x[i]=x[i-1]+x[i];
+	}
+	
+	y = Array.from(m5, a=> parseFloat(a[2]));
+		
+	let slid_window=day*48;
+	
+	let result=new Array(day*48);
+	result.fill("-");
+	
+	let upper=new Array(day*48);
+	upper.fill("-");
+	
+	let lower=new Array(day*48);
+	lower.fill("-");
+	
+	
+	time1 = new Date().getTime();
+	for(let i =slid_window; i< 800 ;i++){
+		let lr = linearRegression(y.slice(i-slid_window,i), x.slice(i-slid_window,i));
+		let v = lr['slope'] * x[i] + lr["intercept"];
+
+		result.push(v);
+		upper.push(v + 2*lr["se"]);
+
+		lower.push(v - 2*lr["se"] );
+		
+	}
+	time2 = new Date().getTime();
+	time_diff= time2-time1;
+	console.log("caculating "+day+" day value costs "+time_diff+"ms");
+	
+	let t = {"mean":result,"upper":upper,"lower":lower};
+	return t;
+}

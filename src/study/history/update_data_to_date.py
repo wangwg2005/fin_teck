@@ -46,9 +46,11 @@ def update_etf_lev():
 
 def update_index_lev():
     today_str = (date.today()+timedelta(days=-1)).strftime("%Y-%m-%d")
-    days = pd.date_range(start="2021-10-28",end=today_str,freq=business_day.get_business_day_cn("all"))
+#     today_str = '2022-03-10'
+    days = pd.date_range(start="2022-03-11",end=today_str,freq=business_day.get_business_day_cn("all"))
     # days = map(lambda day:day.strftime("%Y-%m-%d"),days)
     for name in ["000300","000905"]:
+#     for name in ['000016']:
         lev_fname = os.path.join(name, "融资融券_"+name+".xls")
         his_df = pd.read_excel(lev_fname, header=1, parse_dates=[0], index_col=0)
         data = list(map(lambda day: dump.extract_index_lev(name, day), days))

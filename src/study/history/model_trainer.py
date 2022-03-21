@@ -98,4 +98,8 @@ def multiple_factor_trainer():
     plt.show()
 
 
-multiple_factor_trainer()
+# multiple_factor_trainer()
+
+def train(name):
+    his = read_history(name)
+    lev = read_leverage(name)

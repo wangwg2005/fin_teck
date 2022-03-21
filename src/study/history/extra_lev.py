@@ -13,18 +13,22 @@ import numpy as np
 
 start="2017-12-31"
 
-def model(features,names,prefix):
-    split_date="2020-12-31"
+def model(features,names,prefix,split_date="2020-12-31"):
+    print(prefix)
+
 #     print(features[-10:])
     features=features[[*names,"close"]]
+    print(features.iloc[-1])
     features = features.dropna()
-    print('last trade day',features.index[-1])
+    last_day = features.index[-1]
+    
+    print('last trade day',last_day)
     df,test_df=features[:split_date],features[split_date:]
 #     df=df[-data_size[0]:]
 
-    print('df',df.tail())
+    print('df',df.index[0],df.index[-1])
     
-    print('test',test_df.tail())
+    print('test',test_df.index[0],test_df.index[-1])
     
     plt.figure(figsize=(11,8))
     
@@ -36,10 +40,10 @@ def model(features,names,prefix):
     X=sm.add_constant(X)
     y=df["close"]
     
-    print('x',X)
-    print('y',y)
+#     print('x',X)
+#     print('y',y)
     mod=sm.OLS(y,X).fit()
-    print(mod.summary())
+#     print(mod.summary())
     
     
 
@@ -91,7 +95,7 @@ def model(features,names,prefix):
     
     
 #     y_rpred = rm.predict(rX)
-    print(preds)
+#     print(preds)
     
     
     pred_y=preds["mean"]
@@ -104,24 +108,26 @@ def model(features,names,prefix):
     plt.close()
 
     plt.figure(figsize=(11, 8))
-    plt.grid()
+    
     ax4=plt.subplot(211)
+    ax4.grid()
 #     print("ridge",y_rpred)
 #     preds["Ridge"]=y_rpred   57618539
     test_df["close"].plot(ax=ax4,label="observation")
 #     preds["Ridge"].plot(ax=ax4, label='Ridge')
     
-    print(preds[["mean","obs_ci_lower","obs_ci_upper"]][-5:])
+#     print(preds[["mean","obs_ci_lower","obs_ci_upper"]][-5:])
     
-    pred_y.plot(ax=ax4,label="prediction")
+    pred_y.plot(ax=ax4,label="prediction",grid=True)
     plt.fill_between(preds.index,preds["obs_ci_lower"],preds["obs_ci_upper"],alpha=0.2)
     last_diff=test_df["close"][-1]-pred_y[-1]
     plt.title("{},mse:{:.2f},last diff:{:.2f}".format(test_df.index[-1].strftime("%Y%m%d"),mod.mse_total,last_diff))
     plt.legend()
 
     ax5 = plt.subplot(212)
+    ax5.grid();
     residual=pred_y-test_df["close"]
-    residual.plot(ax=ax5,label="residual")
+    residual.plot(ax=ax5,label="residual",grid=True)
     plt.legend()
 
     title=prefix+":"+",".join(names)
@@ -131,11 +137,6 @@ def model(features,names,prefix):
     print(fpath)
 
     plt.close()
-
-
-
-
-
 
 def get_features(name):
     
@@ -175,22 +176,34 @@ def square_process(df,names):
          
     
     return df
+
+
+def sliding_model(features,names,split):
+    features=features[[*names,"close"]]
+    features = features.dropna()
+    last_day = features.index[-1]
+    
+    print('last trade day',last_day)
+    df,test_df=features[:split],features[split:]
+    
+    
     
 if __name__=="__main__":
     
-    for name in ["000905"]:
+    for name in ["000905","000016"]:
         features=get_features(name)
 #         model(features,["lev","f1"],name)
 #         print(features[-1:])
 #         model(features,["lev","extra_lev","sell","extra_sell","f1"],name)
 #         model(features,["lev","extra_lev","sell","extra_sell"],name)
 
-        model(features,["lev","sell"],name)
+        
+        model(features,["lev","sell"],"0311_"+name)
 
 #         features['lev_square']=features['lev']**2
 #         features['sell_square']=features['sell']**2
 #         model(features,["lev","sell","lev_square","sell_square"],name)
-#         model(features,["total_lev","total_sell"],name)
+        model(features,["total_lev","total_sell"],"0311_"+name)
 #         model(features,["total_lev","total_sell","f1"],name)
 
 

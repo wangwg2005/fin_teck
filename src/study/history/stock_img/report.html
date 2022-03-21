@@ -162,11 +162,6 @@
 
 			nprice = prices.reduce(reduce_price);
 			
-			
-			console.log(nprice);
-			
-
-			
 			for (let i =0;i<nprice.length;i++){
 				let price =nprice[i];
 				let t =price[2];
@@ -210,21 +205,14 @@
 		}
 		
 		var sids=[];
-		function draw_k(){
-
-			
-			sids = Array.from(records, a=>a["code"])
-			console.log(sids);
-			
+		function draw_k(){			
+			sids = Array.from(records, a=>a["code"]);
 			sids.forEach(function (item, index){
 				url='http://ifzq.gtimg.cn/appstock/app/kline/mkline?param=sh000905,m5,,100&_var=sdata';
 				rurl = url.replace("sh000905",item);
 				loadJS(rurl, function(){draw();});
 			} );
 			
-
-			
-
 		}
 		
 	
@@ -251,18 +239,19 @@
 	</div>
 
 	<body onload='init();'>
-  <table id='detail_tab' class="easyui-datagrid" title="Profolio Detail" style="width:90%;height:100%,margin-left:5%"
+  <table id='detail_tab' class="easyui-datagrid" title="Profolio Detail" style="width:95%;height:100%,margin-left:5%"
             data-options="singleSelect:true,collapsible:true,method:'get',fitColumns:true,toolbar:'#tb'">
         <thead>
             <tr>
                 <th data-options="field:'code',width:120">code</th>
-                <th data-options="field:'R_Squared',width:120,formatter:num_format,sortable:true,">R_Squared</th>
+                <th data-options="field:'R_Squared',width:120,formatter:num_format,sortable:true,sorter:function(a,b){ return a-b; }  ">R_Squared</th>
                 <th data-options="field:'F_Value',width:120,align:'right',formatter:num_format">F_Value</th>
                 <th data-options="field:'F_P_value',width:120,align:'right',formatter:num_format">F_P_value</th>
-                <th data-options="field:'Last Resid',width:250,formatter:num_format">Last Resid</th>
+                <th data-options="field:'Last Resid',width:130,formatter:num_format">Last Resid</th>
                 <th data-options="field:'Last Fitted Value',width:120,align:'center',formatter:num_format">Last Fitted Value</th>
 				<th data-options="field:'percent',width:120,formatter:num_format">percent</th>
 				<th data-options="field:'deviation',width:120,formatter:num_format">deviation</th>
+				<th data-options="field:'params',width:360">params</th>
 				<th data-options="field:'image',width:80">image</th>
 				<th data-options="field:'realtime',width:80">realtime</th>
             </tr>

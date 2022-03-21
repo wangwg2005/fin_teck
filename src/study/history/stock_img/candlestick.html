@@ -9,6 +9,7 @@
         <script type="text/javascript" src="echarts.min.js"></script> 
   <!--     <script src="http://ifzq.gtimg.cn/appstock/app/kline/mkline?param=sh000905,m5,,800&_var=m5_000905"></script> -->
        <script src="ml.js"></script>
+	    <script src="draw.js"></script>
        <script type="text/javascript">
        
 stock={"id":"sh000905","scale":"m5","value":6700};       
@@ -19,8 +20,6 @@ function loadJS( callback ){
 		url=url.replace('m5',stock['scale']);
 	}
 	
-	
-			
 			
     var script = document.createElement('script');
 	fn = callback || function(){};
@@ -35,7 +34,6 @@ function loadJS( callback ){
 }
 
 
-       
 function get_data(){
 	
        let query = window.location.search.substring(1);
@@ -48,326 +46,15 @@ function get_data(){
 }
 
 get_data();
-loadJS(draw);
-
-
-var dom = document.getElementById("container");
-var myChart = echarts.init(dom);
-var app = {};
-option = null;
-var upColor = '#ec0000';
-var upBorderColor = '#8A0000';
-var downColor = '#00da3c';
-var downBorderColor = '#008F28';
-var m5;
-var data0;
-
-function draw(){
-	m5 = sdata["data"][stock["id"]][stock["scale"]];
-	let sname = sdata["data"][stock["id"]]["qt"][stock["id"]][1];
-	
-	current_price = m5[m5.length-1][2];
-	
-	document.title = sname+'-'+stock['id']+":"+current_price;
-
-	var mdata = Array.from(m5 ,a => [a[0],a[1],a[2],a[4],a[3]]);
-	data0 = splitData(mdata);
-	
-	
-	
-	calculateValue(5);
-	calculateValue(10);
-// 数据意义：开盘(open)，收盘(close)，最低(lowest)，最高(highest)
-	
-	
-
-	
-
-	option = {
-	    title: {
-	        text: sname+':'+current_price,
-	        left: 0
-	    },
-	    tooltip: {
-	        trigger: 'axis',
-	        axisPointer: {
-	            type: 'cross'
-	        }
-	    },
-	    legend: {
-	        data: ['日K', 'MA5_upper', 'MA5_lower', 'MA10_upper', 'MA10_lower']
-	    },
-	    grid: {
-	        left: '10%',
-	        right: '10%',
-	        bottom: '15%'
-	    },
-	    xAxis: {
-	        type: 'category',
-	        data: data0.categoryData,
-	        scale: true,
-	        boundaryGap: false,
-	        axisLine: {onZero: false},
-	        splitLine: {show: false},
-	        splitNumber: 20,
-	        min: 'dataMin',
-	        max: 'dataMax'
-	    },
-	    yAxis: {
-	        scale: true,
-	        splitArea: {
-	            show: true
-	        }
-	    },
-	    dataZoom: [
-	        {
-	            type: 'inside',
-	            start: 50,
-	            end: 100
-	        },
-	        {
-	            show: true,
-	            type: 'slider',
-	            top: '90%',
-	            start: 50,
-	            end: 100
-	        }
-	    ],
-	    series: [
-	        {
-	            name: '日K',
-	            type: 'candlestick',
-	            data: data0.values,
-	            itemStyle: {
-	                color: upColor,
-	                color0: downColor,
-	                borderColor: upBorderColor,
-	                borderColor0: downBorderColor
-	            },
-	            markPoint: {
-	                label: {
-	                    normal: {
-	                        formatter: function (param) {
-	                            return param != null ? param.value.toFixed(2) : '';
-	                        }
-	                    }
-	                },
-	                data: [
-	                   
-	                    {
-	                        name: 'highest value',
-	                        type: 'max',
-	                        valueDim: 'highest'
-	                    },
-	                    {
-	                        name: 'lowest value',
-	                        type: 'min',
-	                        valueDim: 'lowest'
-	                    },
-	                    {
-	                        name: 'average value on close',
-	                        type: 'average',
-	                        valueDim: 'close'
-	                    }
-	                ],
-	                tooltip: {
-	                    formatter: function (param) {
-	                    	console.log(param.data.coord);
-	                        return param.name + '<br>' + (param.data.coord.toFixed(2) || '');
-	                    }
-	                }
-	            },
-	            markLine: {
-	                symbol: ['none', 'none'],
-	                data: [
-	                    [
-	                        {
-	                            name: 'from lowest to highest',
-	                            type: 'min',
-	                            valueDim: 'lowest',
-	                            symbol: 'circle',
-	                            symbolSize: 10,
-	                            label: {
-	                                show: false
-	                            },
-	                            emphasis: {
-	                                label: {
-	                                    show: false
-	                                }
-	                            }
-	                        },
-	                        {
-	                            type: 'max',
-	                            valueDim: 'highest',
-	                            symbol: 'circle',
-	                            symbolSize: 10,
-	                            label: {
-	                                show: false
-	                            },
-	                            emphasis: {
-	                                label: {
-	                                    show: false
-	                                }
-	                            }
-	                        }
-	                    ],
-	                    {yAxis:stock['value']},
-	                    {
-	                        name: 'min line on close',
-	                        type: 'min',
-	                        valueDim: 'close'
-	                    },
-	                    {
-	                        name: 'max line on close',
-	                        type: 'max',
-	                        valueDim: 'close'
-	                    }
-	                ]
-	            }
-	        },
-	        {
-	            name: 'MA5_upper',
-	            type: 'line',
-	            data: pred[5]['upper'],
-	            smooth: true,
-	            lineStyle: {
-	                opacity: 1
-	            }
-	        },
-	        {
-	            name: 'MA5_lower',
-	            type: 'line',
-	            data: pred[5]["lower"],
-	            smooth: true,
-	            lineStyle: {
-	                opacity: 1
-	            }
-	        },
-	        {
-	            name: 'MA10_upper',
-	            type: 'line',
-	            data: pred[10]["upper"],
-	            smooth: true,
-	            lineStyle: {
-	                opacity: 1
-	            }
-	        },
-	        {
-	            name: 'MA10_lower',
-	            type: 'line',
-	            data: pred[10]["lower"],
-	            smooth: true,
-	            lineStyle: {
-	                opacity: 1
-	            }
-	        }
-
-	    ]
-	};
-	
-	
-	
-	
-	
-	if (option && typeof option === "object") {
-	    myChart.setOption(option, true);
-	}
-}
-
-
-function compute_x(a){
-	if (a[2]-a[1]>0){
-		return +a[5];
-//	}else if(a[2] == a[1]){
-//		return 0;
-	}else{
-		return -a[5]
-	}
-}
-
-let pred={}
-
-function splitData(rawData) {
-    var categoryData = [];
-    var values = []
-    for (var i = 0; i < rawData.length; i++) {
-        categoryData.push(rawData[i].splice(0, 1)[0]);
-        values.push(rawData[i])
-    }
-    return {
-        categoryData: categoryData,
-        values: values
-    };
-}
-
-function calculateValue(day){
-	
-	x = Array.from(m5, compute_x);
-	for(let i =1;i<x.length;i++){
-		x[i]=x[i-1]+x[i];
-	}
-	
-	y = Array.from(m5, a=> parseFloat(a[2]));
-		
-	let slid_window=day*48;
-	
-	let result=new Array(day*48);
-	result.fill("-");
-	
-	let upper=new Array(day*48);
-	upper.fill("-");
-	
-	let lower=new Array(day*48);
-	lower.fill("-");
-	
-	
-	time1 = new Date().getTime();
-	for(let i =slid_window; i< 800 ;i++){
-		let lr = linearRegression(y.slice(i-slid_window,i), x.slice(i-slid_window,i));
-		let v = lr['slope'] * x[i] + lr["intercept"];
-		//adjust for 000905  7256.0598
-
-		
-		if (stock["id"]=='sh000905'){
-			v=v-1.9
-			result.push(v);
-			upper.push(v + 2*lr["se"] -1);
-			
-			//7170.4385
-			lower.push(v - 2*lr["se"] - 1);
-		}else{
-			result.push(v);
-			upper.push(v + 2*lr["se"]);
-			
-			//7170.4385
-			lower.push(v - 2*lr["se"] );
-		}
-	}
-	time2 = new Date().getTime();
-	time_diff= time2-time1;
-	console.log("caculating "+day+" day value costs "+time_diff+"ms");
-	
-	pred[day] = {"mean":result,"upper":upper,"lower":lower};
-	return result;
-}
+loadJS(function(){draw("container",stock['id']);});
 
 
 
-function calculateMA(dayCount) {
-    var result = [];
-    for (var i = 0, len = data0.values.length; i < len; i++) {
-        if (i < dayCount) {
-            result.push('-');
-            continue;
-        }
-        var sum = 0;
-        for (var j = 0; j < dayCount; j++) {
-            sum += data0.values[i - j][1];
-        }
-        result.push(sum / dayCount);
-    }
-    return result;
-}
+
+
+let pred={};
+
+
 
 
 

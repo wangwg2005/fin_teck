@@ -2,14 +2,49 @@
 <html style="height: 100%">
    <head>
        <meta charset="utf-8">
-       <title>mv model online model</title>
+       <title>mv model online version</title>
    </head>
    <body style="height: 100%; margin: 0">
-       <div id="container" style="height: 100%"></div>
+       <div id="container" style="height: 700px"></div>
+	   <div id="volatility" style="height:700px"></div>
  <!--      <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts@4/dist/echarts.min.js"></script>  -->
-        <script type="text/javascript" src="echarts.min.js"></script> 
+        <script type="text/javascript" src="js/echarts.min.js"></script> 
   <!--     <script src="http://ifzq.gtimg.cn/appstock/app/kline/mkline?param=sh000905,m5,,800&_var=m5_000905"></script> -->
-       <script src="ml.js"></script>
+       <script src="js/ml.js"></script>
+	   <script src="js/common.js"></script>
+	   <script src="js/draw.js"></script>
+	   
+	   <script type="text/javascript">
+	   
+		   function analyze(sid){
+		
+				var d = sdata.data[sid];
+				if ('hfqday' in d){
+					d = d.hfqday;
+				}else{
+					d=d.day;
+				}
+				var dates = Array.from(d,a=>a[0]);
+				var values = Array.from(d, a=> parseFloat( a[5]));
+				var win = 5;
+				var t1= new Date().getTime();
+				var stds= rolling_std(values,win);
+				var t2= new Date().getTime();
+				console.log(`${t2-t1} ms cost on computing rolling std`);
+				draw_gradient_line("volatility",dates.slice(5),stds,sid);
+			}
+
+			function load(sid){
+
+				var url =`https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?_var=sdata&param=${sid},day,,,640,hfq&r=0.9860043111257255`;
+				load_js(url,function(){analyze(sid)});
+			}
+
+	   
+	   </script>
+	   
+	   
+	   
        <script type="text/javascript">
        
 stock={"id":"sh000905","scale":"m5","value":6500};       
@@ -18,21 +53,9 @@ function loadJS( callback ){
 	if (stock['id']!='sh000905' || stock['scale'] !='m5'){
 		url=url.replace('sh000905',stock['id']);
 		url=url.replace('m5',stock['scale']);
-	}
-	
-	
+	}			
 			
-			
-    var script = document.createElement('script');
-	fn = callback || function(){};
-    script.type = 'text/javascript';
-    script.onload = fn;
-    
-    console.log("loading js from "+url);
-
-    script.src = url;
-    document.getElementsByTagName('head')[0].appendChild(script);
-
+    load_js(url,callback);
 }
 
 
@@ -64,6 +87,7 @@ var m5;
 var data0;
 
 function draw(){
+	
 	m5 = sdata["data"][stock["id"]][stock["scale"]];
 	let sname = sdata["data"][stock["id"]]["qt"][stock["id"]][1];
 	
@@ -273,6 +297,8 @@ function draw(){
 	if (option && typeof option === "object") {
 	    myChart.setOption(option, true);
 	}
+	
+	load(stock['id']);
 }
 
 

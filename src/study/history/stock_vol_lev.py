@@ -197,11 +197,11 @@ def train(sids):
         
         models=map(model_fun,sf)
         
-        columns=["R_Squared","F_Value","F_P_value","Last Resid","Last Fitted Value","percent","deviation"]
+        columns=["R_Squared","F_Value","F_P_value","Last Resid","Last Fitted Value","percent","deviation",'params']
         
     #     for i in range(-1,-30,-1):
         i=-1
-        rows=map(lambda m:[m.rsquared,m.fvalue,m.f_pvalue,m.resid[i],m.fittedvalues[i],m.resid[i]/m.fittedvalues[i],m.resid[i]/(m.mse_total/(len(m.fittedvalues)**0.5))] ,models)
+        rows=map(lambda m:[m.rsquared,m.fvalue,m.f_pvalue,m.resid[i],m.fittedvalues[i],m.resid[i]/m.fittedvalues[i],m.resid[i]/(m.mse_total/(len(m.fittedvalues)**0.5)),m.params] ,models)
         result=pd.DataFrame(list(rows),index=sids,columns=columns)
         result.index.name="sid"
         today_str = str(datetime.datetime.today())[:10]
@@ -239,8 +239,8 @@ def filter_stk():
     
         df = pd.read_csv(os.path.join("stock_img",f"model_param_{today_str}_{t}.csv"))
         
-    
-        df = df[ (df.R_Squared>0.8) & (df.percent <-0.05) & (df.deviation<-2)]
+        df = df.sort_values(by ="R_Squared",ascending=True)
+        df = df[ (df.R_Squared>0.85) & (df.percent <-0.05) & (df.deviation<-2)]
         if len(df)==0:
             print(f"no qualified data for {t}!")
             continue
@@ -368,7 +368,7 @@ def load_all_data(skip_lever = True ,skip_price = False,ids=[]):
             try:    
                 quant.get_price(sid,os.path.join("stock",s_code,"price.csv"))
             except:
-                time.sleep(8*60)
+                time.sleep(5*60)
                 quant.get_price(sid,os.path.join("stock",s_code,"price.csv"))
  
  
@@ -442,7 +442,8 @@ if __name__=="__main__":
 
 #     clean(ids)
     ids = None
-    load_all_data(skip_lever = False ,skip_price = False,ids=ids)
+#     load_all_data(skip_lever = True ,skip_price = False,ids=ids)
+    load_all_data(skip_lever = False ,skip_price = True,ids=ids)
     train_all(ids=ids)
     filter_stk()
 #     process()
