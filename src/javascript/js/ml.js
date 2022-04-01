@@ -48,7 +48,7 @@ function std(a){
 	
 }
 function rolling_std(a,slide_window){
-	var offset = a.length - slide_window ;
+	var offset = a.length - slide_window +1;
 	var stds= new Array();
 	for(let i = 0 ;i< offset;i++){
 		b = a.slice(i,i+slide_window);

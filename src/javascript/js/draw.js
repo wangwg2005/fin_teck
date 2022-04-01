@@ -255,20 +255,11 @@ function draw_gradient_line(cid,dates,values,title){
 	const valueList = values
 	option = {
 	  // Make gradient line here
-	  visualMap: [
-		{
-		  show: false,
-		  type: 'continuous',
-		  seriesIndex: 0,
-		  min: 0,
-		  max: 40,
-		  inverse:true
-		}
-	  ],
+	
 	  title: [
 		{
 		  left: 'center',
-		  text: 'Volume Volatility of'+title
+		  text: 'Volatility of '+title
 		}
 	  ],
 	  tooltip: {

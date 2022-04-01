@@ -7,6 +7,7 @@
    <body style="height: 100%; margin: 0">
        <div id="container" style="height: 700px"></div>
 	   <div id="volatility" style="height:700px"></div>
+	   <div id="volatility_price" style="height:700px"></div>
  <!--      <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts@4/dist/echarts.min.js"></script>  -->
         <script type="text/javascript" src="js/echarts.min.js"></script> 
   <!--     <script src="http://ifzq.gtimg.cn/appstock/app/kline/mkline?param=sh000905,m5,,800&_var=m5_000905"></script> -->
@@ -24,14 +25,20 @@
 				}else{
 					d=d.day;
 				}
-				var dates = Array.from(d,a=>a[0]);
+				var dates = Array.from(d,a=>a[0]).slice(5);
 				var values = Array.from(d, a=> parseFloat( a[5]));
 				var win = 5;
 				var t1= new Date().getTime();
 				var stds= rolling_std(values,win);
 				var t2= new Date().getTime();
 				console.log(`${t2-t1} ms cost on computing rolling std`);
-				draw_gradient_line("volatility",dates.slice(5),stds,sid);
+				console.log(stds);
+				draw_gradient_line("volatility",dates,stds,"volume");
+				
+				var close_p = Array.from(d, a=> parseFloat( a[2]));
+				var stds= rolling_std(close_p,win);
+				draw_gradient_line("volatility_price",dates,stds,'close');
+				
 			}
 
 			function load(sid){
