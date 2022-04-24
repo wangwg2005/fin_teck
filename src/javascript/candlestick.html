@@ -2,7 +2,7 @@
 <html style="height: 100%">
    <head>
        <meta charset="utf-8">
-       <title>mv model online version</title>
+       <title>Mv model online version</title>
    </head>
    <body style="height: 100%; margin: 0">
        <div id="container" style="height: 700px"></div>
@@ -14,12 +14,69 @@
        <script src="js/ml.js"></script>
 	   <script src="js/common.js"></script>
 	   <script src="js/draw.js"></script>
+	   <script src="js/leverage.js"></script>
+	   <script type="text/javascript">
+	   
+			function rzrq_analyze(data){
+				console.log(data);
+				data.reverse();
+				var x = Array.from(data,d=>d.rzye);
+				var last_day = rzye[0].DATE.slice(0,10);
+				console.log(`last day:${last_day}`);
+				var d = daydata.data[sid];
+				if ('hfqday' in d){
+					d = d.hfqday;
+				}else{
+					d = d.day;
+				}
+				
+				var last_item = d[d.length - 1];
+				
+				if (last_item[0] == last_day){
+					var prices = d.slice( - data.length)
+				}else {
+					var prices = d.slice( - data.length -1, -1)
+				}
+				
+				y = Array.from(prices, a => parseFloat(a[2]));
+				
+				var slid_window = stock.window;
+				
+				var result =[];
+				var upper = [];
+				var lower = [];
+				for (let i = slid_window ; i< y.length; i++){
+					let lr = linearRegression(y.slice(i-slid_window,i), x.slice(i-slid_window,i));
+					let v = lr['slope'] * x[i] + lr["intercept"];
+					
+					result.push(v);
+					upper.push(v + 2*lr["se"]);
+					lower.push(v - 2*lr["se"] );
+				
+				}
+				
+				leverage['pred'] = result;
+				leverage['upper'] = upper;
+				leverage['lower'] = lower;
+				
+				
+				
+			
+			}
+			
+			function rzrq_init(){
+				fetch_rzrq(stock.sid.substr(2),200,rzrq_analyze);
+			}
+
+	
+	
+	</script>
 	   
 	   <script type="text/javascript">
 	   
 		   function analyze(sid){
 		
-				var d = sdata.data[sid];
+				var d = daydata.data[sid];
 				if ('hfqday' in d){
 					d = d.hfqday;
 				}else{
@@ -33,17 +90,17 @@
 				var t2= new Date().getTime();
 				console.log(`${t2-t1} ms cost on computing rolling std`);
 				console.log(stds);
-				draw_gradient_line("volatility",dates,stds,"volume");
+				draw_gradient_line("volatility",dates,[stds],"Volatility of Volume");
 				
 				var close_p = Array.from(d, a=> parseFloat( a[2]));
 				var stds= rolling_std(close_p,win);
-				draw_gradient_line("volatility_price",dates,stds,'close');
+				draw_gradient_line("volatility_price",dates,[stds],'Volatility of Close');
 				
 			}
 
 			function load(sid){
 
-				var url =`https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?_var=sdata&param=${sid},day,,,640,hfq&r=0.9860043111257255`;
+				var url =`https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?_var=daydata&param=${sid},day,,,640,hfq&r=0.9860043111257255`;
 				load_js(url,function(){analyze(sid)});
 			}
 
@@ -54,20 +111,28 @@
 	   
        <script type="text/javascript">
        
-stock={"id":"sh000905","scale":"m5","value":6500};       
+stock={"id":"sh000905","scale":"m5","value":6500,'window':30};       
 function loadJS( callback ){
-	url='http://ifzq.gtimg.cn/appstock/app/kline/mkline?param=sh000905,m5,,800&_var=sdata';
-	if (stock['id']!='sh000905' || stock['scale'] !='m5'){
-		url=url.replace('sh000905',stock['id']);
-		url=url.replace('m5',stock['scale']);
-	}			
+	var url='http://ifzq.gtimg.cn/appstock/app/kline/mkline?param=sh000905,m5,,800&_var=sdata';
+	var url2 = 'https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?_var=sdata&param=sh000905,day,,,800,hfq&r=0.9860043111257255'
+	
+	if(stock.scale == 'day'){
+		url = url2;
+		stock.scale = 'hfqday';
+	}else{
+		url.replace('m5',stock.scale);
+	}
+	if (stock['id']!='sh000905'){
+		url=url.replace('sh000905',stock['id']);	
+	}
+
 			
     load_js(url,callback);
 }
 
 
        
-function get_data(){
+function get_param(){
 	
        let query = window.location.search.substring(1);
        let vars = query.split("&");
@@ -78,7 +143,7 @@ function get_data(){
        console.log(stock);
 }
 
-get_data();
+get_param();
 loadJS(draw);
 
 
@@ -309,15 +374,7 @@ function draw(){
 }
 
 
-function compute_x(a){
-	if (a[2]-a[1]>0){
-		return +a[5];
-//	}else if(a[2] == a[1]){
-//		return 0;
-	}else{
-		return -a[5]
-	}
-}
+
 
 let pred={}
 
@@ -344,6 +401,7 @@ function calculateValue(day){
 	y = Array.from(m5, a=> parseFloat(a[2]));
 		
 	let slid_window=day*48;
+	console.log("window length"+slid_window);
 	
 	let result=new Array(day*48);
 	result.fill("-");
@@ -359,23 +417,11 @@ function calculateValue(day){
 	for(let i =slid_window; i< 800 ;i++){
 		let lr = linearRegression(y.slice(i-slid_window,i), x.slice(i-slid_window,i));
 		let v = lr['slope'] * x[i] + lr["intercept"];
-		//adjust for 000905  7256.0598
-
 		
-		//if (stock["id"]=='sh000905'){
-	//		v=v-1.9
-	//		result.push(v);
-	//		upper.push(v + 2*lr["se"] -1);
-			
-			//7170.4385
-	//		lower.push(v - 2*lr["se"] - 1);
-	//	}else{
-			result.push(v);
-			upper.push(v + 2*lr["se"]);
-			
-			//7170.4385
-			lower.push(v - 2*lr["se"] );
-		//}
+		result.push(v);
+		upper.push(v + 2*lr["se"]);
+		lower.push(v - 2*lr["se"] );
+		
 	}
 	time2 = new Date().getTime();
 	time_diff= time2-time1;
@@ -384,27 +430,6 @@ function calculateValue(day){
 	pred[day] = {"mean":result,"upper":upper,"lower":lower};
 	return result;
 }
-
-
-
-function calculateMA(dayCount) {
-    var result = [];
-    for (var i = 0, len = data0.values.length; i < len; i++) {
-        if (i < dayCount) {
-            result.push('-');
-            continue;
-        }
-        var sum = 0;
-        for (var j = 0; j < dayCount; j++) {
-            sum += data0.values[i - j][1];
-        }
-        result.push(sum / dayCount);
-    }
-    return result;
-}
-
-
-
        </script>
    </body>
 </html>

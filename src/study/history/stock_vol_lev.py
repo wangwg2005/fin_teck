@@ -10,7 +10,7 @@ from study.leverage import quant_buttom_ana as quant
 import datetime
 from statsmodels.regression.linear_model import OLSResults
 import business_day
-from numpy.ma.core import ids
+from study.ml import cycle_test as ct
 
 def batch_extract_data(sids, exchange):
     
@@ -55,7 +55,7 @@ def get_f(files):
     features['vol_']=features.apply(lambda r: -r['volume'] if r['incre']<0 else r['volume'], axis=1)
     features['vol_sum']=features['vol_'].cumsum()
     
-    return features
+    return features[-30:]
     
     
 
@@ -187,35 +187,42 @@ def train(sids):
 #     files=list(files)
 #     print(files)
     features=map(get_f,files)
-    
 #     features=filter(lambda f:len(f)>200,features)
 
     sf = list(zip(sids,features))
+    cs = 'open,high,low,close,volume'.split(",")
+    cycle_results = list( map(lambda a: ct.test_df(a[1][cs]),sf))
+    cycle_df= pd.DataFrame(cycle_results,index = sids)
+    print(cycle_df.head())
+    
+    
+    columns2=["R_Squared","F_Value","F_P_value","Last Resid","Last Fitted Value","percent","deviation",'params']
     
     for model_fun in [comp_model,mv_model,lev_model]:
 #     for model_fun in [mv_model]:
         
         models=map(model_fun,sf)
         
-        columns=["R_Squared","F_Value","F_P_value","Last Resid","Last Fitted Value","percent","deviation",'params']
+        
         
     #     for i in range(-1,-30,-1):
         i=-1
-        rows=map(lambda m:[m.rsquared,m.fvalue,m.f_pvalue,m.resid[i],m.fittedvalues[i],m.resid[i]/m.fittedvalues[i],m.resid[i]/(m.mse_total/(len(m.fittedvalues)**0.5)),m.params] ,models)
-        result=pd.DataFrame(list(rows),index=sids,columns=columns)
+        rows=map(lambda m:[m.rsquared,m.fvalue,m.f_pvalue,m.resid[i],m.fittedvalues[i],m.resid[i]/m.fittedvalues[i],m.resid[i]/(m.mse_resid**0.5),m.params] ,models)
+        result=pd.DataFrame(list(rows),index=sids,columns=columns2)
+        result = pd.concat([result,cycle_df], axis=1)
         result.index.name="sid"
         today_str = str(datetime.datetime.today())[:10]
         result.to_csv(os.path.join("stock_img",f"model_param_{today_str}_{model_fun.__name__[:-6]}.csv"))
         
         
         
-        rows = map(lambda m :[m.rsquared,m.fittedvalues, m.resid+m.fittedvalues],models)
-        result = pd.DataFrame(list(rows),index = sids, columns=["R_Squared","Resid","Observation"])
-        result.index.name="sid"
-        buffer = result.to_json()
-        with open(os.path.join("stock_img",f"model_fit_{today_str}_{model_fun.__name__[:-6]}.js"),"w") as fo:
-            fo.write("fitted = ")
-            fo.write(buffer)
+#         rows = map(lambda m :[m.rsquared,m.fittedvalues, m.resid+m.fittedvalues],models)
+#         result = pd.DataFrame(list(rows),index = sids, columns=["R_Squared","Resid","Observation"])
+#         result.index.name="sid"
+#         buffer = result.to_json()
+#         with open(os.path.join("stock_img",f"model_fit_{today_str}_{model_fun.__name__[:-6]}.js"),"w") as fo:
+#             fo.write("fitted = ")
+#             fo.write(buffer)
     
 
 def filter_stk():
@@ -225,7 +232,7 @@ def filter_stk():
     link='<a href="candlestick.html?id={0}&scale=m5&value={1:0.2f}" target="_blank">link</a>'
     
     today_str = str(datetime.datetime.today())[:10]
-#     today_str='2021-12-31'
+#     today_str='2022-04-15'
 #     fname = f"result_{today_str}.csv"
 
 #     days=pd.date_range(start='2021-11-01', end='2022-01-01', freq=business_day.get_business_day_cn())
@@ -240,30 +247,32 @@ def filter_stk():
         df = pd.read_csv(os.path.join("stock_img",f"model_param_{today_str}_{t}.csv"))
         
         df = df.sort_values(by ="R_Squared",ascending=True)
-        df = df[ (df.R_Squared>0.85) & (df.percent <-0.05) & (df.deviation<-2)]
+#         df = df[ (df.R_Squared>0.85) & (df.percent <-0.05) & (df.deviation<-2)]
         if len(df)==0:
             print(f"no qualified data for {t}!")
             continue
-        df['image'] = df['sid'].map(lambda sid:'<a href="img/{0:0>6}_{1}.png" target="_blank">image</a>'.format(sid,t))
+        
         df['code'] = df['sid'].map(lambda c: "sh{0:0>6}".format(c) if c>600000 else "sz{0:0>6}".format(c))
+        df['lev'] = df['code'].map(lambda code:f'<a href="lev.html?id={code}" target="_blank">lev</a>')
         ss = df.apply(lambda r: link.format(r['code'],r['Last Fitted Value']),axis=1)
         df['realtime']  = ss
         sid=df.pop('sid')
         
         
         df.index = sid.map(lambda a:'{0:0>6}'.format(a))
-        df = df.sort_values(by='deviation')
-        report_path = os.path.join("stock_img",f'report_{today_str}_{t}.html')
+        df = df.sort_values(by='percent')
+        base_dir = '../../javascript/js/data'
+#         report_path = os.path.join(base_dir, f'report_{today_str}_{t}.html')
         
         
         buffer = df.to_json(orient="records")
-        with open( os.path.join("stock_img",f'report_{today_str}_{t}.js'),'w') as fo:
+        with open( os.path.join(base_dir,f'report_{today_str}_{t}.js'),'w') as fo:
             fo.write('records = ')
             fo.write(buffer)
 #         df.pop('code')
 #         df.to_html(report_path,escape=False)
         
-        print(f"report for {today_str} {t} generated, please find it at {report_path}")
+
         
     
     
@@ -368,7 +377,7 @@ def load_all_data(skip_lever = True ,skip_price = False,ids=[]):
             try:    
                 quant.get_price(sid,os.path.join("stock",s_code,"price.csv"))
             except:
-                time.sleep(5*60)
+                time.sleep(8*60)
                 quant.get_price(sid,os.path.join("stock",s_code,"price.csv"))
  
  
@@ -442,10 +451,14 @@ if __name__=="__main__":
 
 #     clean(ids)
     ids = None
-#     load_all_data(skip_lever = True ,skip_price = False,ids=ids)
     load_all_data(skip_lever = True ,skip_price = False,ids=ids)
+#     load_all_data(skip_lever = True ,skip_price = False,ids=ids)
 #     train_all(ids=ids)
 #     filter_stk()
+#      
+#     
+#     ct.test_all()
+    
 #     process()
 
     

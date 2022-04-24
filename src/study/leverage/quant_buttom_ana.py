@@ -55,7 +55,7 @@ def get_price(sid,fname=None):
             
             
             
-            result = price_query.get_history_price(sid)
+            result = price_query.get_history_price(sid, day_number = day_num+3)
             
             
             

@@ -1,3 +1,27 @@
+function batch_ml(x,y,offset){
+	var data_len = x.length;
+	var result = new Array(data_len);
+	result.fill("-");
+	
+	var upper =  new Array(data_len);
+	upper.fill("-");
+	var lower =  new Array(data_len);
+	lower.fill("-");
+	for (let i = offset ; i< y.length; i++){
+		let lr = linearRegression(y.slice(i-offset,i), x.slice(i-offset,i));
+		let v = lr['slope'] * x[i] + lr["intercept"];
+		
+		result[i] = v;
+		upper[i] =(v + 2*lr["se"]);
+		lower[i] = (v - 2*lr["se"] );
+	
+	}
+	
+	return [result,upper,lower];
+	
+}
+
+
 function linearRegression(y,x){ 
      let lr = {}; 
      let n = y.length; 
@@ -27,7 +51,7 @@ function linearRegression(y,x){
     	 
      }
      
-     lr['se']= Math.pow(mse/n , 0.5)
+     lr['se']= Math.sqrt(mse/n)
      
      
      lr['r2'] = Math.pow((n*sum_xy - sum_x*sum_y)/Math.sqrt((n*sum_xx-sum_x*sum_x)*(n*sum_yy-sum_y*sum_y)),2); 

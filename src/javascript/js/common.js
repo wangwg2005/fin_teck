@@ -1,4 +1,13 @@
 
+
+function compute_x(a){
+	if (a[2]-a[1]>0){
+		return +a[5];
+	}else{
+		return -a[5]
+	}
+}
+
 function notify(title, body) {
 	  // 先检查浏览器是否支持
 	  if (!("Notification" in window)) {
@@ -21,6 +30,22 @@ function notify(title, body) {
 	    });
 	  }
 	  
+}
+       
+function get_param(params){
+	   if (params == null){
+		   params = {};
+	   }
+	
+       let query = window.location.search.substring(1);
+       let vars = query.split("&");
+       for (let i=0;i<vars.length;i++) {
+               let pair = vars[i].split("=");
+               params[pair[0]]=pair[1];
+       }
+	   
+       console.log(params);
+	   return params
 }
 
 function load_js(url , callback ){

@@ -130,7 +130,7 @@ def model(features,names,prefix,split_date="2020-12-31"):
     residual.plot(ax=ax5,label="residual",grid=True)
     plt.legend()
 
-    title=prefix+":"+",".join(names)
+#     title=prefix+":"+",".join(names)
     plt.suptitle("predtion")
     fpath = os.path.join("img", prefix + "_" + "_".join(names) + "_pred.png")
     plt.savefig(fpath)
@@ -144,30 +144,33 @@ def get_features(name):
 
     price_df=pd.read_csv(os.path.join(base_dir,name+".csv"),encoding="utf8",parse_dates=[0],index_col=0,nrows=4000).sort_index()[start:]
     lev_df=pd.read_excel(os.path.join(base_dir,"融资融券_"+name+"n.xls"),parse_dates=[0],index_col=0).sort_index()[start:]
+#     print("leverage :")
+#     print(lev_df)
     
-    files=os.listdir(name)
-    etfs=filter(lambda f: len(f)==15 and f[:4]=="rzrq", files)
+#     files=os.listdir(name)
+#     etfs=filter(lambda f: len(f)==15 and f[:4]=="rzrq", files)
 
     
-    extra_dfs=map(lambda etfile:pd.read_csv(os.path.join(base_dir,etfile),header=0,parse_dates=[0],index_col=0).sort_index()[start:][["融资余额(元)","融券余量"]],etfs)
-    extra_dfs=list(extra_dfs)
+#     extra_dfs=map(lambda etfile:pd.read_csv(os.path.join(base_dir,etfile),header=0,parse_dates=[0],index_col=0).sort_index()[start:][["融资余额(元)","融券余量"]],etfs)
+#     extra_dfs=list(extra_dfs)
 #     for ext in extra_dfs:
 #         print(ext.dtypes)
 # #         print(ext)
 #         print(ext.head())
 #         print(ext.index[:10])
         
-    extra=reduce(lambda a,b:a+b, extra_dfs)/100000000
+#     extra=reduce(lambda a,b:a+b, extra_dfs)/100000000
     features=price_df[["收盘价"]]
     features["f1"]=price_df["成交量"]*price_df["涨跌幅"].map(lambda a: 1 if a>0 else -1)/10000000
     features=features.rename(columns={"收盘价": "close"})
     features["lev"] =lev_df["融资余额(亿元)"]
     features["sell"]=lev_df["融券余量(亿股)"]
-    features["extra_lev"] = extra["融资余额(元)"]
-    features["extra_sell"] = extra["融券余量"]
-    features["total_lev"]=features["lev"]+features["extra_lev"]
-    features["total_sell"]=features["sell"]+features["extra_sell"]
-    
+#     features["extra_lev"] = extra["融资余额(元)"]
+#     features["extra_sell"] = extra["融券余量"]
+#     features["total_lev"]=features["lev"]+features["extra_lev"]
+#     features["total_sell"]=features["sell"]+features["extra_sell"]
+    print(f"get feature for {name} from {features.index[0]} to {features.index[-1]}")
+    print(f"last row : {features.iloc[-1]}")
     return features
 
 def square_process(df,names):
@@ -184,13 +187,14 @@ def sliding_model(features,names,split):
     last_day = features.index[-1]
     
     print('last trade day',last_day)
-    df,test_df=features[:split],features[split:]
+#     df,test_df=features[:split],features[split:]
     
     
     
 if __name__=="__main__":
     
-    for name in ["000905","000016"]:
+    for name in ["000905","000016","000300"]:
+        print(f"processing {name}")
         features=get_features(name)
 #         model(features,["lev","f1"],name)
 #         print(features[-1:])
@@ -203,7 +207,7 @@ if __name__=="__main__":
 #         features['lev_square']=features['lev']**2
 #         features['sell_square']=features['sell']**2
 #         model(features,["lev","sell","lev_square","sell_square"],name)
-        model(features,["total_lev","total_sell"],"0311_"+name)
+#         model(features,["total_lev","total_sell"],"0311_"+name)
 #         model(features,["total_lev","total_sell","f1"],name)
 
 

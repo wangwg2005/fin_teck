@@ -3,14 +3,134 @@
 <head>
 <meta charset="UTF-8">
 <title>Leverage Model Online</title>
+<script src="js/common.js"></script>
+<script src="js/leverage.js"></script>
+<script src="js/draw.js"></script>
+<script src="js/ml.js"></script>
+<script type="text/javascript" src="js/echarts.min.js"></script> 
 <script type="text/javascript">
-var url = 'https://datacenter-web.eastmoney.com/api/data/get?callback=datatable1872132&type=RPTA_WEB_RZRQ_GGMX&sty=ALL&source=WEB&st=date&sr=-1&p=1&ps=50&filter=(scode%3D%22603259%22)&pageNo=1&_=1644393510392';
+
+var data_len= 200;
+	
+	function mv_model(){
+		var d = daydata.data[param.id];
+		var sec_name = d.qt[param.id][1]
+		if ('qfqday' in d){
+			d = d.qfqday;
+		}else{
+			d = d.day;
+		}
+		x = Array.from(d, compute_x);
+		for(let i =1;i<x.length;i++){
+			x[i]=x[i-1]+x[i];
+		}
+		
+		y = Array.from(d, t => parseFloat(t[param.y]));
+		
+		var r = batch_ml(x,y,param.window);
+		
+		draw_k_line_2('container',{'upper':r[1],'lower':r[2]},sec_name,d);
+		draw_pred();
+	
+	}
+
+	function rzrq_analyze(data){
+		data = data.slice(-data_len);
+		console.log(`rzrq data from ${data[0].DATE} to ${data[data_len-1].DATE}`);
+		console.log(data);
+		//data.reverse();
+		x = Array.from(data,d=>d.RZYE);
+		y = Array.from(data, d => d.SPJ);
+		var last_day = data[data.length-1].DATE.slice(0,10);
+		console.log(`last day:${last_day}`);
+		var d = daydata.data[param.id];
+		var sec_name = d.qt[param.id][1]
+		if ('qfqday' in d){
+			d = d.qfqday;
+		}else{
+			d = d.day;
+		}		
+		var r = batch_ml(x,y,param.window)
+	
+	
+		var last_item = d[d.length - 1];
+		if (last_item[0] == last_day){
+			var prices = d.slice( - data.length);
+		}else {
+			var prices = d.slice( -data.length -1, -1)
+		}
+		
+		
+		console.log(`price data from ${prices[0][0]} to ${prices[prices.length-1][0]}`);
+		console.log(prices)
+		
+		
+		var ny = Array.from(prices, p => (parseFloat(p[3])+ parseFloat(p[4]))/2);
+		var nr = batch_ml(x,ny,param.window);
+
+
+		
+		//draw_k_line_2('container',{'upper':upper,'lower':lower,"nupper":nupper, "nlower":nlower},data[0].SECNAME,prices);
+		draw_k_line_2('container',{'upper':r[1],'lower':r[2],"nupper":nr[1], "nlower":nr[2]},sec_name,prices);
+		//draw_k_line_2('container',{'pred':result,'npred':nresult},data[0].SECNAME,prices);
+		draw_pred();
+
+		
+	
+	}
+	
+	
+	function draw_pred(){
+		var mresult = new Array();	
+		var mupper =  new Array();
+		var mlower =  new Array();
+		
+		var labels = [];
+		for (let i = 5;i < 100;i ++){
+			labels.push(i)
+			let lr = linearRegression(y.slice(-i), x.slice(-i));
+			let v = lr['slope'] * x[x.length - 1] + lr["intercept"];
+			
+			mresult.push(v);
+			mupper.push(v + 2*lr["se"]);
+			mlower.push(v - 2*lr["se"] );
+		}
+		draw_gradient_line('diagram2',labels,[mresult,mupper,mlower],'Pred from 5 - 100')
+	
+	}
+	
+	function load_price(sid){
+	
+		
+
+		var url =`https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?_var=daydata&param=${sid},day,,,${data_len+1},qfq&r=0.9860043111257255`;
+		if(param.model == 'lev'){
+			load_js(url,function(){fetch_rzrq(sid.substr(2),data_len,rzrq_analyze);});
+		}else if (param.model == 'mv'){
+			load_js(url,mv_model);
+		}
+	}
+	
+	var param={'id':"sz002118","window":30,'model':'lev','y':2};
+	
+	function init(){
+		param = get_param(param);
+		if(param.id.length != 8){
+			alert('wrong sid');
+			return ;
+		}
+		load_price(param.id);
+		
+	}
+
+
 
 </script>
 
 
 </head>
-<body>
-
+<body onload='init()'>
+<div id="container" style="height: 700px"></div>
+<div id="diagram2" style="height: 700px"></div>
 </body>
 </html>

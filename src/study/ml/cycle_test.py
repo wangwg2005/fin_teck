@@ -13,12 +13,61 @@ counter = 0
 
 result = {}
 
+def test_df(price_df):
+    train_len = 30
+    df = price_df[-train_len:]
+    if len(df)< train_len:
+        print("bad length")
+        return
+    
+    r={}
+    df1 = df.rolling(5).std().dropna()
+    for col in df.columns:
+        r[col]=test(df[col])
+        r[col+'_std']=test(df1[col])
+#     t1=test(df['volume'])
+
+    quant1 =df1.quantile(0.1)
+    quant2 =df1.quantile(0.01)
+    r['volume_10%']=quant1['volume']
+    r['volume_1%']=quant2['volume']
+    last = df1['volume'].iat[-1]
+    r['volume_std_last'] = last
+    
+    rate = 3
+    
+    if last>r['volume_10%']:
+        rate = 1
+    elif last > r['volume_1%']:
+        rate = 2
+        
+    r['volume_std_rate']=rate
+    
+    r['close_10%']=quant1['close']
+    r['close_1%']=quant2['close']
+    
+    last =df1['close'].iat[-1]
+    r['close_std_last']=last
+    
+    rate = 3
+    
+    if last>r['close_10%']:
+        rate = 1
+    elif last > r['close_1%']:
+        rate = 2
+        
+    r['close_std_rate']=rate
+    
+
+    return r
+
 def test_sid(sid):
 
     
     file = f'../history/stock/{sid}/price.csv'
+    fpath = os.path.join(os.path.dirname(__file__),file)
     
-    if not os.path.exists(file):
+    if not os.path.exists(fpath):
         return
     
     df = pd.read_csv(file,index_col=[0], parse_dates=True)[-110:]
@@ -65,21 +114,34 @@ def test_sid(sid):
     r['close_std_rate']=rate
     
 
-    result[sid]=r
+    return r
         
-    
-    
-if __name__ =='__main__':
+def test_all(): 
     root_dir ='../history/stock'
-    for sid in os.listdir(root_dir):
+    path = os.path.join(os.path.dirname(__file__),root_dir)
+    print(path)
+    for sid in os.listdir(path):
         if sid[0] !='0' and sid[0]!='6':
             continue
-        test_sid(sid)
+        result[sid] = test_sid(sid)
 
     df=pd.DataFrame(data = result.values(),index= result.keys())
     df['count']=(df[df.columns[:10]].isin([True])).sum(axis=1)
-    df = df.sort_values(by='count',ascending=False)
-    date_str = str(date.today())[:10]
-    df.to_csv(fr'C:\doc\volatility_{date_str}.csv',encoding='UTF8',index_label='sid')
-    print(df.head())
-    print(f"{counter} stocks passed test")
+    return df
+#     df = df.sort_values(by='count',ascending=False)
+#     date_str = str(date.today())[:10]
+#     buffer = df.to_json(orient="records")
+#     base_dir = r'C:\Users\Darren\eclipse-workspace\fin_study\src\javascript\js\data'
+#     with open( os.path.join(base_dir,f'volatility_{date_str}.js'),'w') as fo:
+#         fo.write('records = ')
+#         fo.write(buffer)
+#     
+#     
+#     report_path = fr'C:\doc\volatility_{date_str}.csv'
+#     df.to_csv(report_path,encoding='UTF8',index_label='sid')
+#     
+#     print(df.head())
+#     print(f"report generated at {report_path}")   
+    
+if __name__ =='__main__':
+    test_all()
