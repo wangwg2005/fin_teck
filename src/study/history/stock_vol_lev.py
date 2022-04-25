@@ -451,10 +451,10 @@ if __name__=="__main__":
 
 #     clean(ids)
     ids = None
-    load_all_data(skip_lever = True ,skip_price = False,ids=ids)
+    load_all_data(skip_lever = False ,skip_price = True,ids=ids)
 #     load_all_data(skip_lever = True ,skip_price = False,ids=ids)
-#     train_all(ids=ids)
-#     filter_stk()
+    train_all(ids=ids)
+    filter_stk()
 #      
 #     
 #     ct.test_all()
