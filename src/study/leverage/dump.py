@@ -179,7 +179,7 @@ def extract_fast(security_codes,exchange,paths):
         dfs=map(lambda path: pd.read_csv(path), paths)
 
         last_days=list(map(lambda df: str(df.iat[-1,0]), dfs))
-        last_day=min(last_days)
+        last_day=max(last_days)
         print("scan leverage file from",last_day)
         last_days=dict(zip(security_codes,map(lambda d: prefix+str(d)[:10]+".xls",last_days)))
 #         last_day = pref + last_day

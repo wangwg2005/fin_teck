@@ -5,13 +5,12 @@ import os
 import matplotlib.pyplot as plt
 from scipy import stats
 import statsmodels.api as sm
-from functools import reduce
-from sklearn.linear_model import RidgeCV,Ridge
 import numpy as np
+
 
 # data_size=[20,1]
 
-start="2017-12-31"
+start="2014-12-31"
 
 def model(features,names,prefix,split_date="2020-12-31"):
     print(prefix)
@@ -23,10 +22,10 @@ def model(features,names,prefix,split_date="2020-12-31"):
     last_day = features.index[-1]
     
     print('last trade day',last_day)
-    df,test_df=features[:split_date],features[split_date:]
+    train_set,test_df=features['2016-12-31':split_date],features["2019-12-31":]
 #     df=df[-data_size[0]:]
 
-    print('df',df.index[0],df.index[-1])
+    print('df',train_set.index[0],train_set.index[-1])
     
     print('test',test_df.index[0],test_df.index[-1])
     
@@ -34,11 +33,11 @@ def model(features,names,prefix,split_date="2020-12-31"):
     
 #     for name in names:
 #         df[name+'_square']=df[name]**2
-    
-    X=df[names]
+#     train_set = features["2017-12-31":"2020-"]
+    X=train_set[names]
 #     rx=X.to_numpy()
     X=sm.add_constant(X)
-    y=df["close"]
+    y=train_set["close"]
     
 #     print('x',X)
 #     print('y',y)
@@ -68,7 +67,7 @@ def model(features,names,prefix,split_date="2020-12-31"):
     y.plot(ax=ax)
     plt.title("Fit")
     plt.legend()
-    print("MSE",mod.mse_total)
+    print("MSE",mod.mse_resid)
     
     
     z, p = stats.normaltest(mod.resid.values)
@@ -80,8 +79,8 @@ def model(features,names,prefix,split_date="2020-12-31"):
     plt.title("Resid,p={:.4f}".format(p))
     
     plt.subplot(223)
-    plt.plot(df[names[0]],y,'o', label='data')
-    plt.plot(df[names[0]],mod.fittedvalues, 'r--.',label='OLS')
+    plt.plot(train_set[names[0]],y,'o', label='data')
+    plt.plot(train_set[names[0]],mod.fittedvalues, 'r--.',label='OLS')
     plt.title("Reg")
     plt.legend()
     
@@ -121,7 +120,7 @@ def model(features,names,prefix,split_date="2020-12-31"):
     pred_y.plot(ax=ax4,label="prediction",grid=True)
     plt.fill_between(preds.index,preds["obs_ci_lower"],preds["obs_ci_upper"],alpha=0.2)
     last_diff=test_df["close"][-1]-pred_y[-1]
-    plt.title("{},mse:{:.2f},last diff:{:.2f}".format(test_df.index[-1].strftime("%Y%m%d"),mod.mse_total,last_diff))
+    plt.title("{},std:{:.2f},last diff:{:.2f}".format(test_df.index[-1].strftime("%Y%m%d"),mod.mse_resid**0.5,last_diff))
     plt.legend()
 
     ax5 = plt.subplot(212)
@@ -170,7 +169,7 @@ def get_features(name):
 #     features["total_lev"]=features["lev"]+features["extra_lev"]
 #     features["total_sell"]=features["sell"]+features["extra_sell"]
     print(f"get feature for {name} from {features.index[0]} to {features.index[-1]}")
-    print(f"last row : {features.iloc[-1]}")
+#     print(f"last row : {features.iloc[-1]}")
     return features
 
 def square_process(df,names):
@@ -181,28 +180,76 @@ def square_process(df,names):
     return df
 
 
+def fx():
+    fx_path = r'data\fx.log'
+    with open(fx_path,'r',encoding='utf8') as fo:
+        line= fo.readline()
+    arr = np.array(line.split(","))
+    arr = arr.reshape(-1,4)
+    df = pd.DataFrame(data = arr[1:],columns=arr[0])
+    df.index = pd.to_datetime(df.pop('日期'));
+    df = df.astype(np.float)
+    df = df.drop_duplicates()
+    print(df.tail(20))
+#     print(df)
+#     df.plot()
+#     plt.show()
+    return df
+    
+#     print(line)
+    
+
 def sliding_model(features,names,split):
     features=features[[*names,"close"]]
     features = features.dropna()
     last_day = features.index[-1]
-    
+    print('last trade day',features.index[0])
     print('last trade day',last_day)
 #     df,test_df=features[:split],features[split:]
     
+def explore_fx():
+    forex = fx()
+    print("forex length:"+str(len(forex)))
+    for sid in [ '000300','000905','000016']:
+        features=get_features(sid)
+        print("stock length:"+str(len(features)))
+        print(features)
+        print(forex)
+        features['fx']=forex['汇买价']
+        features= features.dropna()
+#         features['lev']=features['lev']/features['fx'] *100
+#         features['sell']=features['sell']/features['fx'] *100
+        features['close']=features['close']/features['fx'] *100
+        print(features.tail(20))
+        
+        model(features,["lev","sell"],"us_index_"+sid)
+        
+
+def ml():
+    feature = get_features("000905")
     
     
 if __name__=="__main__":
     
+#     explore_fx()
+        
+    
     for name in ["000905","000016","000300"]:
-        print(f"processing {name}")
+# # #     for name in ["000905"]:
+# #         print(f"processing {name}")
         features=get_features(name)
+        model(features,["lev","sell"],"since_2020_"+name)
+         
+        
+        
+        
 #         model(features,["lev","f1"],name)
 #         print(features[-1:])
 #         model(features,["lev","extra_lev","sell","extra_sell","f1"],name)
 #         model(features,["lev","extra_lev","sell","extra_sell"],name)
 
-        
-        model(features,["lev","sell"],"0311_"+name)
+#         sliding_model(features,["lev","sell"],"0311_"+name)
+#         
 
 #         features['lev_square']=features['lev']**2
 #         features['sell_square']=features['sell']**2

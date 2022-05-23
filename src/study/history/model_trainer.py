@@ -15,7 +15,7 @@ def read_history(fname):
     return df
 
 def read_leverage(fname):
-    df = pd.read_excel("融资融券"+fname+".xls",header=1, encoding="gbk")
+    df = pd.read_excel("融资融券"+fname+".xls",header=1)
     date_time = pd.to_datetime(df.pop('交易日期'), format='%Y-%m-%d')
     df.index=date_time
     return df
@@ -83,15 +83,18 @@ def multiple_factor_trainer():
     print(features)
     f_high=features[["最高价"]]
     f_high["sim_high"]=m1[1]
-#     f_high.plot(grid=True)
+    f_high.plot(grid=True)
     
     f_low=features[["最低价"]]
     f_low["sim_low"]=m2[1]
-#     f_low.plot(grid=True)
+    f_low.plot(grid=True)
     
     f_open=features[["开盘价"]]
     f_open["sim_open"]=m3[1]
-#     f_open.plot(grid=True)
+    
+    f_open.plot(grid=True)
+    
+    
     f_sim=features[["sim_close","收盘价"]]
     f_sim.plot(grid=True)
     

@@ -1,0 +1,2 @@
+day,open,high,low,close,volume,lev_buy,lev_sell,rzmr,incre,vol_,vol_sum,lev_ratio,lev_ratio_max,lev_ratio_is_max,high_max,positive_return,vol_chg
+2022-05-11,17.45,18.3,17.36,17.51,46701811,1286425719.0,114100.0,105316048.0,-0.003981797497155659,-46701811.0,2069101953.0,0.12647639803073,0.16480067629655445,1.0,18.3,,0.8791153016475171

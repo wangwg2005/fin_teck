@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import time
 import pandas as pd
-from tensorflow.keras import models, layers, optimizers
+import tensorflow as tf
 import numpy as np
 import math
 import matplotlib.pyplot as plt
@@ -17,14 +17,14 @@ import pandas
 
 
 STATE_DIM, ACTION_DIM = 3, 3
-model = models.Sequential([
-    layers.Dense(32, input_shape=[STATE_DIM]),
+model = tf.keras.models.Sequential([
+    tf.keras.layers.Dense(32, input_shape=[STATE_DIM]),
 #     layers.Dropout(0.1),
-    layers.Dense(ACTION_DIM),
-    layers.Dense(1,activation="tanh")
+    tf.keras.layers.Dense(ACTION_DIM),
+    tf.keras.layers.Dense(1,activation="tanh")
 ])
 model.compile(loss='mean_squared_error',
-              optimizer=optimizers.Adam(0.001))
+              optimizer=tf.keras.optimizers.Adam(0.001))
 
 
 def choose_action(s):

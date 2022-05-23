@@ -4,12 +4,9 @@ import os
 import pandas as pd
 import study.leverage.dump as dump
 import statsmodels.api as sm
-import mplfinance as mpf
-from study.quant import datasource as ds
 from study.leverage import quant_buttom_ana as quant
 import datetime
 from statsmodels.regression.linear_model import OLSResults
-import business_day
 from study.ml import cycle_test as ct
 
 def batch_extract_data(sids, exchange):
@@ -41,21 +38,30 @@ def batch_extract_data(sids, exchange):
     
 
     
-def get_f(files):
-    print("stock id:",files[0][6:12])
+def get_f(sid,length = 35):
+    
+    base_dir="stock"
+#     sids=os.listdir(base_dir)
+    files= [os.path.join(base_dir,sid,"price.csv"),os.path.join(base_dir,sid,"leverage.csv")]
+
+    
+    
+    print("stock id:",sid)
     price=pd.read_csv(files[0],index_col=[0],parse_dates=True)
+    
 
 #     print(price[-3:])
     lev_df=pd.read_csv(files[1],index_col=[0],parse_dates=True)
     features=price
     features["lev_buy"]=lev_df["融资余额(元)"]
     features["lev_sell"]=lev_df["融券余量"]
-    features['incre']=features['close'].diff()
+    features['rzmr']=lev_df['融资买入额(元)']
+    features['incre']=features['close'].pct_change()
     features=features.dropna()
     features['vol_']=features.apply(lambda r: -r['volume'] if r['incre']<0 else r['volume'], axis=1)
     features['vol_sum']=features['vol_'].cumsum()
     
-    return features[-30:]
+    return features[-length:]
     
     
 
@@ -181,16 +187,13 @@ def comp_model(args):
 import io 
 
 def train(sids):
-    base_dir="stock"
-#     sids=os.listdir(base_dir)
-    files= map(lambda sid:(os.path.join(base_dir,sid,"price.csv"),os.path.join(base_dir,sid,"leverage.csv")) ,sids)
 #     files=list(files)
 #     print(files)
-    features=map(get_f,files)
+    features=map(get_f,sids)
 #     features=filter(lambda f:len(f)>200,features)
 
     sf = list(zip(sids,features))
-    cs = 'open,high,low,close,volume'.split(",")
+    cs = 'open,high,low,close,volume,rzmr'.split(",")
     cycle_results = list( map(lambda a: ct.test_df(a[1][cs]),sf))
     cycle_df= pd.DataFrame(cycle_results,index = sids)
     print(cycle_df.head())
@@ -333,7 +336,7 @@ def load_all_data(skip_lever = True ,skip_price = False,ids=[]):
         sids_sz = list(filter(lambda id:id[-2:]=='sz',ids))
     
     else:
-        df=pd.read_excel("../leverage/sse/rzrqjygk20220110.xls",sheet_name=-1,index_col=[0]);
+        df=pd.read_excel("../leverage/sse/rzrqjygk20220505.xls",sheet_name=-1,index_col=[0]);
           
         sids=df.index
         sids= filter(lambda id:id >600000 and id<679999 and id!=600072, sids)
@@ -342,7 +345,7 @@ def load_all_data(skip_lever = True ,skip_price = False,ids=[]):
     #     sids_sse=[]
         
         
-        df=pd.read_excel("../leverage/szse/rzrqjygk2022-01-10.xls",sheet_name=-1);
+        df=pd.read_excel("../leverage/szse/rzrqjygk2022-05-05.xls",sheet_name=-1);
         sids=df['证券代码']
         sids= filter(lambda id:id <100000 , sids)
         sids_sz = list(map(lambda id:'{0:0>6}.sz'.format(id),sids))
@@ -436,6 +439,8 @@ def clean(ids):
 #             df.to_csv(apath)
             
         lev2 =lev.drop_duplicates()
+        if '日期' in lev2.index:
+            lev2 = lev2.drop('日期')
         if len(lev) == len(lev2) :
             print(id,"is good")
         else:
@@ -443,47 +448,26 @@ def clean(ids):
             lev2.to_csv(apath)
         
 
+def clean_all():
+    path = r'C:\Users\Darren\eclipse-workspace\fin_study\src\study\history\stock'
+    files = filter(lambda file:file>"00000",os.listdir(path))
+    clean(list(files))
+    
+    
+    
+
 if __name__=="__main__":
+#     clean_all()
 #     load_proxies()
 #     load_all_data(skip_lever = False ,skip_price = False)
 #     ids=["603259.sh","000661.sz"]
-#     ids = get_stocks()
+#     ids = get_stocks()    
 
 #     clean(ids)
     ids = None
+#     load_all_data(skip_lever = False ,skip_price = True,ids=ids)
     load_all_data(skip_lever = False ,skip_price = True,ids=ids)
-#     load_all_data(skip_lever = True ,skip_price = False,ids=ids)
     train_all(ids=ids)
     filter_stk()
-#      
-#     
-#     ct.test_all()
-    
-#     process()
+#     batch_extract_data(['600004'], "sse")
 
-    
-#     sids=['600597.sh']
-#     
-# #     df=pd.read_excel("../leverage/sse/rzrqjygk20211224.xls",sheet_name=-1,index_col=[0]);
-# #     
-# #     sids=df.index
-# #     sids= filter(lambda id:id >600000 and id<679999, sids)
-# #     sids = list(map(lambda id:str(id)+'.sh',sids))
-# # #     print(sids)
-# #        
-#     batch_extract_data(sids,exchange="sse")
-# #     sid1=sids
-# #      
-# #     df=pd.read_excel("../leverage/szse/rzrqjygk2021-12-24.xls",sheet_name=-1);
-# #     sids=df['证券代码']
-# #     sids= filter(lambda id:id <100000 , sids)
-# #     sids = list(map(lambda id:'{0:0>6}.sz'.format(id),sids))
-# # #     sids=["002008.sz"]
-# #     print(sids)
-# #      
-# #     batch_extract_data(sids,exchange="szse")
-# #     sids.extend(sid1)
-#     sids=list(map(lambda sid:sid[:6],sids))
-# 
-# #     sids=["000829"]
-#     train(sids)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import time
 import pandas as pd
-from tensorflow.keras import models, layers, optimizers
+import tensorflow as tf
 import numpy as np
 import math
 import matplotlib.pyplot as plt
@@ -17,13 +17,13 @@ import pandas
 
 
 STATE_DIM, ACTION_DIM = 1, 1
-model = models.Sequential([
-    layers.Dense(100, input_dim=STATE_DIM, activation='relu'),
+model = tf.keras.models.Sequential([
+    tf.keras.layers.Dense(100, input_dim=STATE_DIM, activation='relu'),
 #     layers.Dropout(0.1),
-    layers.Dense(ACTION_DIM, activation="tanh")
+    tf.keras.layers.Dense(ACTION_DIM, activation="tanh")
 ])
 model.compile(loss='mean_squared_error',
-              optimizer=optimizers.Adam(0.001))
+              optimizer=tf.keras.optimizers.Adam(0.001))
 
 
 # 0 buy , 1 nothing, 2 sell

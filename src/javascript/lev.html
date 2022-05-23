@@ -40,6 +40,7 @@ var data_len= 200;
 		console.log(data);
 		//data.reverse();
 		x = Array.from(data,d=>d.RZYE);
+		
 		y = Array.from(data, d => d.SPJ);
 		var last_day = data[data.length-1].DATE.slice(0,10);
 		console.log(`last day:${last_day}`);
@@ -66,7 +67,26 @@ var data_len= 200;
 		
 		
 		var ny = Array.from(prices, p => (parseFloat(p[3])+ parseFloat(p[4]))/2);
+		
 		var nr = batch_ml(x,ny,param.window);
+		
+		
+		var rzmr = Array.from(data,d => d.RZMRE);
+		console.log("rzmr");
+		console.log(rzmr);
+		var volume = Array.from(prices, p=>parseInt(p[5])*(parseFloat(p[3])+ parseFloat(p[4]))*50);	
+		console.log("volume");
+		console.log(volume);
+		
+		var len= rzmr.length;
+		var rate= new Array()
+		for(let i = 0 ; i<len ;i++){
+			rate[i]=rzmr[i]/volume[i];
+		}
+		
+		var ceil = Math.max(...rate);
+		var ceil_volume = Math.max(...volume);
+		var rate = Array.from(rate, r=> r/ceil*ceil_volume);
 
 
 		
@@ -74,6 +94,7 @@ var data_len= 200;
 		draw_k_line_2('container',{'upper':r[1],'lower':r[2],"nupper":nr[1], "nlower":nr[2]},sec_name,prices);
 		//draw_k_line_2('container',{'pred':result,'npred':nresult},data[0].SECNAME,prices);
 		draw_pred();
+		draw_gradient_line('leverage',Array.from(data, lev =>lev.DATE.substr(0,10)),[rzmr,volume,rate],'Leverage')
 
 		
 	
@@ -132,5 +153,6 @@ var data_len= 200;
 <body onload='init()'>
 <div id="container" style="height: 700px"></div>
 <div id="diagram2" style="height: 700px"></div>
+<div id="leverage" style="height: 700px"></div>
 </body>
 </html>

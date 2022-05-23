@@ -120,7 +120,7 @@ function loadJS( callback ){
 		url = url2;
 		stock.scale = 'hfqday';
 	}else{
-		url.replace('m5',stock.scale);
+		url = url.replace('m5',stock.scale);
 	}
 	if (stock['id']!='sh000905'){
 		url=url.replace('sh000905',stock['id']);	

@@ -47,14 +47,15 @@ def update_etf_lev():
 def update_index_lev():
     today_str = (date.today()+timedelta(days=-1)).strftime("%Y-%m-%d")
 #     today_str = '2022-03-10'
-    days = pd.date_range(start="2022-04-08",end=today_str,freq=business_day.get_business_day_cn("all"))
+    days = pd.date_range(start="2022-05-06",end=today_str,freq=business_day.get_business_day_cn("all"))
     # days = map(lambda day:day.strftime("%Y-%m-%d"),days)
     for name in ["000300","000905","000016"]:
 #     for name in ['000016']:
         lev_fname = os.path.join(name, "融资融券_"+name+".xls")
         his_df = pd.read_excel(lev_fname, header=1, parse_dates=[0], index_col=0)
-        data = list(map(lambda day: dump.extract_index_lev(name, day), days))
-        his_df = his_df.append(data).sort_index()
+        if len(days)>1:
+            data = list(map(lambda day: dump.extract_index_lev(name, day), days))
+            his_df = his_df.append(data).sort_index()
         n_lev_fname = os.path.join(name, "融资融券_" + name + "n.xls")
         his_df.to_excel(n_lev_fname)
         print("update",name ," leverage to",days[-1])
@@ -66,9 +67,33 @@ def update_index():
     update_etf_lev()
     update_prices_to_date()
     update_index_lev()
+    
+def init_lev():
+    root_dir = r'C:\Users\Darren\eclipse-workspace\fin_study\src\study\leverage'
+    for exchange,c1name in zip(['sse','szse'],['标的证券代码','证券代码']):
+        dir_path = os.path.join(root_dir,exchange)
+        index_col= ['日期',c1name]
+        df_all = []
+        for file in os.listdir(dir_path):
+            if file<'rzrqjygk2022':
+                continue
+            date_str = file[8:-4]
+            df = pd.read_excel(os.path.join(dir_path,file),sheet_name=-1)
+            df['日期']=date_str
+            
+            print(file)
+
+            df=df.set_index(index_col)
+            df_all.append(df)
+                
+            
+            
+        pd.concat(df_all).to_csv(exchange+'.csv',index_label=index_col )
+        
 
 
 
     
 if __name__ =="__main__":
     update_index()
+#     init_lev()
