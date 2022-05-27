@@ -76,7 +76,55 @@ def bussniess_logic(df):
     if df.iloc[-2]['volume']<df.iloc[-3]['volume']*1.2:
         return False
     
+from datetime import date
+
+# today = str(date.today())
+today = "2022-05-24"
+
+print("today is "+today)
+
+model_b_sids=[]
     
+def model_b(sid):
+    print("processing "+sid)
+#     df = sl.get_f(sid, 0);
+    df = pd.read_csv(os.path.join("stock",sid,"price.csv"),index_col=0,parse_dates=True)
+    df = df[:today]
+#     print(df.columns)
+    
+    df['pre_open'] =df['open'].shift()
+    df['pre_close']=df['close'].shift()
+    
+#     print(df.columns)
+    
+    df['down']= df.apply(lambda r: 1 if (r[0]<r[5] and r[3]< r[6]) else 0,axis=1)
+    df['down_cnt'] = df['down'].rolling(window=3).sum()
+    df['vol_chg']=df['volume'].pct_change()
+    
+    df['high_max'] = df['high'].rolling(window=3).max().shift(-3)
+    df['positive_return']=df['high_max']/df['close']-1
+#     df.to_csv(os.path.join('data',sid+"_tmp.csv"))
+#     print(df[['down','down_cnt']])
+    f = df[(df.down_cnt==3) & (df.vol_chg>0.2)]
+    
+
+    print(df.index[-1])
+#     print(df.columns)
+    if df.index[-1]==f.index[-1]:
+        print("candidate id:"+sid)
+        fpath = f"../../javascript/js/data/b_sids_{today}.js";
+        t = os.path.exists(fpath)
+            
+        with open(fpath,'a') as fo:
+            if t:
+                fo.write(f'mb_sids.push("{sid}");\n')
+            else:
+                fo.write(f'var mb_sids=["{sid}"];\n')
+    
+#     print(f)
+    f.to_csv(os.path.join('data',sid+"b.csv"))
+    return f['positive_return'].describe()
+        
 def model_a(sid):
     df = sl.get_f(sid, 0);
     
@@ -88,14 +136,14 @@ def model_a(sid):
     df['lev_ratio_is_max']=df['lev_ratio_is_max'].map(lambda b: 1 if b else 0)
 #     df['lev_ration_max_exist']=df['lev_ratio_is_max'].
     
-    df['high_max'] = df['high'].rolling(window=10).max()
+    df['high_max'] = df['high'].rolling(window=20).max()
     df['positive_return']=df['high_max']/df['open']-1
     
     df['vol_chg'] = df['volume'].pct_change()
     
     df['vol_chg']=df['vol_chg'].shift()
     df['lev_ratio_is_max']=df['lev_ratio_is_max'].shift(2)
-    df['positive_return']=df['positive_return'].shift(-10)
+    df['positive_return']=df['positive_return'].shift(-20)
     
     
     
@@ -200,14 +248,27 @@ def train():
 # train()
 if __name__ == '__main__':
     
+    mv = pd.read_excel(os.path.join("data","market_value.xls"),index_col=1);
+#     print(mv)
+    
     t =[];
     sids = os.listdir("stock")
     sids = list(filter(lambda sid :sid<'010' or (sid>'600' and sid<'680'),sids))
+    
+    
+    
+    mvs= list(map(lambda sid: mv.loc[int(sid),'总市值']/100000000,sids))
+    mvs1= list(map(lambda sid: mv.loc[int(sid),'流通市值']/100000000,sids))
+#     print(mvs)
+
     for sid in sids:
+#     for sid in ['600759']:
         if sid[0] in ['0','6']:
 #     for sid in ['000850','002118','600333','002389','600277']:
-            t.append(model_a(sid))
+            t.append(model_b(sid))
     df = pd.DataFrame(t,index= sids)
-    df.to_csv(os.path.join('data','a_desc.csv'))
+    df['mv_tatal']=mvs
+    df['mv_on_trade']=mvs1
+    df.to_csv(os.path.join('data',f'b_desc_{today}.csv'))
     
 

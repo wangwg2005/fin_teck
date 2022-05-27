@@ -254,8 +254,8 @@ def filter_stk():
         if len(df)==0:
             print(f"no qualified data for {t}!")
             continue
-        
-        df['code'] = df['sid'].map(lambda c: "sh{0:0>6}".format(c) if c>600000 else "sz{0:0>6}".format(c))
+        tmp = "https://quote.eastmoney.com/"
+        df['code'] = df['sid'].map(lambda c: "sh{0:0>6}".format(c) if c>600000 else "sz{0:0>6}".format(c)).map(lambda code: f'<a href="https://quote.eastmoney.com/{code}.html">{code}</a>')
         df['lev'] = df['code'].map(lambda code:f'<a href="lev.html?id={code}" target="_blank">lev</a>')
         ss = df.apply(lambda r: link.format(r['code'],r['Last Fitted Value']),axis=1)
         df['realtime']  = ss
@@ -466,8 +466,8 @@ if __name__=="__main__":
 #     clean(ids)
     ids = None
 #     load_all_data(skip_lever = False ,skip_price = True,ids=ids)
-    load_all_data(skip_lever = False ,skip_price = True,ids=ids)
-    train_all(ids=ids)
-    filter_stk()
+    load_all_data(skip_lever = True ,skip_price = False,ids=ids)
+#     train_all(ids=ids)
+#     filter_stk()
 #     batch_extract_data(['600004'], "sse")
 

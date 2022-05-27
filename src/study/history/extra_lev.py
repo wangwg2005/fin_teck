@@ -12,7 +12,7 @@ import numpy as np
 
 start="2014-12-31"
 
-def model(features,names,prefix,split_date="2020-12-31"):
+def model(features,names,prefix,train_start="2016-12-31",train_end="2020-12-31",pred_start="2019-12-31",pred_end=None):
     print(prefix)
 
 #     print(features[-10:])
@@ -22,7 +22,11 @@ def model(features,names,prefix,split_date="2020-12-31"):
     last_day = features.index[-1]
     
     print('last trade day',last_day)
-    train_set,test_df=features['2016-12-31':split_date],features["2019-12-31":]
+    train_set=features[train_start:train_end]
+    if pred_end is None:
+        test_df = features[pred_start:]
+    else:
+        test_df = features[pred_start:pred_end]
 #     df=df[-data_size[0]:]
 
     print('df',train_set.index[0],train_set.index[-1])
@@ -119,7 +123,7 @@ def model(features,names,prefix,split_date="2020-12-31"):
     
     pred_y.plot(ax=ax4,label="prediction",grid=True)
     plt.fill_between(preds.index,preds["obs_ci_lower"],preds["obs_ci_upper"],alpha=0.2)
-    last_diff=test_df["close"][-1]-pred_y[-1]
+    last_diff=pred_y[-1]-test_df["close"][-1]
     plt.title("{},std:{:.2f},last diff:{:.2f}".format(test_df.index[-1].strftime("%Y%m%d"),mod.mse_resid**0.5,last_diff))
     plt.legend()
 
@@ -234,11 +238,13 @@ if __name__=="__main__":
 #     explore_fx()
         
     
-    for name in ["000905","000016","000300"]:
-# # #     for name in ["000905"]:
+#     for name in ["000905","000016","000300","399006"]:
+    for name in ["000905"]:
 # #         print(f"processing {name}")
         features=get_features(name)
-        model(features,["lev","sell"],"since_2020_"+name)
+        cnames = ["lev","sell"]
+        model(features,cnames,"since_2020_"+name)
+        model(features,cnames,"2020_"+name,pred_start="2021-01-01")
          
         
         

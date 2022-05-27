@@ -49,8 +49,9 @@
 		}
 		
 		function search_data(){
+			current_date = date_transform($('#date').val());
 		
-			let url = url_temp.replace('date',date_transform($('#date').val())).replace('type',$('#model').val());
+			let url = url_temp.replace('date',current_date).replace('type',$('#model').val());
 		
 			let script = document.createElement('script');
 			script.type = 'text/javascript';
@@ -238,6 +239,20 @@
 			
 		}
 		
+		
+		function candidate(){
+			var url = `js/data/b_sids_${current_date}.js`;
+			loadJS(url,candidate_filter)
+		
+		}
+		
+		function candidate_filter(){
+			console.log(mb_sids);
+			var records = origin_records.filter(a => mb_sids.indexOf( a.code.substring(2))>-1 );
+
+			$('#detail_tab').datagrid({data: records});
+		
+		}
 	
 	</script>
 	
@@ -257,6 +272,7 @@
         </select>
 		
 		<a href="#" class="easyui-linkbutton" iconCls="icon-search" onclick='search_data();'>Search</a>
+		<a href="#" class="easyui-linkbutton" iconCls="icon-search" onclick='candidate();'>Candidates</a>
 		<br/>
 		R Squared
 		<input id='rsq' name='rsq' value='0.8'/>
