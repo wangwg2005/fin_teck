@@ -14,6 +14,8 @@ import warnings
 warnings.simplefilter("ignore")
 
 ttoday=datetime.date.today()
+today_str = str(ttoday)
+
 
 pre_day=tutil.get_prevous_trade_date(ttoday)
 
@@ -45,15 +47,15 @@ def get_price(sid,fname=None):
         days = pd.date_range(start=last_day, end=ttoday,freq=bd.get_business_day_cn("all"))
         
         print(days)
+
  
         day_num = len(days)
-        print("day number",day_num)
         
         trading = time.localtime().tm_hour<15
         
-        if day_num>2 or (not trading and day_num>1):
+        if day_num>2 or ((not trading or today_str not in days)and day_num>1)  :
             
-            
+
             
             result = price_query.get_history_price(sid, day_number = day_num+3)
             

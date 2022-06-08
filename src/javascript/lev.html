@@ -51,7 +51,13 @@ var data_len= 200;
 		}else{
 			d = d.day;
 		}		
-		var r = batch_ml(x,y,param.window)
+		var r = batch_ml(x,y,param.window);
+		
+		var resid=new Array();
+		
+		for(let i =0;i<y.length;i++){
+			resid[i]=r[0][i]-y[i];
+		}
 	
 	
 		var last_item = d[d.length - 1];
@@ -89,12 +95,13 @@ var data_len= 200;
 		var rate = Array.from(rate, r=> r/ceil*ceil_volume);
 
 
-		
+		var date_strs = Array.from(data, lev =>lev.DATE.substr(0,10));
 		//draw_k_line_2('container',{'upper':upper,'lower':lower,"nupper":nupper, "nlower":nlower},data[0].SECNAME,prices);
 		draw_k_line_2('container',{'upper':r[1],'lower':r[2],"nupper":nr[1], "nlower":nr[2]},sec_name,prices);
 		//draw_k_line_2('container',{'pred':result,'npred':nresult},data[0].SECNAME,prices);
+		draw_gradient_line('resid',date_strs,[resid],'Residual')
 		draw_pred();
-		draw_gradient_line('leverage',Array.from(data, lev =>lev.DATE.substr(0,10)),[rzmr,volume,rate],'Leverage')
+		draw_gradient_line('leverage',date_strs,[rzmr,volume,rate],'Leverage')
 
 		
 	
@@ -152,6 +159,7 @@ var data_len= 200;
 </head>
 <body onload='init()'>
 <div id="container" style="height: 700px"></div>
+<div id="resid" style="height: 700px"></div>
 <div id="diagram2" style="height: 700px"></div>
 <div id="leverage" style="height: 700px"></div>
 </body>

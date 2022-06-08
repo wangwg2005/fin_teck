@@ -48,8 +48,10 @@ def update_index_lev():
     today_str = (date.today()+timedelta(days=-1)).strftime("%Y-%m-%d")
 #     today_str = '2022-03-10'
     days = pd.date_range(start="2022-05-06",end=today_str,freq=business_day.get_business_day_cn("all"))
+#     days = pd.date_range(start="2020-01-02",end=today_str,freq=business_day.get_business_day_cn("all"))
     # days = map(lambda day:day.strftime("%Y-%m-%d"),days)
-    for name in ["000300","000905","000016"]:
+    for name in ["000300","000905","000016","000688"]:
+#     for name in ["000688"]:
 #     for name in ['000016']:
         lev_fname = os.path.join(name, "融资融券_"+name+".xls")
         his_df = pd.read_excel(lev_fname, header=1, parse_dates=[0], index_col=0)

@@ -228,13 +228,14 @@ def train(sids):
 #             fo.write(buffer)
     
 
-def filter_stk():
+def filter_stk(date_str=None):
 #     page_addr='C:/Users/Darren/eclipse-workspace/fin_study/src/javascript/candlestick.html?id={0:0>6}&scale=m5&value={1:0.2f}'
 #     page_addr='candlestick.html?id={0:0>6}&scale=m5&value={1:0.2f}'
     
     link='<a href="candlestick.html?id={0}&scale=m5&value={1:0.2f}" target="_blank">link</a>'
     
-    today_str = str(datetime.datetime.today())[:10]
+    if date_str is None:
+        date_str = str(datetime.datetime.today())[:10]
 #     today_str='2022-04-15'
 #     fname = f"result_{today_str}.csv"
 
@@ -242,12 +243,23 @@ def filter_stk():
 #     for i in range(-1,-30,-1):
         
     types=['comp','mv','lev']
+    market_value = pd.read_excel(os.path.join("data","market_value.xls"),index_col=1);
+#     print(mv)
+    
+    t =[];
+    sids = os.listdir("stock")
+    sids = list(filter(lambda sid :sid<'010' or (sid>'600' and sid<'680'),sids))
+    
+    
+    
+    
+
     
     for t in types:
         
-        print(f"generating report for {today_str} {t}")
+        print(f"generating report for {date_str} {t}")
     
-        df = pd.read_csv(os.path.join("stock_img",f"model_param_{today_str}_{t}.csv"))
+        df = pd.read_csv(os.path.join("stock_img",f"model_param_{date_str}_{t}.csv"))
         
         df = df.sort_values(by ="R_Squared",ascending=True)
 #         df = df[ (df.R_Squared>0.85) & (df.percent <-0.05) & (df.deviation<-2)]
@@ -255,21 +267,26 @@ def filter_stk():
             print(f"no qualified data for {t}!")
             continue
         tmp = "https://quote.eastmoney.com/"
-        df['code'] = df['sid'].map(lambda c: "sh{0:0>6}".format(c) if c>600000 else "sz{0:0>6}".format(c)).map(lambda code: f'<a href="https://quote.eastmoney.com/{code}.html">{code}</a>')
+        df['code'] = df['sid'].map(lambda c: "sh{0:0>6}".format(c) if c>600000 else "sz{0:0>6}".format(c))
         df['lev'] = df['code'].map(lambda code:f'<a href="lev.html?id={code}" target="_blank">lev</a>')
         ss = df.apply(lambda r: link.format(r['code'],r['Last Fitted Value']),axis=1)
         df['realtime']  = ss
+#         df['code'] = df['code'].map(lambda code: f'<a href="https://quote.eastmoney.com/{code}.html" target="">{code}</a>')
         sid=df.pop('sid')
         
-        
+        industry = list(map(lambda sid: market_value.loc[int(sid),'所属行业'],sid))
+        sname = list(map(lambda sid: market_value.loc[int(sid),'名称'],sid))
         df.index = sid.map(lambda a:'{0:0>6}'.format(a))
+        df['industry']=industry
+        df['sname']=sname
         df = df.sort_values(by='percent')
         base_dir = '../../javascript/js/data'
 #         report_path = os.path.join(base_dir, f'report_{today_str}_{t}.html')
         
         
+
         buffer = df.to_json(orient="records")
-        with open( os.path.join(base_dir,f'report_{today_str}_{t}.js'),'w') as fo:
+        with open( os.path.join(base_dir,f'report_{date_str}_{t}.js'),'w') as fo:
             fo.write('records = ')
             fo.write(buffer)
 #         df.pop('code')
@@ -465,9 +482,9 @@ if __name__=="__main__":
 
 #     clean(ids)
     ids = None
-#     load_all_data(skip_lever = False ,skip_price = True,ids=ids)
-    load_all_data(skip_lever = True ,skip_price = False,ids=ids)
-#     train_all(ids=ids)
-#     filter_stk()
+#     load_all_data(skip_lever = True ,skip_price = False,ids=ids)
+    load_all_data(skip_lever = False ,skip_price = True,ids=ids)
+    train_all(ids=ids)
+    filter_stk()
 #     batch_extract_data(['600004'], "sse")
 

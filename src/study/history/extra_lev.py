@@ -245,6 +245,16 @@ if __name__=="__main__":
         cnames = ["lev","sell"]
         model(features,cnames,"since_2020_"+name)
         model(features,cnames,"2020_"+name,pred_start="2021-01-01")
+        
+        
+#     for name in ["000688"]:
+# # #         print(f"processing {name}")
+#         features=get_features(name)
+#         cnames = ["lev","sell"]
+#         model(features,cnames,"since_2020_"+name)
+#         model(features,cnames,"2020_"+name,train_start="2021-06-01",train_end="2021-12-31",pred_start="2021-01-01",)
+        
+    
          
         
         

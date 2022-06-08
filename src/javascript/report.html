@@ -44,8 +44,8 @@
 		}
 		
 		function extract(){
-			var code = document.getElementById('code').value
-			$('#detail_tab').datagrid({data: [origin_records.find( r => r.code == code)]});
+			var code = document.getElementById('code').value;
+			$('#detail_tab').datagrid({data: [origin_records.find( r => r.code.indexOf(code)>-1)]});
 		}
 		
 		function search_data(){
@@ -108,6 +108,9 @@
 		function init(){
 			
 			$('#date').val(today_str);
+			$('#model_date').val(today_str);
+			$('#date1').val(today_str);
+			load_model("d");
 			//search_data();
 			
 		}
@@ -241,18 +244,73 @@
 		
 		
 		function candidate(){
-			var url = `js/data/b_sids_${current_date}.js`;
+			var date1 = date_transform($('#date1').val());
+			
+			var url = `js/data/c_sids_${date1}.js`;
 			loadJS(url,candidate_filter)
 		
 		}
 		
 		function candidate_filter(){
-			console.log(mb_sids);
-			var records = origin_records.filter(a => mb_sids.indexOf( a.code.substring(2))>-1 );
+			console.log(mc_sids);
+			records = origin_records.filter(a => mc_sids.indexOf( a.code.substring(2))>-1 );
 
 			$('#detail_tab').datagrid({data: records});
+			draw_k();
 		
 		}
+		
+		function codeFmt(code,row,index){
+			var sname = row.code;
+			if ("sname" in row){
+				sname = row.sname;
+			}
+			return `<a id="${code}" href="https://quote.eastmoney.com/${code}.html" target="_blank">${sname}</a>`;
+		}
+		
+		function find_row(code){
+			var code_con = document.getElementById('code');
+			code_con.value=code;
+			extract();
+			code_con.focus();
+		}
+		
+		function row_link_fmt(code){
+			return `<a href="javascript:void(0)" onclick="find_row('${code}')">${code}</a>`;
+		
+		}
+		
+		var model_data={};
+		
+		
+		function show_model(mname){
+			var data=model_data[mname];
+			var keys = Object.keys(data);
+			var item0 = data[keys[0]];
+			var cnames = Object.keys(item0);
+			var columns = Array.from(cnames, cname =>{ return {field:cname,title:cname,sortable:true};});
+			columns[cnames.length-1]['formatter']=row_link_fmt;
+			console.log(columns);
+			var rows = Object.values(data);
+			$('#model_table').datagrid({title:"Model Data",remoteSort:false,columns: [columns],data: rows,toolbar:'#tb1'});
+			
+		}
+		
+		function load_model(mname){
+			var url = `js/data/${mname}_data_${today_str}.js`;
+			loadJS(url,function(){show_model(mname)});
+		
+		}
+		
+		
+		
+
+		
+		
+	
+	
+	
+	
 	
 	</script>
 	
@@ -272,7 +330,12 @@
         </select>
 		
 		<a href="#" class="easyui-linkbutton" iconCls="icon-search" onclick='search_data();'>Search</a>
+		<br/>
+		Date
+		<input class="easyui-datebox" id='date1' style="width:110px">
+		
 		<a href="#" class="easyui-linkbutton" iconCls="icon-search" onclick='candidate();'>Candidates</a>
+		<a href="#" class="easyui-linkbutton" iconCls="icon-search" onclick='refresh();'>Reset</a>
 		<br/>
 		R Squared
 		<input id='rsq' name='rsq' value='0.8'/>
@@ -301,13 +364,27 @@
 
 	
 	</div>
+	
+	
+	<div id='tb1'>
+		Date
+		<input class="easyui-datebox" id='model_date' style="width:110px">
+		Model: 
+        <select id='model_ext_name' class="easyui-combobox" panelHeight="auto" style="width:100px">
+			<option value="d">d</option>
+        </select>
+		
+		<a href="#" class="easyui-linkbutton" iconCls="icon-search" onclick='search_data();'>Explore</a>
+
+	
+	</div>
 
 	<body onload='init();'>
-  <table id='detail_tab' class="easyui-datagrid" title="Detail" style="width:95%;height:100%,margin-left:5%"
+  <table id='detail_tab' class="easyui-datagrid" title="Detail" style="width:95%;height:600px,margin:5%;min-height:300px"
             data-options="singleSelect:true,remoteSort:false,collapsible:true,method:'get',fitColumns:true,toolbar:'#tb'">
         <thead>
             <tr>
-                <th data-options="field:'code',width:120">code</th>
+                <th data-options="field:'code',width:120,formatter:codeFmt">code</th>
                 <th data-options="field:'R_Squared',width:120,formatter:num_format,sortable:true,sorter:function(a,b){ return a-b; }  ">R_Squared</th>
                 <th data-options="field:'F_Value',width:120,align:'right',formatter:num_format">F_Value</th>
                 <th data-options="field:'F_P_value',width:120,align:'right',formatter:num_format">F_P_value</th>
@@ -318,6 +395,7 @@
 				<th data-options="field:'close_std_rate',sortable:true,width:120">price rate</th>
 				<th data-options="field:'volume_std_rate',sortable:true,width:120">volume rate</th>
 				<th data-options="field:'lev_ratio_rate',sortable:true,width:120">Leverage rate</th>
+				<th data-options="field:'industry',sortable:true,width:120">Industry</th>
 				<th data-options="field:'lev',width:80">Leverage</th>
 				<th data-options="field:'realtime',width:80">realtime</th>
             </tr>
@@ -325,7 +403,8 @@
     </table>
 	
 
-	
+	<table id="model_table" style="width:88%; height:666px; margin:88px" >
+	</table>
 	
 	<div id="container" style="height:400px;width:1000px"></div>
 

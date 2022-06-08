@@ -78,18 +78,130 @@ def bussniess_logic(df):
     
 from datetime import date
 
-# today = str(date.today())
-today = "2022-05-24"
+today = str(date.today())
+# today = "2022-06-06"
 
 print("today is "+today)
 
 model_b_sids=[]
+
+
+
+def model_d(sid,df):
+#     df = df[:today]
+#     print(df.columns)
+    
+    s = df['volume'].pct_change()
+    
+    s1 = s.gt(0)
+    s2 = s.lt(0)
+    
+    df['vol_chg']=s
+    df['vol_increase'] = s1.cumsum().where(s1, 0)
+    df['vol_decrease'] = s2.cumsum().where(s2, 0)
+
+    
+    si = df['vol_increase'].eq(0)
+    sd = df['vol_decrease'].eq(0)
+    
+    df['vol_inc'] = si.groupby(si.cumsum()).cumcount()
+    df['vol_dec'] = sd.groupby(sd.cumsum()).cumcount()
+    df['vol_colsum']= df.apply(lambda r: -r[-1] if r[-1]>0 else r[-2],axis=1)
+    
+    s=df['close'].pct_change()
+    
+    s1 = s.gt(0)
+    s2 = s.lt(0)
+    
+    df['close_chg']=s
+    df['close_increase'] = s1.cumsum().where(s1, 0)
+    df['close_decrease'] = s2.cumsum().where(s2, 0)
+    
+    si = df['close_increase'].eq(0)
+    sd = df['close_decrease'].eq(0)
+    
+    df['close_inc'] = si.groupby(si.cumsum()).cumcount()
+    df['close_dec'] = sd.groupby(sd.cumsum()).cumcount()
+    df['close_colsum']= df.apply(lambda r: -r[-1] if r[-1]>0 else r[-2],axis=1)
+    
+    df['high_max'] = df['high'].rolling(window=10).max().shift(-10)
+    #df['vol_chg'] = df['vol_chg'].shift()
+    df['positive_return']=df['high_max']/df['open']-1
+    
+    f=df[(df.vol_colsum>=5) | (df.vol_colsum<=-5)]
+
+    print(df.index[-1])
+#     print(df.columns)
+    if len(f)>0 and  df.index[-1]==f.index[-1]:
+        print("candidate id:"+sid)
+        fpath = f"../../javascript/js/data/d_data_{today}.js";
+        t = os.path.exists(fpath)
+            
+        with open(fpath,'a') as fo:
+            obj = df[["vol_colsum","close_colsum","vol_chg","close_chg"]].iloc[-1]
+            obj['sid'] = sid;
+            obj=obj.to_json();
+            if t:
+                fo.write(f'model_data.d["{sid}"]={obj};\n')
+            else:
+                fo.write("model_data.d={'"+sid+"':"+obj+"};\n")
+    
+#     print(f)
+    f.to_csv(os.path.join('data',sid+"_d.csv"))
+#     f.to_csv(os.path.join('data',sid+"_b_quantile.csv"))
+    return f['positive_return'].describe()
+
+
+
+def model_c(sid,df):
+
+#     df = df[:today]
+#     print(df.columns)
+    
+    df['pre_open'] =df['open'].shift()
+    df['pre_close']=df['close'].shift()
+    df['vol_chg']=df['volume'].pct_change()
+#     print(df.columns)
+    
+    df['down']= df.apply(lambda r: 1 if (r[0]<r[5] and r[3]< r[6]) else 0,axis=1)
+    df['down_cnt'] = df['down'].rolling(window=3).sum()
+    
+
+    df['volatility'] = df['volume'].rolling(5).std()
+    df['vol_0.1']= df['volatility'].rolling(30).quantile(0.1)
+    df['vol_test'] = df.apply(lambda r : r[-2]<r[-1] ,axis=1)
+    
+    df['vol_test'] = df['vol_test'].shift(1)
+    df['down_cnt'] = df['down_cnt'].shift()
+    df['high_max'] = df['high'].rolling(window=10).max().shift(-10)
+    #df['vol_chg'] = df['vol_chg'].shift()
+    df['positive_return']=df['high_max']/df['open']-1
+    
+    f=df[(df.vol_test) &(df.vol_chg>0.5)]
+
+    print(df.index[-1])
+#     print(df.columns)
+    if len(f)>0 and  df.index[-1]==f.index[-1]:
+        print("candidate id:"+sid)
+        fpath = f"../../javascript/js/data/c_sids_{today}.js";
+        t = os.path.exists(fpath)
+            
+        with open(fpath,'a') as fo:
+            if t:
+                fo.write(f'mc_sids.push("{sid}");\n')
+            else:
+                fo.write(f'var mc_sids=["{sid}"];\n')
+    
+#     print(f)
+    f.to_csv(os.path.join('data',sid+"_c.csv"))
+#     f.to_csv(os.path.join('data',sid+"_b_quantile.csv"))
+    return f['positive_return'].describe()
     
 def model_b(sid):
     print("processing "+sid)
 #     df = sl.get_f(sid, 0);
     df = pd.read_csv(os.path.join("stock",sid,"price.csv"),index_col=0,parse_dates=True)
-    df = df[:today]
+#     df = df[:today]
 #     print(df.columns)
     
     df['pre_open'] =df['open'].shift()
@@ -100,17 +212,29 @@ def model_b(sid):
     df['down']= df.apply(lambda r: 1 if (r[0]<r[5] and r[3]< r[6]) else 0,axis=1)
     df['down_cnt'] = df['down'].rolling(window=3).sum()
     df['vol_chg']=df['volume'].pct_change()
+    df['quant']=df['close'].rolling(30).quantile(.2)
     
-    df['high_max'] = df['high'].rolling(window=3).max().shift(-3)
-    df['positive_return']=df['high_max']/df['close']-1
-#     df.to_csv(os.path.join('data',sid+"_tmp.csv"))
-#     print(df[['down','down_cnt']])
-    f = df[(df.down_cnt==3) & (df.vol_chg>0.2)]
+    df['down_cnt'] = df['down_cnt'].shift()
+    df['high_max'] = df['high'].rolling(window=10).max().shift(-10)
+ #   df['vol_chg'] = df['vol_chg'].shift()
+    df['positive_return']=df['high_max']/df['open']-1
+    
     
 
-    print(df.index[-1])
+    
+    
+    
+    #     df.to_csv(os.path.join('data',sid+"_tmp.csv"))
+#     print(df[['down','down_cnt']])
+    
+
+    f = df[(df.down_cnt==3) & (df.vol_chg>0.2)]
+#     f = df[(df.down_cnt==3) & (df.vol_chg>0.2) &(df.close< df.quant)]
+    
+
+#     print(df.index[-1])
 #     print(df.columns)
-    if df.index[-1]==f.index[-1]:
+    if len(f)>0 and  df.index[-1]==f.index[-1]:
         print("candidate id:"+sid)
         fpath = f"../../javascript/js/data/b_sids_{today}.js";
         t = os.path.exists(fpath)
@@ -122,7 +246,8 @@ def model_b(sid):
                 fo.write(f'var mb_sids=["{sid}"];\n')
     
 #     print(f)
-    f.to_csv(os.path.join('data',sid+"b.csv"))
+    f.to_csv(os.path.join('data',sid+"_b.csv"))
+#     f.to_csv(os.path.join('data',sid+"_b_quantile.csv"))
     return f['positive_return'].describe()
         
 def model_a(sid):
@@ -251,7 +376,12 @@ if __name__ == '__main__':
     mv = pd.read_excel(os.path.join("data","market_value.xls"),index_col=1);
 #     print(mv)
     
-    t =[];
+    records={}
+#     models = [model_c,model_d]
+    models = [model_d]
+    for model in models:
+        records[model.__name__]=[]
+    
     sids = os.listdir("stock")
     sids = list(filter(lambda sid :sid<'010' or (sid>'600' and sid<'680'),sids))
     
@@ -261,14 +391,16 @@ if __name__ == '__main__':
     mvs1= list(map(lambda sid: mv.loc[int(sid),'流通市值']/100000000,sids))
 #     print(mvs)
 
-    for sid in sids:
-#     for sid in ['600759']:
-        if sid[0] in ['0','6']:
-#     for sid in ['000850','002118','600333','002389','600277']:
-            t.append(model_b(sid))
-    df = pd.DataFrame(t,index= sids)
-    df['mv_tatal']=mvs
-    df['mv_on_trade']=mvs1
-    df.to_csv(os.path.join('data',f'b_desc_{today}.csv'))
+    sids = list(filter(lambda sid: sid[0] in ['0','6'],sids))
+    price_dfs = map(lambda sid:pd.read_csv(os.path.join("stock",sid,"price.csv"),index_col=0,parse_dates=True), sids)
+    for sid, df in zip(sids, price_dfs):
+        for model in models:
+            records[model.__name__].append(model.__call__(sid,df))
+            
+    for model in models:
+        df = pd.DataFrame(records[model.__name__],index= sids)
+        df['总市值']=mvs
+        df['流通市值']=mvs1
+        df.to_csv(os.path.join('data',f'{model.__name__}[-1]_desc_{today}.csv'))
     
 

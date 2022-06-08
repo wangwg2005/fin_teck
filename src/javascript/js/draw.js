@@ -414,6 +414,62 @@ function draw_k_line(con_id,sid){
 }
 
 
+function draw_2y_line(cid,dates,values,title){
+	
+		
+	var dom = document.getElementById(cid);
+	var myChart = echarts.init(dom);
+	var app = {};
+
+	var option;
+
+	
+	const dateList = dates
+	//const valueList = values;
+	const s = Array.from(values,v =>{ return {
+		  type: 'line',
+		  showSymbol: false,
+	data: v};
+		})
+	option = {
+	  // Make gradient line here
+	
+	  title: [
+		{
+		  left: 'center',
+		  text: title
+		}
+	  ],
+	  tooltip: {
+		trigger: 'axis'
+	  },
+	  xAxis: [
+		{
+		  data: dateList
+		}
+		
+	  ],
+	  yAxis: [
+		{}		
+	  ],
+	  grid: [
+		{
+		  bottom: '60%'
+		}
+	  ],
+	  series: s
+	  
+	};
+	
+	
+
+	if (option && typeof option === 'object') {
+		myChart.setOption(option);
+	}
+
+	
+}
+
 function draw_gradient_line(cid,dates,values,title){
 	
 		
@@ -453,8 +509,7 @@ function draw_gradient_line(cid,dates,values,title){
 		
 	  ],
 	  yAxis: [
-		{}
-		
+		{}		
 	  ],
 	  grid: [
 		{
