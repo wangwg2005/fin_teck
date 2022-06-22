@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from scipy import stats
 import statsmodels.api as sm
 import numpy as np
+from functools import reduce
 
 
 # data_size=[20,1]
@@ -46,6 +47,7 @@ def model(features,names,prefix,train_start="2016-12-31",train_end="2020-12-31",
 #     print('x',X)
 #     print('y',y)
     mod=sm.OLS(y,X).fit()
+    
 #     print(mod.summary())
     
     
@@ -92,10 +94,13 @@ def model(features,names,prefix,train_start="2016-12-31",train_end="2020-12-31",
 #     rX= X.to_numpy()
     X=sm.add_constant(X)
     preds=mod.get_prediction(X).summary_frame()
+    print("last predicts:")
+    print(preds.iloc[-1].to_json())
+    
     print(X.index[-1])
     print(test_df["close"][-1])
     
-    
+    print(preds[-10:].to_csv())
     
 #     y_rpred = rm.predict(rX)
 #     print(preds)
@@ -140,8 +145,10 @@ def model(features,names,prefix,train_start="2016-12-31",train_end="2020-12-31",
     print(fpath)
 
     plt.close()
+    
+    return preds.iloc[-1]
 
-def get_features(name):
+def get_features(name,etf=False):
     
     base_dir=name
 
@@ -149,29 +156,38 @@ def get_features(name):
     lev_df=pd.read_excel(os.path.join(base_dir,"融资融券_"+name+"n.xls"),parse_dates=[0],index_col=0).sort_index()[start:]
 #     print("leverage :")
 #     print(lev_df)
-    
-#     files=os.listdir(name)
-#     etfs=filter(lambda f: len(f)==15 and f[:4]=="rzrq", files)
-
-    
-#     extra_dfs=map(lambda etfile:pd.read_csv(os.path.join(base_dir,etfile),header=0,parse_dates=[0],index_col=0).sort_index()[start:][["融资余额(元)","融券余量"]],etfs)
-#     extra_dfs=list(extra_dfs)
-#     for ext in extra_dfs:
-#         print(ext.dtypes)
-# #         print(ext)
-#         print(ext.head())
-#         print(ext.index[:10])
-        
-#     extra=reduce(lambda a,b:a+b, extra_dfs)/100000000
     features=price_df[["收盘价"]]
     features["f1"]=price_df["成交量"]*price_df["涨跌幅"].map(lambda a: 1 if a>0 else -1)/10000000
     features=features.rename(columns={"收盘价": "close"})
     features["lev"] =lev_df["融资余额(亿元)"]
     features["sell"]=lev_df["融券余量(亿股)"]
-#     features["extra_lev"] = extra["融资余额(元)"]
-#     features["extra_sell"] = extra["融券余量"]
-#     features["total_lev"]=features["lev"]+features["extra_lev"]
-#     features["total_sell"]=features["sell"]+features["extra_sell"]
+
+    if etf:
+        
+        files=os.listdir(name)
+        etfs=filter(lambda f: len(f)==15 and f[:4]=="rzrq", files)
+ 
+     
+        extra_dfs=map(lambda etfile:pd.read_csv(os.path.join(base_dir,etfile),header=0,parse_dates=[0],index_col=0).sort_index()[start:][["融资余额(元)","融券余量"]],etfs)
+        extra_dfs=list(extra_dfs)
+        for ext in extra_dfs:
+            print(ext.dtypes)
+    #         print(ext)
+            print(ext.head())
+            print(ext.index[:10])
+        
+        extra=reduce(lambda a,b:a+b, extra_dfs)/100000000
+
+        features["extra_lev"] = extra["融资余额(元)"]
+        features["extra_sell"] = extra["融券余量"]
+        
+        
+        features["extra_lev"]=features["extra_lev"].fillna(0)
+        features["extra_sell"] = features["extra_sell"].fillna(0)
+        
+        
+        features["total_lev"]=features["lev"]+features["extra_lev"]
+        features["total_sell"]=features["sell"]+features["extra_sell"]
     print(f"get feature for {name} from {features.index[0]} to {features.index[-1]}")
 #     print(f"last row : {features.iloc[-1]}")
     return features
@@ -237,15 +253,51 @@ if __name__=="__main__":
     
 #     explore_fx()
         
-    
+    cnames = ["lev","sell"]
 #     for name in ["000905","000016","000300","399006"]:
-    for name in ["000905"]:
+#     for name in ["000905"]:
+# # #         print(f"processing {name}")
+    
+#         
+#         model(features,cnames,"since_2020_"+name)
+    rows = []
+    
+    # csi500
+    features=get_features("000905")
+    pred_csi500 = model(features,cnames,"2020_000905",pred_start="2014-01-01")
+    rows.append(pred_csi500)
+    
+    #
+#     features=get_features("399006",etf=True)
+#     print(features.columns)
+#     pred_399006 = model(features,["extra_lev","extra_sell"],"2020_399006",train_start="2017-12-31",train_end="2020-12-31",pred_start="2014-01-01")
+    
+    features=get_features("000300")
+    print(features.columns)
+    pred_000300 = model(features,cnames,"2019_000300",train_start="2019-01-01",train_end="2021-12-31",pred_start="2014-01-01")
+    rows.append(pred_000300)
+    indexes = ["000016","000688"]
+# #     indexes =["000688"]
+#       
+    for name in indexes:
 # #         print(f"processing {name}")
         features=get_features(name)
-        cnames = ["lev","sell"]
-        model(features,cnames,"since_2020_"+name)
-        model(features,cnames,"2020_"+name,pred_start="2021-01-01")
+        print(features[:2])
+#         model(features,cnames,"since_2020_"+name)
+        pred = model(features,cnames,"2019_"+name,train_start="2019-01-01",train_end="2021-12-31",pred_start="2014-01-01")
+        rows.append(pred)
         
+    df = pd.DataFrame(rows,index=["000905","000300",*indexes])
+    print("predctions")
+    print(df)
+    t = df.to_json(orient="index")
+    
+    
+    opath = "../../javascript/js/data/index_range.js";
+    
+    with open(opath,'w',encoding='utf8') as fo:
+        fo.write("var index_range="+t)
+    print(t)
         
 #     for name in ["000688"]:
 # # #         print(f"processing {name}")

@@ -7,6 +7,7 @@
 <script type="text/javascript" src="js/draw.js"></script>
 <script type="text/javascript" src="js/common.js"></script>
 <script type="text/javascript" src="js/echarts.min.js"></script> 
+<script type="text/javascript" src="js/data/index_range.js"></script>
 <script type="text/javascript">
 
 var price={};
@@ -45,11 +46,14 @@ function jQuery18308958543031269126_1647150479422(data){
 		}
 		let sid = prefix + code;
 		let current_price = p.f2/100
-		check_sid(sid,current_price);
+		<!-- check_sid(sid,current_price); -->
+		let range= index_range[code];
+		check(current_price,range.obs_ci_upper,range.obs_ci_lower,sid,"leverage model");
 		
 	}
 
 }
+
 
 function check_sid(sid,current_price){
 	p5 = data[sid+'_5'] ;
@@ -79,9 +83,9 @@ function init(){
 	<!-- var sids=['sh000016']; -->
 	for( let sid of sids){
 		url = `http://ifzq.gtimg.cn/appstock/app/kline/mkline?param=${sid},m5,,800&_var=price.${sid}`;
-		load_js(url,function(){compute(sid)});
+		load_js(url,function(){compute(sid);});
 	}
-	var real_url = 'https://push2.eastmoney.com/api/qt/ulist.np/get?ut=13697a1cc677c8bfa9a496437bfef419&fields=f1,f2,f3,f4,f12,f13,f14&secids=1.000016,1.000905,1.000300,0.399006&cb=jQuery18308958543031269126_1647150479422&_=1647150479801';
+	var real_url = 'https://push2.eastmoney.com/api/qt/ulist.np/get?ut=13697a1cc677c8bfa9a496437bfef419&fields=f1,f2,f3,f4,f12,f13,f14&secids=1.000016,1.000905,1.000300,1.000688&cb=jQuery18308958543031269126_1647150479422&_=1647150479801';
 	setInterval(function(){load_js(real_url);}, 1000*60*5);
 }
 

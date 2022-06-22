@@ -377,8 +377,8 @@ if __name__ == '__main__':
 #     print(mv)
     
     records={}
-#     models = [model_c,model_d]
-    models = [model_d]
+    models = [model_c,model_d]
+#     models = [model_d]
     for model in models:
         records[model.__name__]=[]
     

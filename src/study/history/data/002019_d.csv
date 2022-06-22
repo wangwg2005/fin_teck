@@ -1,2 +1,2 @@
-day,open,high,low,close,volume,vol_chg,vol_increase,vol_decrease,vol_inc,vol_dec,vol_colsum,close_chg,close_increase,close_decrease,close_inc,close_dec,close_colsum,high_max,positive_return
-2020-03-20,16.2,16.5,16.06,16.35,13671856,-0.13480633810393017,0,324,0,5,-5.0,0.017423771001866983,289,0,2,0,2.0,16.7,0.030864197530864113
+day,open,high,low,close,volume,pre_open,pre_close,vol_chg,down,down_cnt,volatility,vol_0.1,vol_test,high_max,positive_return,vol_increase,vol_decrease,vol_inc,vol_dec,vol_colsum,close_chg,close_increase,close_decrease,close_inc,close_dec,close_colsum
+2020-03-20,16.2,16.5,16.06,16.35,13671856,16.01,16.07,-0.13480633810393017,0,1.0,6895387.4427389335,3136931.9126135465,False,16.7,0.030864197530864113,0,324,0,5,-5,0.017423771001866983,289,0,2,0,2

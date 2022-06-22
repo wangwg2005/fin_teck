@@ -21,9 +21,12 @@
 			script.onload = fn;
 			
 			console.log("loading js from "+url);
-
-			script.src = url;
-			document.getElementsByTagName('head')[0].appendChild(script);
+			try{
+				script.src = url;
+				document.getElementsByTagName('head')[0].appendChild(script);
+			}catch(e){
+				console.err("no resource for url:"+url);
+			}
 
 		}
 		
@@ -110,8 +113,7 @@
 			$('#date').val(today_str);
 			$('#model_date').val(today_str);
 			$('#date1').val(today_str);
-			load_model("d");
-			//search_data();
+			load_model();
 			
 		}
 		
@@ -296,8 +298,10 @@
 			
 		}
 		
-		function load_model(mname){
-			var url = `js/data/${mname}_data_${today_str}.js`;
+		function load_model(){
+			var mdate = date_transform($('#model_date').val());
+			var mname = $('#model_ext_name').val();
+			var url = `js/data/${mname}_data_${mdate}.js`;
 			loadJS(url,function(){show_model(mname)});
 		
 		}
@@ -374,7 +378,7 @@
 			<option value="d">d</option>
         </select>
 		
-		<a href="#" class="easyui-linkbutton" iconCls="icon-search" onclick='search_data();'>Explore</a>
+		<a href="#" class="easyui-linkbutton" iconCls="icon-search" onclick='load_model();'>Explore</a>
 
 	
 	</div>

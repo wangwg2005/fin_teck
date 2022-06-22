@@ -317,6 +317,8 @@ function draw_k_line(con_id,sid){
 	            },
 	            markLine: {
 	                symbol: ['none', 'none'],
+			
+                
 	                data: [
 	                    [
 	                        {
@@ -349,17 +351,9 @@ function draw_k_line(con_id,sid){
 	                            }
 	                        }
 	                    ],
-	                    {yAxis:6700},
-	                    {
-	                        name: 'min line on close',
-	                        type: 'min',
-	                        valueDim: 'close'
-	                    },
-	                    {
-	                        name: 'max line on close',
-	                        type: 'max',
-	                        valueDim: 'close'
-	                    }
+	                    {yAxis:index_range[sid.substr(2)].obs_ci_lower, name:"lower",label:{show:true}},
+						{yAxis:index_range[sid.substr(2)].obs_ci_upper,name:"upper"},
+			
 	                ]
 	            }
 	        },
