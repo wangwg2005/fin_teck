@@ -54,7 +54,7 @@ function linearRegression(y,x){
      lr['se']= Math.sqrt(mse/n)
      
      
-     lr['r2'] = Math.pow((n*sum_xy - sum_x*sum_y)/Math.sqrt((n*sum_xx-sum_x*sum_x)*(n*sum_yy-sum_y*sum_y)),2); 
+     // lr['r2'] = Math.pow((n*sum_xy - sum_x*sum_y)/Math.sqrt((n*sum_xx-sum_x*sum_x)*(n*sum_yy-sum_y*sum_y)),2); 
 
      return lr; 
 } 

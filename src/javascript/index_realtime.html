@@ -56,7 +56,7 @@ function check_sid(sid,current_price){
 }
 
 function check(current_price, up_limit, buttom_limit,sid, line_name){
-	console.log(`checking prices for ${sid}, cp:${current_price}, ul:${up_limit}, bl:${buttom_limit}`);
+	console.log(`checking prices for ${sid}, current:${current_price}, upper:${up_limit}, lower:${buttom_limit}`);
 	if(current_price>up_limit){
 		notify(sid,sid+" breach the up limit of "+line_name);
 	}else if(current_price<buttom_limit){

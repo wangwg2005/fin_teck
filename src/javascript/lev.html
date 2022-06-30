@@ -50,7 +50,7 @@ var data_len= 200;
 			d = d.qfqday;
 		}else{
 			d = d.day;
-		}		
+		}
 		var r = batch_ml(x,y,param.window);
 		
 		var resid=new Array();
@@ -85,7 +85,7 @@ var data_len= 200;
 		console.log(volume);
 		
 		var len= rzmr.length;
-		var rate= new Array()
+		var rate= new Array();
 		for(let i = 0 ; i<len ;i++){
 			rate[i]=rzmr[i]/volume[i];
 		}
@@ -127,12 +127,33 @@ var data_len= 200;
 	
 	}
 	
+	function index_lev(){
+		var upper = Array.from( index_range, a => a["high"]);
+		var lower = Array.from( index_range, a => a["low"]);
+		
+		var d = daydata.data[param.id];
+		var sec_name = d.qt[param.id][1]
+		if ('qfqday' in d){
+			d = d.qfqday;
+		}else{
+			d = d.day;
+		}
+		console.log("aaaaa");
+		console.log(d.length);
+		
+		draw_k_line_2('container',{'upper':upper,'lower':lower},sec_name,d);
+	
+	}
+	
 	function load_price(sid){
 	
 		
 
 		var url =`https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?_var=daydata&param=${sid},day,,,${data_len+1},qfq&r=0.9860043111257255`;
-		if(param.model == 'lev'){
+		
+		if (["sh000300","sh000905","sh000016"].indexOf(sid)>-1){
+			load_js(url,function(){load_js("js/data/"+sid.substr(2)+".js",index_lev)});
+		}else if(param.model == 'lev'){
 			load_js(url,function(){fetch_rzrq(sid.substr(2),data_len,rzrq_analyze);});
 		}else if (param.model == 'mv'){
 			load_js(url,mv_model);
@@ -143,7 +164,9 @@ var data_len= 200;
 	
 	function init(){
 		param = get_param(param);
-		if(param.id.length != 8){
+		var ilen = param.id.length;
+		
+	    if(ilen != 8){
 			alert('wrong sid');
 			return ;
 		}

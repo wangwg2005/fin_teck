@@ -7,14 +7,19 @@ from scipy import stats
 import statsmodels.api as sm
 import numpy as np
 from functools import reduce
+import datetime
 
 
 # data_size=[20,1]
 
 start="2014-12-31"
+ipath = "../../javascript/img"
+
 
 def model(features,names,prefix,train_start="2016-12-31",train_end="2020-12-31",pred_start="2019-12-31",pred_end=None):
     print(prefix)
+    
+    
 
 #     print(features[-10:])
     features=features[[*names,"close"]]
@@ -26,8 +31,12 @@ def model(features,names,prefix,train_start="2016-12-31",train_end="2020-12-31",
     train_set=features[train_start:train_end]
     if pred_end is None:
         test_df = features[pred_start:]
+        fname = "_".join( [prefix,train_start,train_end,pred_start,*names])
     else:
         test_df = features[pred_start:pred_end]
+        fname = "_".join( [prefix,train_start,train_end,pred_start,pred_end,*names])
+        
+    fname = fname.replace("-", "")
 #     df=df[-data_size[0]:]
 
     print('df',train_set.index[0],train_set.index[-1])
@@ -110,8 +119,12 @@ def model(features,names,prefix,train_start="2016-12-31",train_end="2020-12-31",
     
     
     plt.legend()
+    
+    
+    
+    
 
-    fpath = os.path.join("img", prefix + "_" + "_".join(names) + ".png")
+    fpath = os.path.join(ipath, fname + ".png")
     plt.savefig(fpath)
     plt.close()
 
@@ -140,7 +153,7 @@ def model(features,names,prefix,train_start="2016-12-31",train_end="2020-12-31",
 
 #     title=prefix+":"+",".join(names)
     plt.suptitle("predtion")
-    fpath = os.path.join("img", prefix + "_" + "_".join(names) + "_pred.png")
+    fpath = os.path.join(ipath, fname + "_pred.png")
     plt.savefig(fpath)
     print(fpath)
 
@@ -156,11 +169,12 @@ def get_features(name,etf=False):
     lev_df=pd.read_excel(os.path.join(base_dir,"融资融券_"+name+"n.xls"),parse_dates=[0],index_col=0).sort_index()[start:]
 #     print("leverage :")
 #     print(lev_df)
-    features=price_df[["收盘价"]]
+    features=price_df
     features["f1"]=price_df["成交量"]*price_df["涨跌幅"].map(lambda a: 1 if a>0 else -1)/10000000
     features=features.rename(columns={"收盘价": "close"})
     features["lev"] =lev_df["融资余额(亿元)"]
     features["sell"]=lev_df["融券余量(亿股)"]
+    
 
     if etf:
         
@@ -189,6 +203,13 @@ def get_features(name,etf=False):
         features["total_lev"]=features["lev"]+features["extra_lev"]
         features["total_sell"]=features["sell"]+features["extra_sell"]
     print(f"get feature for {name} from {features.index[0]} to {features.index[-1]}")
+    
+    out = features.to_json(orient='table')
+    
+    fpath = os.path.join("../../javascript/js/data/",name+".js")
+    with open(fpath,'w',encoding="utf8") as fo:
+        fo.write("var index_value = ")
+        fo.write(out)
 #     print(f"last row : {features.iloc[-1]}")
     return features
 
@@ -248,6 +269,41 @@ def explore_fx():
 def ml():
     feature = get_features("000905")
     
+def simple_ml(features,names):
+    X=features[names]
+#     rx=X.to_numpy()
+    X=sm.add_constant(X)
+    y=features["close"]
+    
+#     print('x',X)
+#     print('y',y)
+    mod=sm.OLS(y,X).fit()
+    return mod.fittedvalues[-1], mod.mse_resid**0.5
+    
+    
+
+def slide_ml(feature,names,prefix, window):
+    feature = feature.dropna()
+    
+    feature = feature[-(200+window-1):] 
+    print(len(feature))
+    f_size = len(feature)
+    print(f_size)
+    fs = map(lambda i: feature[i:i+window],range(f_size - window+1))
+    result = map(lambda f:simple_ml(f,names),fs)
+    data = list(map(lambda a :[a[0],a[0]+2*a[1], a[0]-2*a[1]],result))
+    
+    df = pd.DataFrame(data= data,columns=['pred','high',"low"], index = feature.index[window-1:])
+    js = df.to_json(orient="records",index=True)
+    
+    fpath = os.path.join("../../javascript/js/data/",prefix+".js")
+    with open(fpath,'w') as fo:
+        fo.write("var index_range = ")
+        fo.write(js)
+    
+valid_model = {"000905":{"train_start":"2017-01-01","train_end":"2021-01-01"},
+               "000300":{"train_start":"2019-06-01","train_end":"2022-06-01"}
+               }
     
 if __name__=="__main__":
     
@@ -264,7 +320,9 @@ if __name__=="__main__":
     
     # csi500
     features=get_features("000905")
-    pred_csi500 = model(features,cnames,"2020_000905",pred_start="2014-01-01")
+    pred_csi500 = model(features,cnames,"000905",pred_start="2014-01-01")
+#     model(features,cnames,"000905",train_start="2019-06-01",train_end="2022-06-01",pred_start="2020-01-01")
+#     pred_csi500 = model(features,cnames,"000905",pred_start="2014-01-01")
     rows.append(pred_csi500)
     
     #
@@ -272,9 +330,13 @@ if __name__=="__main__":
 #     print(features.columns)
 #     pred_399006 = model(features,["extra_lev","extra_sell"],"2020_399006",train_start="2017-12-31",train_end="2020-12-31",pred_start="2014-01-01")
     
+#     features=get_features("000016")
     features=get_features("000300")
-    print(features.columns)
-    pred_000300 = model(features,cnames,"2019_000300",train_start="2019-01-01",train_end="2021-12-31",pred_start="2014-01-01")
+#     features=get_features("000905")
+#     print(features.columns)
+#     slide_ml(features["2014-01-01":], cnames, "sh000300", 500)
+    pred_000300 = model(features,cnames,"000016",train_start="2019-06-01",train_end="2022-06-01",pred_start="2014-01-01")
+    model(features,cnames,"000300",train_start="2021-03-15",train_end="2022-03-15",pred_start="2020-01-01")
     rows.append(pred_000300)
     indexes = ["000016","000688"]
 # #     indexes =["000688"]
@@ -284,20 +346,21 @@ if __name__=="__main__":
         features=get_features(name)
         print(features[:2])
 #         model(features,cnames,"since_2020_"+name)
-        pred = model(features,cnames,"2019_"+name,train_start="2019-01-01",train_end="2021-12-31",pred_start="2014-01-01")
+        pred = model(features,cnames,name,train_start="2019-01-01",train_end="2021-12-31",pred_start="2014-01-01")
+        model(features,cnames,name,train_start="2015-01-01",train_end="2021-12-31",pred_start="2014-01-01")
         rows.append(pred)
-        
-    df = pd.DataFrame(rows,index=["000905","000300",*indexes])
-    print("predctions")
-    print(df)
-    t = df.to_json(orient="index")
-    
-    
-    opath = "../../javascript/js/data/index_range.js";
-    
-    with open(opath,'w',encoding='utf8') as fo:
-        fo.write("var index_range="+t)
-    print(t)
+#         
+#     df = pd.DataFrame(rows,index=["000905","000300",*indexes])
+#     print("predctions")
+#     print(df)
+#     t = df.to_json(orient="index")
+#     
+#     
+#     opath = "../../javascript/js/data/index_range.js";
+#     
+#     with open(opath,'w',encoding='utf8') as fo:
+#         fo.write("var index_range="+t)
+#     print(t)
         
 #     for name in ["000688"]:
 # # #         print(f"processing {name}")

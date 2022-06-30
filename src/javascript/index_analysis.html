@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Index Analysis</title>
+<script type="text/javascript" src="js/ml.js"></script>
+<script type="text/javascript" src="js/draw.js"></script>
+<script type="text/javascript" src="js/common.js"></script>
+<script type="text/javascript" src="js/echarts.min.js"></script>
+<script type="text/javascript" src="js/data/index_range.js"></script>
+<script type="text/javascript" src="js/jquery-easyui/jquery.min.js"></script>
+<script type="text/javascript" src="js/jquery-easyui/jquery.easyui.min.js"></script>
+<link rel="stylesheet" type="text/css" href="js/jquery-easyui/themes/default/easyui.css">
+<script type="text/javascript">
+
+
+function analyze_data(customize){
+	data = index_value.data;
+	
+	if(customize ===true){
+		let v = $("#train_slider").slider("getValues");
+		console.log(v);
+		var train_set = data.slice(v[0],v[1]);
+	}else{
+		var len = data.length;
+		var train_length = document.getElementById("train").value;
+		var train_set = data.slice(- parseInt(train_length));
+		$("#train_slider").slider({
+		showTip:true,
+		min:0,
+		max:len,
+		tipFormatter:function(v){
+			return data[v]["日期"].substr(0,10);
+		},
+		range:true,
+		value:[len-750,len-1]
+	
+	});
+	}
+	
+	var x = Array.from(train_set, a =>a.lev);
+	var y = Array.from(train_set, a=> a.close);
+	var model = linearRegression(y,x);
+	
+	var test_length = document.getElementById("test").value;
+	var test_set = data.slice(- parseInt(test_length));
+	var fitted = Array.from(test_set, a => a.lev*model.slope + model.intercept);
+	var upper = Array.from(fitted, a => a + 2 * model.se);
+	var lower = Array.from(fitted, a => a - 2 * model.se);
+	var kline = Array.from(test_set, a => [ a["日期"].substr(0,10), a["开盘价"], a["close"], a["最高价"], a["最低价"],])
+	
+	draw_k_line_2("diagram",{"upper":upper,"lower":lower},index_id,kline)
+
+	//draw_gradient_line(index_id,date,[stds],'Volatility of Close');
+}
+
+
+function init(){
+
+}
+
+function index_change(){
+	index_id = document.getElementById("index").value;
+	load_js(`js/data/${index_id.substr(2)}.js`,analyze_data);
+}
+
+</script>
+
+
+</head>
+<body onload='init()'>
+
+
+
+<select id ="index">
+	<option value ="sh000016">上证50</option>
+  <option value ="sh000300" selected="selected">沪深300</option>
+  <option value="sh000905">中证500</option>
+  <option value="sz399006">创业板</option>
+
+</select>
+
+<label>Train Range</label>
+<select id="train" >
+	<option value ="22">last Month</option>
+  <option value ="66" >last 3 Months</option>
+  <option value="132">last 6 Month</option>
+  <option value="250">last 1 Year</option>
+  <option value="500">last 2 Years</option>
+  <option value="750" selected="selected">last 3 Years</option>
+  <option value="0">Whole Range</option>
+
+</select>
+
+<label>Test Range</label>
+<select id="test" >
+	<option value ="22">last Month</option>
+  <option value ="66" >last 3 Months</option>
+  <option value="132">last 6 Month</option>
+  <option value="250">last 1 Year</option>
+  <option value="500">last 2 Years</option>
+  <option value="750" >last 3 Years</option>
+  <option value="0" selected="selected">Whole Range</option>
+
+</select>
+
+<a href="#" class="easyui-linkbutton" iconCls="icon-search" onclick='index_change();'>Get</a>
+<br/>
+<br/>
+<label value = "Train Range" style="margin:20px">Train Range </label>
+<br/>
+<br/>
+<input id='train_slider' style="width:400px" />
+<a href="#" class="easyui-linkbutton" iconCls="icon-search" onclick='analyze_data(true);'>Customize</a>
+<table>
+<thead>
+
+
+</table>
+
+<br/>
+<div id="diagram" style="height:500px;width:100%"></div>
+</body>
+</html>

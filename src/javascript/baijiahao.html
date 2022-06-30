@@ -1,0 +1,85 @@
+<html>
+<head>
+<title>Baijiahao</title>
+
+<script>
+
+uks = {"证券日报":"KKlshDoWI_vbi3E1Ehi4aw"}
+
+var url = 'https://mbd.baidu.com/webpage?tab=article&num=30&uk=KKlshDoWI_vbi3E1Ehi4aw&source=pc&type=newhome&action=dynamic&format=jsonp&otherext=h5_20220623143557&Tenger-Mhor=2720973306&callback=__jsonp01656312083699'
+
+var page=0;
+
+function load_js(url , callback ){
+    var script = document.createElement('script');
+	fn = callback || function(){};
+    script.type = 'text/javascript';
+    script.onload = fn;
+    
+    console.log("loading js from "+url);
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+}
+
+var t = {"ctime":"", "list":[],"hasMore":true}
+var stop_work = false;
+
+function __jsonp01656312083699(data){
+	console.log("page:"+ ++page);
+	console.log(data);
+	data = data.data;
+	var ctime = data.query.ctime;
+	var news = data.list;
+	
+	news.forEach( n => {		
+		t.list.push(n)
+	});
+	t.ctime = ctime;
+	
+	last_date = new Date(parseInt(news[0].dynamic_ctime*1000)).toJSON();
+	console.log(last_date)
+	var has_more =  last_date.substring(0,4) != "2021";
+	t.hasMore = has_more
+	localStorage.setItem("KKlshDoWI_vbi3E1Ehi4aw", JSON.stringify( t)); 
+	
+	if (has_more && data.hasMore && !stop_work){
+		let s = url+"&ctime="+ctime;
+		setTimeout('load_js("'+s +'");',5000);
+	}else{
+		console.log("load complted");
+	}
+}
+
+function load_news(){
+	var old_v = localStorage.getItem("KKlshDoWI_vbi3E1Ehi4aw");
+	if (!old_v){
+		load_js(url,null);
+	}else{
+		t = JSON.parse( old_v);
+		load_js(url+"&ctime="+t.ctime,null);
+	}
+	
+
+}
+
+
+
+</script>
+
+
+
+
+
+</head>
+
+
+<body>
+
+<input type = "button" value = "开始" onclick = "load_news();" />
+<input type = "button" value = "结束" onclick = "stop_work= true">
+
+</body>
+
+
+</html>
