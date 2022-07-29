@@ -1,0 +1,18 @@
+var mc_sids=["000061"];
+mc_sids.push("000415");
+mc_sids.push("000505");
+mc_sids.push("000680");
+mc_sids.push("000732");
+mc_sids.push("000778");
+mc_sids.push("002145");
+mc_sids.push("002229");
+mc_sids.push("002311");
+mc_sids.push("002317");
+mc_sids.push("002589");
+mc_sids.push("003035");
+mc_sids.push("600233");
+mc_sids.push("600372");
+mc_sids.push("600664");
+mc_sids.push("600803");
+mc_sids.push("600863");
+mc_sids.push("603456");

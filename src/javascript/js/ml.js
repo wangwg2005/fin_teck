@@ -22,6 +22,81 @@ function batch_ml(x,y,offset){
 }
 
 
+function compute_cycle_by_median(a){
+	var range = 33;
+	
+	var arr = a.slice(-range);
+	
+	var avg = arr.reduce(add)/range;
+	arr = Array.from(arr, p => p-avg);
+	console.log("latest data");
+	console.log(arr);
+	var cnt = 0;
+	for(let i =1;i<33;i++){
+		let m = 0;
+		if (arr[i]*arr[i-1]<0){
+			m = 1;
+		}
+		cnt = cnt << 1 | m;
+	}
+	
+	var hcycle = 0;
+	
+	var ind = 0;
+	var lens = new Array();
+	while (ind<32){
+		let len = 0;
+		while((ind+ ++len<32) & !(( cnt>> ind + len)& 1));
+		if (ind + len <32){
+			lens.push(len);
+			
+		}
+		ind += len+1;		
+	}
+	
+	lens.sort( (a,b)=> b-a);
+	console.log(lens);
+	if (lens.length ==1){
+		return lens[0]*2;
+	}else if (lens.length>1){
+		return lens[0]+lens[1];
+	}else{
+		return -1;
+	}
+	
+	
+}
+
+function compute_cycle_by_max(a){
+	var min_cycle = 8;
+	var arr = a.slice(-33);
+	var origin = a.slice(-33)
+	arr.sort();
+	var big = arr.slice(0,11)
+	console.log("big");
+	console.log(big);
+	var inds = Array.from(big, v => origin.indexOf(v));
+	var lens = new Array();
+	console.log(inds);
+	// var current_ind= 0;
+	// for(let i = 0; i < 11; i++){
+		
+	// }
+	
+}
+
+function diff(a, order = 1){
+	var len = a.length;
+	result = []
+	for (let i = order; i<len ;i++){
+		result[i-order]=a[i]-a[i-order]
+	}
+	
+	return result
+	
+}
+
+
 function linearRegression(y,x){ 
      let lr = {}; 
      let n = y.length; 

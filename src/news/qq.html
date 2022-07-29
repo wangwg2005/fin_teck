@@ -1,0 +1,56 @@
+<html>
+<head>
+<script type="text/javascript">
+
+
+
+function __jp1(data){
+	var news = data.data;
+	for( n of news){
+		console.log(n.title);
+		console.log(m.tag);
+	}
+}
+
+function load_js(url,cb){
+	console.log("loading js from "+ url);
+
+	var hm = document.createElement("script");
+	hm.src = url;
+	fn = cb || function(){};
+	hm.type = 'text/javascript';
+	hm.onload = fn;
+	document.getElementsByTagName('head')[0].appendChild(hm);
+}
+
+function load_data(pnum){
+	var url = `https://pacaio.match.qq.com/om/mediaArticles?mid=1755&num=20&page=${pnum}&expIds=&callback=__jp1`;
+	load_js(url)
+}
+
+var pnum = 0;
+
+function load(){
+	load_data(pnum++);
+}
+
+
+</head>
+
+
+<body>
+
+<table class="easyui-datagrid" style="width:400px;height:250px"
+        data-options="url:'datagrid_data.json',fitColumns:true,singleSelect:true">
+    <thead>
+        <tr>
+            <th data-options="field:'code',width:100">Code</th>
+            <th data-options="field:'name',width:100">Name</th>
+            <th data-options="field:'price',width:100,align:'right'">Price</th>
+        </tr>
+    </thead>
+</table>
+</body>
+
+
+</html>

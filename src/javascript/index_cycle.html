@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<script type="text/javascript" src="js/ml.js"></script>
+<script type="text/javascript" src="js/draw.js"></script>
+<script type="text/javascript" src="js/common.js"></script>
+<script type="text/javascript" src="js/echarts.min.js"></script> 
+<script type="text/javascript">
+
+var price={};
+var data={};
+var mm ={}
+
+function sid_change(sid){
+	var m5 = price[sid]["data"][sid].day;
+	mm[sid]=m5;
+	
+	var order = param["diff_order"]
+
+	var ps = Array.from(m5,p => (parseFloat(p[3])+parseFloat(p[4]))/2);
+	console.log("cycle");
+	
+	
+	var dates = Array.from(m5, p => p[0]).slice(1)
+
+
+	
+	
+	var d = diff(ps,order)
+	var cycle = compute_cycle_by_median(d);
+	compute_cycle_by_max(d);
+	console.log(`cycle: ${cycle}`);
+	console.log("current date:"+dates[dates.length-1])
+	console.log("the date before one cycle:"+dates[dates.length - cycle])
+	
+	
+	<!-- draw_gradient_line("demo",dates,[d],'Diff '+order); -->
+	<!-- draw_k_line_2("kline",{},sid,m5) -->
+	
+	
+}
+
+
+
+
+function init(){
+	param = get_param({"diff_order":5})
+
+	var sids=['sh000016','sh000300','sh000905','sz399006'];
+	<!-- var sids=['sh000016']; -->
+	for( let sid of sids){
+		url = `http://web.ifzq.gtimg.cn/appstock/app/fqkline/get?_var=price.${sid}&param=${sid},day,,,800,qfq&r=0.20250418055060626`;
+		load_js(url,null);
+	}
+	<!-- var real_url = 'https://push2.eastmoney.com/api/qt/ulist.np/get?ut=13697a1cc677c8bfa9a496437bfef419&fields=f1,f2,f3,f4,f12,f13,f14&secids=1.000016,1.000905,1.000300,1.000688&cb=jQuery18308958543031269126_1647150479422&_=1647150479801'; -->
+	<!-- setInterval(function(){load_js(real_url);}, 1000*60*5); -->
+}
+
+
+</script>
+
+
+</head>
+<body onload='init()'>
+
+
+
+<select onchange="sid_change(this.value)">
+	<option value ="sh000016">上证50</option>
+  <option value ="sh000300" selected="selected">沪深300</option>
+  <option value="sh000905">中证500</option>
+  <option value="sz399006">创业板</option>
+
+</select>
+<br/>
+<table>
+<thead>
+
+
+</table>
+
+<br/>
+<div id="kline" style="height:500px;width:100%"></div>
+<div id="demo" style="height:500px;width:100%"></div>
+</body>
+</html>
