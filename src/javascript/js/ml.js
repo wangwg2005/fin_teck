@@ -186,7 +186,7 @@ function rolling_sum( a, slid_window){
 	let result =  new Array();
 	
 	delta = 0;
-	offset = slid_window - 1
+	offset = slid_window - 1;
 	for (let i=0;i < offset ;i++){
 		delta+=a[i];
 	}

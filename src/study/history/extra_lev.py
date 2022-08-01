@@ -321,6 +321,7 @@ if __name__=="__main__":
     # csi500
     features=get_features("000905")
     pred_csi500 = model(features,cnames,"000905",pred_start="2014-01-01")
+    model(features,cnames,"000905",pred_start="2020-01-01")
 #     model(features,cnames,"000905",train_start="2019-06-01",train_end="2022-06-01",pred_start="2020-01-01")
 #     pred_csi500 = model(features,cnames,"000905",pred_start="2014-01-01")
     rows.append(pred_csi500)
