@@ -33,7 +33,7 @@ def update_etf_lev():
 #         "000300":{"szse":["159919"],"sse":["510300","510310","510330","515380"]},
 #         "000905":{"sse":["510500","512500","510510"],"szse":["159922"]},
 #         "000688":{"sse":["588000","588080"]},
-        "399006":{"szse":["159915"]}
+#         "399006":{"szse":["159915"]}
 
             
         }
@@ -68,7 +68,7 @@ def update_index_lev():
 
 def update_index():
     update_leverage_2_date()
-    update_etf_lev()
+#     update_etf_lev()
     update_prices_to_date()
     update_index_lev()
     

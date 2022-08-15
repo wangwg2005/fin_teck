@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Index Analysis</title>
+<script type="text/javascript" src="js/analyze.js"></script>
 <script type="text/javascript" src="js/ml.js"></script>
 <script type="text/javascript" src="js/draw.js"></script>
 <script type="text/javascript" src="js/common.js"></script>
@@ -16,8 +17,9 @@
 var datas = {}
 
 function analyze_data(customize){
-	data = index_value.data;
-	datas[data[0].substr(1)]=data
+	index_id = document.getElementById("index").value;
+	data = datas[index_id.substr(2)];
+	<!-- datas[data[0].substr(1)]=data -->
 	if(customize ===true){
 		let v = $("#train_slider").slider("getValues");
 		console.log(v);
@@ -44,6 +46,7 @@ function analyze_data(customize){
 	}
 	
 	var x = Array.from(train_set, a =>a.lev);
+	<!-- var y = Array.from(train_set, a=> ( a["最高价"]+ a["最低价"])/2); -->
 	var y = Array.from(train_set, a=> a.close);
 	var model = linearRegression(y,x);
 	
@@ -71,6 +74,7 @@ function load_data(ind){
 	}
 	
 	if(ind==opts.length){
+		draw_d2();
 		return
 	}
 	
@@ -80,13 +84,20 @@ function load_data(ind){
 
 }
 
+function load_realtime_price(cb){
+	var real_url = 'https://push2.eastmoney.com/api/qt/ulist.np/get?ut=13697a1cc677c8bfa9a496437bfef419&fields=f1,f2,f3,f4,f12,f13,f14&secids=1.000016,1.000905,1.000300,1.000688&cb=jQuery18308958543031269126_1647150479422&_=1647150479801';
+	load_js(real_url,cb);
+}
+
 
 function init(){
 	
-	var real_url = 'https://push2.eastmoney.com/api/qt/ulist.np/get?ut=13697a1cc677c8bfa9a496437bfef419&fields=f1,f2,f3,f4,f12,f13,f14&secids=1.000016,1.000905,1.000300,1.000688&cb=jQuery18308958543031269126_1647150479422&_=1647150479801';
-	load_js(real_url,function(){load_data(0);});
-	
+	load_realtime_price(function(){load_data(0);});
+	ref_int = setInterval(refresh_all, 1000*3);
 }
+
+
+var boundaries = {};
 
 function long_term(sid,cid, title){
 
@@ -95,7 +106,6 @@ function long_term(sid,cid, title){
 	var labels = new Array();
 	var upper = new Array();
 	var lower = new Array();
-	var mresult = new Array();
 
 	for(let i = 5;i<750;i++){
 		labels.push(i);
@@ -105,20 +115,21 @@ function long_term(sid,cid, title){
 		var y = Array.from(train_set, a=> a.close);
 		var lr = linearRegression(y,x);
 		let v = lr['slope'] * x[i-1] + lr["intercept"];
-		mresult.push(price[sid]);
 		upper.push(v + 2*lr["se"]);
 		lower.push (v - 2*lr["se"] );
 	
 	}
-	draw_gradient_line(cid,labels,[mresult,upper,lower],title);
+	boundaries[sid]= {"upper":upper, "lower":lower,"label":labels};
+	
 }
 
 
 
 
 function index_change(){
-	index_id = document.getElementById("index").value;
-	load_js(`js/data/${index_id.substr(2)}.js`,analyze_data);
+	analyze_data();
+
+	<!-- load_js(`js/data/${index_id.substr(2)}.js`,analyze_data); -->
 }
 
 var price = {};
@@ -137,6 +148,23 @@ function jQuery18308958543031269126_1647150479422(data){
 		price[code] = current_price;
 		
 	}
+	console.log(JSON.stringify(price));
+}
+
+function draw_d2(){
+
+	for(let sid in price){
+		let p = new Array(boundaries[sid].upper.length);
+		p.fill(price[sid]);
+		draw_gradient_line(sid,boundaries[sid].label,[p,boundaries[sid].upper,boundaries[sid].lower],sid);
+	}
+
+}
+
+function refresh_all(){
+	load_realtime_price(draw_d2);
+
+
 }
 
 </script>
@@ -198,9 +226,11 @@ function jQuery18308958543031269126_1647150479422(data){
 
 <br/>
 <div id="diagram" style="height:500px;width:100%"></div>
-<div id="d1" style="height:500px;width:100%"></div>
-<div id="d2" style="height:500px;width:100%"></div>
-<div id="d3" style="height:500px;width:100%"></div>
-<div id="d4" style="height:500px;width:100%"></div>
+<hr/>
+
+<div id="000016" style="height:500px;width:100%"></div>
+<div id="000300" style="height:500px;width:100%"></div>
+<div id="000905" style="height:500px;width:100%"></div>
+<div id="000688" style="height:500px;width:100%"></div>
 </body>
 </html>

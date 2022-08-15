@@ -67,6 +67,28 @@ function compute_cycle_by_median(a){
 	
 }
 
+
+function model_by_ci(X,Y, pos , mlen,sigma,ci){
+	
+	for(let len= mlen;len++; len<X.length){
+	
+		let start = pos - len + 1;
+		
+		let x = X.slice(start,len);
+		let y = Y.slice(start,len);
+		
+		let lr = linearRegression(x, y);
+		
+		
+		
+	}
+	
+	
+	
+}
+
+
+
 function compute_cycle_by_max(a){
 	var min_cycle = 8;
 	var arr = a.slice(-33);

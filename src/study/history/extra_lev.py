@@ -109,7 +109,7 @@ def model(features,names,prefix,train_start="2016-12-31",train_end="2020-12-31",
     print(X.index[-1])
     print(test_df["close"][-1])
     
-    print(preds[-10:].to_csv())
+    print(preds[-2:].to_csv())
     
 #     y_rpred = rm.predict(rX)
 #     print(preds)
@@ -141,13 +141,16 @@ def model(features,names,prefix,train_start="2016-12-31",train_end="2020-12-31",
     
     pred_y.plot(ax=ax4,label="prediction",grid=True)
     plt.fill_between(preds.index,preds["obs_ci_lower"],preds["obs_ci_upper"],alpha=0.2)
-    last_diff=pred_y[-1]-test_df["close"][-1]
+    residual=pred_y-test_df["close"]
+    last_diff=residual[-1]
+    print(test_df.index[-1])
+    print(f"last_diff:{last_diff}")
     plt.title("{},std:{:.2f},last diff:{:.2f}".format(test_df.index[-1].strftime("%Y%m%d"),mod.mse_resid**0.5,last_diff))
     plt.legend()
 
     ax5 = plt.subplot(212)
     ax5.grid();
-    residual=pred_y-test_df["close"]
+    
     residual.plot(ax=ax5,label="residual",grid=True)
     plt.legend()
 
@@ -231,7 +234,7 @@ def fx():
     df.index = pd.to_datetime(df.pop('日期'));
     df = df.astype(np.float)
     df = df.drop_duplicates()
-    print(df.tail(20))
+    print(df.tail(1))
 #     print(df)
 #     df.plot()
 #     plt.show()
@@ -261,7 +264,7 @@ def explore_fx():
 #         features['lev']=features['lev']/features['fx'] *100
 #         features['sell']=features['sell']/features['fx'] *100
         features['close']=features['close']/features['fx'] *100
-        print(features.tail(20))
+        print(features.tail(2))
         
         model(features,["lev","sell"],"us_index_"+sid)
         
@@ -349,6 +352,7 @@ if __name__=="__main__":
 #         model(features,cnames,"since_2020_"+name)
         pred = model(features,cnames,name,train_start="2019-01-01",train_end="2021-12-31",pred_start="2014-01-01")
         model(features,cnames,name,train_start="2015-01-01",train_end="2021-12-31",pred_start="2014-01-01")
+        model(features,cnames,name,train_start="2015-01-01",train_end="2021-12-31",pred_start="2020-01-01")
         rows.append(pred)
 #         
 #     df = pd.DataFrame(rows,index=["000905","000300",*indexes])
