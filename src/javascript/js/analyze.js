@@ -18,7 +18,7 @@ function convert_date(data){
 	
 }
 
-function get_by_week(data,day){
+function get_by_week(data){
 	for (d of data){
 		if ("date" in d){
 			break;

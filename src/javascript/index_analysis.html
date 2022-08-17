@@ -17,8 +17,8 @@
 var datas = {}
 
 function analyze_data(customize){
-	index_id = document.getElementById("index").value;
-	data = datas[index_id.substr(2)];
+	var index_id = document.getElementById("index").value;
+	var data = datas[index_id.substr(2)];
 	<!-- datas[data[0].substr(1)]=data -->
 	if(customize ===true){
 		let v = $("#train_slider").slider("getValues");
@@ -156,7 +156,12 @@ function draw_d2(){
 	for(let sid in price){
 		let p = new Array(boundaries[sid].upper.length);
 		p.fill(price[sid]);
-		draw_gradient_line(sid,boundaries[sid].label,[p,boundaries[sid].upper,boundaries[sid].lower],sid);
+		low = boundaries[sid].lower;
+		upper = boundaries[sid].upper;
+		low_num = low.filter( a => a>price[sid]).length;
+		up_num = upper.filter( a => a<price[sid]).length;
+		let title = sid+` (${low_num},${up_num})/${low.length}`;
+		draw_gradient_line(sid,boundaries[sid].label,[p,upper,low], title);
 	}
 
 }
