@@ -6,7 +6,6 @@ import business_day
 import time
 import os
 import numpy as np
-from sklearn.linear_model import Ridge,RidgeCV
 
 
 ttoday=datetime.date.today()
