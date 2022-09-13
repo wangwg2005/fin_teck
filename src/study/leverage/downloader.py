@@ -13,12 +13,15 @@ szse_url='http://www.szse.cn/api/report/ShowReport?SHOWTYPE=xlsx&CATALOGID=1837_
 szse_index='http://www.szse.cn/disclosure/margin/margin/index.html'
 
 
+abs_file = __file__
+abs_dir = abs_file[:abs_file.rfind(os.path.sep)]
+
 #"20210624"
 def download_leverage_sse(date_str):
     url=sse_url.format(date_str)
     print(url)
     
-    fpath=os.path.join('..//leverage//sse','rzrqjygk'+date_str+'.xls')
+    fpath=os.path.join(abs_dir,'sse','rzrqjygk'+date_str+'.xls')
     if os.path.exists(fpath):
         print("file exists, skip")
         return False
@@ -54,7 +57,7 @@ def download_leverage_szse(date_str):
     url=szse_url.format(date_str)
     print(url)
     
-    fpath=os.path.join('..//leverage//szse','rzrqjygk'+date_str+'.xls')
+    fpath=os.path.join(abs_dir,'szse','rzrqjygk'+date_str+'.xls')
     if os.path.exists(fpath):
         print("file exists, skip")
         return False

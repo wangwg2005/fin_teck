@@ -15,6 +15,9 @@ import datetime
 start="2014-12-31"
 ipath = "../../javascript/img"
 
+abs_file = __file__
+abs_dir = abs_file[:abs_file.rfind(os.path.sep)]
+
 
 def model(features,names,prefix,train_start="2016-12-31",train_end="2020-12-31",pred_start="2019-12-31",pred_end=None):
     print(prefix)
@@ -165,11 +168,10 @@ def model(features,names,prefix,train_start="2016-12-31",train_end="2020-12-31",
     return preds.iloc[-1]
 
 def get_features(name,etf=False):
-    
-    base_dir=name
 
-    price_df=pd.read_csv(os.path.join(base_dir,name+".csv"),encoding="utf8",parse_dates=[0],index_col=0,nrows=4000).sort_index()[start:]
-    lev_df=pd.read_excel(os.path.join(base_dir,"融资融券_"+name+"n.xls"),parse_dates=[0],index_col=0).sort_index()[start:]
+
+    price_df=pd.read_csv(os.path.join(abs_dir,name,name+".csv"),encoding="utf8",parse_dates=[0],index_col=0,nrows=4000).sort_index()[start:]
+    lev_df=pd.read_excel(os.path.join(abs_dir,name,"融资融券_"+name+"n.xls"),parse_dates=[0],index_col=0).sort_index()[start:]
 #     print("leverage :")
 #     print(lev_df)
     features=price_df
@@ -185,7 +187,7 @@ def get_features(name,etf=False):
         etfs=filter(lambda f: len(f)==15 and f[:4]=="rzrq", files)
  
      
-        extra_dfs=map(lambda etfile:pd.read_csv(os.path.join(base_dir,etfile),header=0,parse_dates=[0],index_col=0).sort_index()[start:][["融资余额(元)","融券余量"]],etfs)
+        extra_dfs=map(lambda etfile:pd.read_csv(os.path.join(abs_dir,name,etfile),header=0,parse_dates=[0],index_col=0).sort_index()[start:][["融资余额(元)","融券余量"]],etfs)
         extra_dfs=list(extra_dfs)
         for ext in extra_dfs:
             print(ext.dtypes)

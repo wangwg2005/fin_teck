@@ -8,6 +8,9 @@ import os
 import pandas as pd
 import business_day
 
+abs_file = __file__
+abs_dir = abs_file[:abs_file.rfind(os.path.sep)]
+
 
 def update_leverage(date_str):
     lr.downloader.download_leverage_sse(date_str.replace("-",""))
@@ -55,12 +58,12 @@ def update_index_lev():
     for name in ["000016","000905","000300","000688"]:
 #     for name in ["000688"]:
 #     for name in ['000016']:
-        lev_fname = os.path.join(name, "融资融券_"+name+".xls")
+        lev_fname = os.path.join(abs_dir,name, "融资融券_"+name+".xls")
         his_df = pd.read_excel(lev_fname, header=1, parse_dates=[0], index_col=0)
         if len(days)>1:
             data = list(map(lambda day: dump.extract_index_lev(name, day), days))
             his_df = his_df.append(data).sort_index()
-        n_lev_fname = os.path.join(name, "融资融券_" + name + "n.xls")
+        n_lev_fname = os.path.join(abs_dir,name, "融资融券_" + name + "n.xls")
         his_df.to_excel(n_lev_fname)
         print("update",name ," leverage to",days[-1])
 

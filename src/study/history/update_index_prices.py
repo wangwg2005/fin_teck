@@ -13,6 +13,11 @@ urls["399006"]="https://quotes.money.163.com/service/chddata.html?code=1399006&s
 urls["000300"]="https://quotes.money.163.com/service/chddata.html?code=0000300&start=20020104&end={0}&fields=TCLOSE;HIGH;LOW;TOPEN;LCLOSE;CHG;PCHG;VOTURNOVER;VATURNOVER"
 urls["000688"]="https://quotes.money.163.com/service/chddata.html?code=0000688&start=20200102&end={0}&fields=TCLOSE;HIGH;LOW;TOPEN;LCLOSE;CHG;PCHG;VOTURNOVER;VATURNOVER"
 
+
+abs_file = __file__
+abs_dir = abs_file[:abs_file.rfind(os.path.sep)]
+
+
 def update_prices_to_date():
     end_da=date.today()+timedelta(days=-1)
     last_trade_day=pd.date_range(end=end_da, periods=1, freq=bd.get_business_day_cn("all"))[0]
@@ -23,12 +28,14 @@ def update_prices_to_date():
         url=str.format(v, last_day_str)
         print("downloading price data for",k,"from",url)
         df=pd.read_csv(url,encoding="gbk")
-        df.to_csv(os.path.join(k,k+".csv"),index=False)
+        df.to_csv(os.path.join(abs_dir,k,k+".csv"),index=False)
         time.sleep(3)
         
     
 
     
 if __name__=="__main__":
-    print(update_prices_to_date())
+    abs_file = __file__
+    print(abs_file[:abs_file.rfind(os.path.sep)])
+#     print(update_prices_to_date())
     
